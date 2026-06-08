@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from app import database
-from app.database import SCHEMA_PATH, apply_schema
+from app.database import SCHEMA_PATH, apply_schema, enable_foreign_keys
 
 EXPECTED_TABLES = {
   "assets",
@@ -89,3 +89,45 @@ def test_apply_schema_creates_database_file(
   ).fetchall()
   tables = {row[0] for row in rows}
   assert EXPECTED_TABLES <= tables
+
+
+def test_pool_enforces_foreign_keys(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  from databases import Database
+
+  db_path = tmp_path / "kiroku.db"
+  db = Database(f"sqlite+aiosqlite:///{db_path}")
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+  monkeypatch.setattr(database, "database", db)
+
+  async def scenario() -> None:
+    await apply_schema()
+    enable_foreign_keys()
+    await db.connect()
+    try:
+      # Each query opens a fresh connection: the pragma must be set every time.
+      assert await db.fetch_val("PRAGMA foreign_keys") == 1
+
+      await db.execute(
+        "INSERT INTO trades (id, status) VALUES (1, 'Open')"
+      )
+      await db.execute(
+        "INSERT INTO trade_activities (trade_id, type, price, quantity, date) "
+        "VALUES (1, 'Buy', 1.0, 1.0, '2026-01-01')"
+      )
+
+      # ON DELETE CASCADE removes the child activity.
+      await db.execute("DELETE FROM trades WHERE id = 1")
+      assert await db.fetch_val("SELECT COUNT(*) FROM trade_activities") == 0
+
+      # A dangling foreign key is rejected.
+      with pytest.raises(Exception):
+        await db.execute(
+          "INSERT INTO trade_activities (trade_id, type, price, quantity, date) "
+          "VALUES (999, 'Buy', 1.0, 1.0, '2026-01-01')"
+        )
+    finally:
+      await db.disconnect()
+
+  asyncio.run(scenario())
