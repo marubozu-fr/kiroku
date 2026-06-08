@@ -21,6 +21,7 @@ def clean_database() -> None:
   connection.executescript(SCHEMA_PATH.read_text())
   connection.execute("DELETE FROM assets")
   connection.execute("DELETE FROM tags")
+  connection.execute("DELETE FROM emotions")
   connection.commit()
   connection.close()
   yield
