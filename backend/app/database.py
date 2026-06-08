@@ -1,11 +1,13 @@
+import os
 from pathlib import Path
 
 import aiosqlite
 from databases import Database
 
 # SQLite file lives in backend/data/kiroku.db, created on first run (gitignored).
+# KIROKU_DB_PATH overrides the location (used by the test suite for isolation).
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-DB_PATH = DATA_DIR / "kiroku.db"
+DB_PATH = Path(os.environ.get("KIROKU_DB_PATH", DATA_DIR / "kiroku.db"))
 SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 DATABASE_URL = f"sqlite+aiosqlite:///{DB_PATH}"
 

@@ -1,10 +1,14 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.database import close_db, init_db
+from app.errors import DuplicateError, NotFoundError
 from app.models.response import ApiResponse
+from app.routers import assets
 
 
 @asynccontextmanager
@@ -24,6 +28,41 @@ app.add_middleware(
   allow_methods=["*"],
   allow_headers=["*"],
 )
+
+
+def _error_response(status_code: int, message: str) -> JSONResponse:
+  """Wrap an error in the standard { data, error } envelope."""
+  return JSONResponse(
+    status_code=status_code, content=ApiResponse(error=message).model_dump()
+  )
+
+
+@app.exception_handler(NotFoundError)
+async def not_found_handler(
+  request: Request, exc: NotFoundError
+) -> JSONResponse:
+  return _error_response(404, str(exc))
+
+
+@app.exception_handler(DuplicateError)
+async def duplicate_handler(
+  request: Request, exc: DuplicateError
+) -> JSONResponse:
+  return _error_response(409, str(exc))
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_handler(
+  request: Request, exc: RequestValidationError
+) -> JSONResponse:
+  # Surface the first validation error in the standard envelope.
+  first = exc.errors()[0]
+  location = ".".join(str(part) for part in first["loc"] if part != "body")
+  message = f"{location}: {first['msg']}" if location else first["msg"]
+  return _error_response(422, message)
+
+
+app.include_router(assets.router)
 
 
 @app.get("/api/health")
