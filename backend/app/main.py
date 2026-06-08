@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 from app.database import close_db, init_db
 from app.errors import DuplicateError, NotFoundError
 from app.models.response import ApiResponse
-from app.routers import assets
+from app.routers import assets, tags
 
 
 @asynccontextmanager
@@ -63,6 +63,7 @@ async def validation_handler(
 
 
 app.include_router(assets.router)
+app.include_router(tags.router)
 
 
 @app.get("/api/health")
