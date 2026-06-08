@@ -16,10 +16,11 @@ from app.database import SCHEMA_PATH  # noqa: E402
 
 @pytest.fixture(autouse=True)
 def clean_database() -> None:
-  """Reset the assets table before each test for deterministic results."""
+  """Reset the reference tables before each test for deterministic results."""
   connection = sqlite3.connect(_TEST_DB)
   connection.executescript(SCHEMA_PATH.read_text())
   connection.execute("DELETE FROM assets")
+  connection.execute("DELETE FROM tags")
   connection.commit()
   connection.close()
   yield
