@@ -1,15 +1,16 @@
 from datetime import datetime, timezone
 from typing import Any
 
+from app.errors import DuplicateError, NotFoundError
 from app.models.asset import AssetCreate, AssetUpdate
 from app.repositories import asset_repository
 
 
-class AssetNotFoundError(Exception):
+class AssetNotFoundError(NotFoundError):
   """Raised when an asset id does not exist."""
 
 
-class DuplicateAssetError(Exception):
+class DuplicateAssetError(DuplicateError):
   """Raised when an asset name is already taken."""
 
 

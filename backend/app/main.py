@@ -6,9 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.database import close_db, init_db
+from app.errors import DuplicateError, NotFoundError
 from app.models.response import ApiResponse
 from app.routers import assets
-from app.services.asset_service import AssetNotFoundError, DuplicateAssetError
 
 
 @asynccontextmanager
@@ -37,16 +37,16 @@ def _error_response(status_code: int, message: str) -> JSONResponse:
   )
 
 
-@app.exception_handler(AssetNotFoundError)
-async def asset_not_found_handler(
-  request: Request, exc: AssetNotFoundError
+@app.exception_handler(NotFoundError)
+async def not_found_handler(
+  request: Request, exc: NotFoundError
 ) -> JSONResponse:
   return _error_response(404, str(exc))
 
 
-@app.exception_handler(DuplicateAssetError)
-async def duplicate_asset_handler(
-  request: Request, exc: DuplicateAssetError
+@app.exception_handler(DuplicateError)
+async def duplicate_handler(
+  request: Request, exc: DuplicateError
 ) -> JSONResponse:
   return _error_response(409, str(exc))
 
