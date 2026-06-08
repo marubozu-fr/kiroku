@@ -19,6 +19,12 @@ def clean_database() -> None:
   """Reset the reference tables before each test for deterministic results."""
   connection = sqlite3.connect(_TEST_DB)
   connection.executescript(SCHEMA_PATH.read_text())
+  # Delete child rows before parents (this connection has foreign_keys OFF).
+  connection.execute("DELETE FROM trade_screenshots")
+  connection.execute("DELETE FROM trade_emotions")
+  connection.execute("DELETE FROM trade_tags")
+  connection.execute("DELETE FROM trade_activities")
+  connection.execute("DELETE FROM trades")
   connection.execute("DELETE FROM assets")
   connection.execute("DELETE FROM tags")
   connection.execute("DELETE FROM emotions")
