@@ -4,7 +4,7 @@ from app.database import database
 
 # Columns a client may write. Used to build UPDATE statements from a known
 # allowlist so column identifiers never come from request data.
-WRITABLE_COLUMNS = ("name", "category", "currency")
+WRITABLE_COLUMNS = ("name", "category", "currency", "is_active")
 
 
 async def get_all(active_only: bool = False) -> list[dict[str, Any]]:

@@ -124,6 +124,19 @@ def test_delete_asset_soft_deletes() -> None:
     assert fetched.json()["data"]["is_active"] is False
 
 
+def test_update_asset_reactivates() -> None:
+  with TestClient(app) as client:
+    created = _create(client).json()["data"]
+    client.delete(f"/api/assets/{created['id']}")
+
+    response = client.put(
+      f"/api/assets/{created['id']}", json={"is_active": True}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["is_active"] is True
+
+
 def test_delete_asset_not_found() -> None:
   with TestClient(app) as client:
     response = client.delete("/api/assets/999")
