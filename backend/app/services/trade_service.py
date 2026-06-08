@@ -59,9 +59,22 @@ def _compute_metrics(activities: list[dict[str, Any]], stop_loss: Optional[float
     exit_total_qty = 0.0
     avg_exit_price = None
 
-  # Risk / reward metrics.
+  # Risk is a positive magnitude — the distance to the stop, i.e. the "1R" unit.
   risk: Optional[float] = abs(avg_entry_price - stop_loss) if stop_loss is not None else None
-  reward: Optional[float] = abs(avg_exit_price - avg_entry_price) if avg_exit_price is not None else None
+
+  # Reward is directional (signed): positive when the exit is in the trade's
+  # favour, negative when it moved against it. A Long profits when price rises;
+  # a Short profits when it falls. This makes performance_r a signed R multiple
+  # (a losing trade shows a negative R, e.g. -1R), which is the trading-standard.
+  reward: Optional[float]
+  if avg_exit_price is not None:
+    if direction == "Long":
+      reward = avg_exit_price - avg_entry_price
+    else:  # Short
+      reward = avg_entry_price - avg_exit_price
+  else:
+    reward = None
+
   performance_r: Optional[float]
   if reward is not None and risk is not None and risk > EPS:
     performance_r = reward / risk

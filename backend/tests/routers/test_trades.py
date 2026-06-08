@@ -84,9 +84,9 @@ def test_create_long_trade_closed_happy_path() -> None:
   assert data["avg_exit_price"] == pytest.approx(1.1200)
   # risk = abs(1.1010 - 1.0900) = 0.0110
   assert data["risk"] == pytest.approx(0.0110)
-  # reward = abs(1.1200 - 1.1010) = 0.0190
+  # reward (Long) = avg_exit - avg_entry = 1.1200 - 1.1010 = +0.0190 (winner)
   assert data["reward"] == pytest.approx(0.0190)
-  # performance_r = 0.0190 / 0.0110
+  # performance_r = +0.0190 / 0.0110 (positive R for a winning trade)
   assert data["performance_r"] == pytest.approx(0.0190 / 0.0110)
 
   # Nested activities — check is_entry flags
@@ -241,10 +241,92 @@ def test_weighted_avg_entry_price_accuracy() -> None:
   assert data["avg_exit_price"] == pytest.approx(120.0)
   # risk = abs(107.5 - 95.0) = 12.5
   assert data["risk"] == pytest.approx(12.5)
-  # reward = abs(120.0 - 107.5) = 12.5
+  # reward (Long) = 120.0 - 107.5 = +12.5 (winner)
   assert data["reward"] == pytest.approx(12.5)
-  # performance_r = 12.5 / 12.5 = 1.0
+  # performance_r = +12.5 / 12.5 = +1.0R
   assert data["performance_r"] == pytest.approx(1.0)
+
+
+# ---------------------------------------------------------------------------
+# 4b. Signed R — losing trades show a negative reward and negative R
+# ---------------------------------------------------------------------------
+
+
+def test_losing_long_trade_has_negative_r() -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    # Long: entry 100, stop 95 (risk 5), exit 90 below entry → loss.
+    response = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "stop_loss": 95.0,
+        "activities": [
+          {"type": "Buy", "price": 100.0, "quantity": 1.0, "date": "2024-08-01"},
+          {"type": "Sell", "price": 90.0, "quantity": 1.0, "date": "2024-08-02"},
+        ],
+      },
+    )
+
+  assert response.status_code == 201
+  data = response.json()["data"]
+  assert data["direction"] == "Long"
+  assert data["status"] == "Closed"
+  # risk stays a positive magnitude.
+  assert data["risk"] == pytest.approx(5.0)
+  # reward (Long) = 90 - 100 = -10 (price moved against the position).
+  assert data["reward"] == pytest.approx(-10.0)
+  # performance_r = -10 / 5 = -2.0R.
+  assert data["performance_r"] == pytest.approx(-2.0)
+
+
+def test_losing_short_trade_has_negative_r() -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    # Short: entry 100 (Sell first), stop 105 (risk 5), exit 110 above entry → loss.
+    response = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "stop_loss": 105.0,
+        "activities": [
+          {"type": "Sell", "price": 100.0, "quantity": 1.0, "date": "2024-08-01"},
+          {"type": "Buy", "price": 110.0, "quantity": 1.0, "date": "2024-08-02"},
+        ],
+      },
+    )
+
+  assert response.status_code == 201
+  data = response.json()["data"]
+  assert data["direction"] == "Short"
+  assert data["status"] == "Closed"
+  assert data["risk"] == pytest.approx(5.0)
+  # reward (Short) = avg_entry - avg_exit = 100 - 110 = -10 (price rose against the short).
+  assert data["reward"] == pytest.approx(-10.0)
+  assert data["performance_r"] == pytest.approx(-2.0)
+
+
+def test_winning_short_trade_has_positive_r() -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    # Short: entry 100 (Sell first), stop 105 (risk 5), exit 90 below entry → profit.
+    response = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "stop_loss": 105.0,
+        "activities": [
+          {"type": "Sell", "price": 100.0, "quantity": 1.0, "date": "2024-08-01"},
+          {"type": "Buy", "price": 90.0, "quantity": 1.0, "date": "2024-08-02"},
+        ],
+      },
+    )
+
+  assert response.status_code == 201
+  data = response.json()["data"]
+  # reward (Short) = 100 - 90 = +10 (winning short).
+  assert data["reward"] == pytest.approx(10.0)
+  assert data["performance_r"] == pytest.approx(2.0)
 
 
 # ---------------------------------------------------------------------------
