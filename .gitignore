@@ -40,7 +40,8 @@ build/
 # Claude Code (local settings only)
 .claude/settings.local.json
 
-# SQLite database files (user data, not committed)
+# SQLite database files and user data (not committed)
+backend/data/
 *.db
 *.db-journal
 *.db-wal
