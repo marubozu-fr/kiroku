@@ -1,6 +1,6 @@
 [tool.ruff]
 indent-width = 2
-line-length = 100
+line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
@@ -8,3 +8,8 @@ select = ["E", "F", "I", "W"]
 
 [tool.ruff.format]
 indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
