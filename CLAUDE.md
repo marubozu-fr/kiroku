@@ -25,6 +25,18 @@ Repository: `marubozu-fr/kiroku` — License: AGPL-3.0
 - Snake_case for Python and API JSON fields. camelCase for TypeScript internal variables.
 - Pydantic models for all request/response validation.
 
+## i18n Conventions
+- Every user-facing string must use `t('key')` via `useTranslation()` from `react-i18next`
+- Key naming: dot-separated, nested in JSON — page-scoped (e.g., `journal.table.header.date`, `common.actions.save`)
+- `common.*` for shared strings (actions, statuses, labels reused across pages)
+- `<page>.*` for page-specific strings (e.g., `settings.*`, `journal.*`, `trade.*`)
+- EN (`en.json`) is the source of truth — all 6 locale files must have identical key structure
+- Supported languages: EN, FR, ES, IT, DE, PT
+- Trading terms listed in `docs/I18N_GLOSSARY.md` stay in English in ALL languages
+- Interpolation uses `{{variable}}` syntax: `t('trade.pnl_value', { value: pnl })`
+- Language preference stored in `localStorage` key `kiroku-language`
+- No backend changes for i18n — language is a frontend-only concern
+
 ## Project Structure
 ```
 kiroku/
