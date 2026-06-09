@@ -6,9 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.database import close_db, init_db
-from app.errors import DuplicateError, NotFoundError
+from app.errors import DuplicateError, NotFoundError, ValidationError
 from app.models.response import ApiResponse
-from app.routers import assets, emotions, tags, trades
+from app.routers import assets, emotions, screenshots, tags, trades
 
 
 @asynccontextmanager
@@ -51,6 +51,13 @@ async def duplicate_handler(
   return _error_response(409, str(exc))
 
 
+@app.exception_handler(ValidationError)
+async def validation_error_handler(
+  request: Request, exc: ValidationError
+) -> JSONResponse:
+  return _error_response(400, str(exc))
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_handler(
   request: Request, exc: RequestValidationError
@@ -66,6 +73,7 @@ app.include_router(assets.router)
 app.include_router(tags.router)
 app.include_router(emotions.router)
 app.include_router(trades.router)
+app.include_router(screenshots.router)
 
 
 @app.get("/api/health")

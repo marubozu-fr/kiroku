@@ -191,3 +191,46 @@ async def get_screenshots(trade_id: int) -> list[dict[str, Any]]:
     {"trade_id": trade_id},
   )
   return [dict(row) for row in rows]
+
+
+async def insert_screenshot(
+  trade_id: int,
+  filename: str,
+  timeframe_unit: Optional[str],
+  timeframe_value: Optional[int],
+  now: str,
+) -> int:
+  """Insert a single screenshot record and return its generated id."""
+  query = """
+    INSERT INTO trade_screenshots (trade_id, filename, timeframe_unit, timeframe_value, created_at)
+    VALUES (:trade_id, :filename, :timeframe_unit, :timeframe_value, :created_at)
+  """
+  values = {
+    "trade_id": trade_id,
+    "filename": filename,
+    "timeframe_unit": timeframe_unit,
+    "timeframe_value": timeframe_value,
+    "created_at": now,
+  }
+  return await database.execute(query, values)
+
+
+async def get_screenshot_by_id(screenshot_id: int) -> Optional[dict[str, Any]]:
+  """Return a single screenshot record by id, or None if it does not exist."""
+  row = await database.fetch_one(
+    "SELECT * FROM trade_screenshots WHERE id = :id", {"id": screenshot_id}
+  )
+  return dict(row) if row is not None else None
+
+
+async def get_screenshot_by_filename(filename: str) -> Optional[dict[str, Any]]:
+  """Return a single screenshot record by filename, or None if it does not exist."""
+  row = await database.fetch_one(
+    "SELECT * FROM trade_screenshots WHERE filename = :filename", {"filename": filename}
+  )
+  return dict(row) if row is not None else None
+
+
+async def delete_screenshot(screenshot_id: int) -> None:
+  """Permanently remove a screenshot record."""
+  await database.execute("DELETE FROM trade_screenshots WHERE id = :id", {"id": screenshot_id})

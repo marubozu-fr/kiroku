@@ -8,6 +8,10 @@ from databases import Database
 # KIROKU_DB_PATH overrides the location (used by the test suite for isolation).
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DB_PATH = Path(os.environ.get("KIROKU_DB_PATH", DATA_DIR / "kiroku.db"))
+# Uploaded trade screenshots live under data/screenshots/{trade_id}/. Derived
+# from the database location so the test suite's throwaway db keeps its files
+# isolated too.
+SCREENSHOTS_DIR = DB_PATH.parent / "screenshots"
 SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 DATABASE_URL = f"sqlite+aiosqlite:///{DB_PATH}"
 
@@ -92,6 +96,7 @@ def enable_foreign_keys() -> None:
 async def init_db() -> None:
   """Create the data directory, apply the schema, then connect."""
   DATA_DIR.mkdir(parents=True, exist_ok=True)
+  SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
   await apply_schema()
   await apply_migrations()
   enable_foreign_keys()
