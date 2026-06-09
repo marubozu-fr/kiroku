@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS emotions (
 CREATE TABLE IF NOT EXISTS trades (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   asset_id INTEGER REFERENCES assets(id),
+  account_type TEXT NOT NULL DEFAULT 'live',
   status TEXT NOT NULL,
   direction TEXT,
   stop_loss REAL,

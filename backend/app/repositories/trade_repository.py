@@ -6,6 +6,7 @@ from app.database import database
 # allowlist so column identifiers never come from request data.
 WRITABLE_COLUMNS = (
   "asset_id",
+  "account_type",
   "status",
   "direction",
   "stop_loss",

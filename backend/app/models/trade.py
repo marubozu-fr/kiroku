@@ -24,6 +24,12 @@ class TradeStatus(str, Enum):
   breakeven = "Breakeven"
 
 
+class AccountType(str, Enum):
+  test = "test"
+  demo = "demo"
+  live = "live"
+
+
 class TradeActivityCreate(BaseModel):
   """A single buy or sell execution to attach to a trade."""
 
@@ -64,6 +70,7 @@ class TradeCreate(BaseModel):
   model_config = ConfigDict(use_enum_values=True)
 
   asset_id: int
+  account_type: AccountType = AccountType.live
   stop_loss: Optional[float] = None
   notes: Optional[str] = Field(default=None, max_length=2000)
   missed_opportunity: bool = False
@@ -81,6 +88,7 @@ class TradeUpdate(BaseModel):
   model_config = ConfigDict(use_enum_values=True)
 
   asset_id: Optional[int] = None
+  account_type: Optional[AccountType] = None
   stop_loss: Optional[float] = None
   notes: Optional[str] = Field(default=None, max_length=2000)
   missed_opportunity: Optional[bool] = None
@@ -97,6 +105,7 @@ class TradeSummary(BaseModel):
 
   id: int
   asset_id: Optional[int] = None
+  account_type: AccountType = AccountType.live
   status: TradeStatus
   direction: Optional[TradeDirection] = None
   stop_loss: Optional[float] = None

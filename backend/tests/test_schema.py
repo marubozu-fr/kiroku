@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 from app import database
-from app.database import SCHEMA_PATH, apply_schema, enable_foreign_keys
+from app.database import SCHEMA_PATH, apply_migrations, apply_schema, enable_foreign_keys
 
 EXPECTED_TABLES = {
   "assets",
@@ -89,6 +89,53 @@ def test_apply_schema_creates_database_file(
   ).fetchall()
   tables = {row[0] for row in rows}
   assert EXPECTED_TABLES <= tables
+
+
+def test_migration_adds_account_type_and_backfills_live(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  # A database created before account_type existed (issue #48). The legacy
+  # trades table already has realized_pnl, so that migration is a no-op and
+  # only the account_type back-fill runs.
+  db_path = tmp_path / "kiroku.db"
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+
+  connection = sqlite3.connect(db_path)
+  connection.execute(
+    "CREATE TABLE trades (id INTEGER PRIMARY KEY, status TEXT NOT NULL, realized_pnl REAL)"
+  )
+  connection.execute("INSERT INTO trades (id, status) VALUES (1, 'Open')")
+  connection.commit()
+  connection.close()
+
+  asyncio.run(apply_migrations())
+
+  connection = sqlite3.connect(db_path)
+  columns = {row[1] for row in connection.execute("PRAGMA table_info(trades)").fetchall()}
+  backfilled = connection.execute("SELECT account_type FROM trades WHERE id = 1").fetchone()[0]
+  connection.close()
+
+  assert "account_type" in columns
+  # Existing rows back-fill to the 'live' default.
+  assert backfilled == "live"
+
+
+def test_migration_account_type_is_idempotent(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  # Running migrations twice on a current database must not raise (the
+  # column-presence guard makes the account_type step a no-op).
+  db_path = tmp_path / "kiroku.db"
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+
+  asyncio.run(apply_schema())
+  asyncio.run(apply_migrations())
+  asyncio.run(apply_migrations())
+
+  connection = sqlite3.connect(db_path)
+  columns = {row[1] for row in connection.execute("PRAGMA table_info(trades)").fetchall()}
+  connection.close()
+  assert "account_type" in columns
 
 
 def test_pool_enforces_foreign_keys(

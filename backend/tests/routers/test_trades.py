@@ -1110,3 +1110,82 @@ def test_update_missed_opportunity_nulls_realized_pnl() -> None:
 
   assert response.status_code == 200
   assert response.json()["data"]["realized_pnl"] is None
+
+
+# ---------------------------------------------------------------------------
+# 14. account_type — single account-type enum, default 'live' (issue #48)
+# ---------------------------------------------------------------------------
+
+
+def test_account_type_defaults_to_live() -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    response = _create(client, asset_id)
+
+  assert response.status_code == 201
+  assert response.json()["data"]["account_type"] == "live"
+
+
+@pytest.mark.parametrize("account_type", ["test", "demo", "live"])
+def test_account_type_accepts_each_valid_value(account_type: str) -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    response = _create(client, asset_id, account_type=account_type)
+
+  assert response.status_code == 201
+  assert response.json()["data"]["account_type"] == account_type
+
+
+def test_account_type_invalid_value_returns_422() -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    response = _create(client, asset_id, account_type="paper")
+
+  assert response.status_code == 422
+  body = response.json()
+  assert body["data"] is None
+  assert body["error"] is not None
+
+
+def test_account_type_in_get_detail() -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = _create(client, asset_id, account_type="demo").json()["data"]["id"]
+    detail = client.get(f"/api/trades/{trade_id}")
+
+  assert detail.status_code == 200
+  assert detail.json()["data"]["account_type"] == "demo"
+
+
+def test_account_type_in_list_summaries() -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _create(client, asset_id, account_type="test")
+    response = client.get("/api/trades")
+
+  assert response.status_code == 200
+  data = response.json()["data"]
+  assert len(data) == 1
+  assert data[0]["account_type"] == "test"
+
+
+def test_update_account_type() -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = _create(client, asset_id).json()["data"]["id"]
+    assert client.get(f"/api/trades/{trade_id}").json()["data"]["account_type"] == "live"
+
+    response = client.put(f"/api/trades/{trade_id}", json={"account_type": "demo"})
+
+  assert response.status_code == 200
+  assert response.json()["data"]["account_type"] == "demo"
+
+
+def test_update_account_type_invalid_value_returns_422() -> None:
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = _create(client, asset_id).json()["data"]["id"]
+    response = client.put(f"/api/trades/{trade_id}", json={"account_type": "paper"})
+
+  assert response.status_code == 422
+  assert response.json()["data"] is None

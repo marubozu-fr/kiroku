@@ -176,6 +176,7 @@ async def create_trade(payload: TradeCreate) -> dict[str, Any]:
 
   trade_fields: dict[str, Any] = {
     "asset_id": payload.asset_id,
+    "account_type": payload.account_type,
     "stop_loss": payload.stop_loss,
     "notes": payload.notes,
     "missed_opportunity": payload.missed_opportunity,
