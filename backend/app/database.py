@@ -27,6 +27,45 @@ async def apply_schema() -> None:
     await connection.commit()
 
 
+async def apply_migrations() -> None:
+  """Apply incremental column changes to databases created before they existed.
+
+  schema.sql only creates missing tables; it never alters existing ones. New
+  columns added to an existing table must be back-filled here so a database
+  created by an earlier version stays in sync without a migration framework.
+  Each step is guarded by a column-presence check, so this is a no-op once the
+  database is current and is safe to run on every startup.
+  """
+  async with aiosqlite.connect(DB_PATH) as connection:
+    await connection.execute("PRAGMA foreign_keys = ON")
+    cursor = await connection.execute("PRAGMA table_info(trades)")
+    columns = {row[1] for row in await cursor.fetchall()}
+
+    # realized_pnl (issue #26): monetary P&L on the exited portion of a trade.
+    # Back-fill = stored reward (per-unit, direction-adjusted) × total exit
+    # quantity. Exits are Sell for a Long, Buy for a Short. reward is NULL for
+    # open trades and missed opportunities are excluded, so both stay NULL.
+    if "realized_pnl" not in columns:
+      await connection.execute("ALTER TABLE trades ADD COLUMN realized_pnl REAL")
+      await connection.execute(
+        """
+        UPDATE trades
+        SET realized_pnl = ROUND(
+          reward * (
+            SELECT COALESCE(SUM(ta.quantity), 0)
+            FROM trade_activities ta
+            WHERE ta.trade_id = trades.id
+              AND ta.type = CASE WHEN trades.direction = 'Long' THEN 'Sell' ELSE 'Buy' END
+          ),
+          5
+        )
+        WHERE reward IS NOT NULL AND missed_opportunity = 0
+        """
+      )
+
+    await connection.commit()
+
+
 def enable_foreign_keys() -> None:
   """Force `PRAGMA foreign_keys = ON` on every pooled connection.
 
@@ -54,6 +93,7 @@ async def init_db() -> None:
   """Create the data directory, apply the schema, then connect."""
   DATA_DIR.mkdir(parents=True, exist_ok=True)
   await apply_schema()
+  await apply_migrations()
   enable_foreign_keys()
   await database.connect()
 
