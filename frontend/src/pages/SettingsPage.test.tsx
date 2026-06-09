@@ -21,16 +21,19 @@ describe('SettingsPage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('renders the settings heading and all three tabs', async () => {
+  it('renders the settings heading and all four tabs', async () => {
     renderWithProviders(<SettingsPage />)
 
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'General' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Assets' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Tags' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Emotions' })).toBeInTheDocument()
 
-    // The default (Assets) tab loads and shows its empty state.
-    expect(await screen.findByText(/no assets yet/i)).toBeInTheDocument()
+    // The default (General) tab loads and shows the language selector.
+    expect(
+      await screen.findByRole('textbox', { name: 'Language' }),
+    ).toBeInTheDocument()
   })
 
   it('switches to the Emotions tab and loads grouped data', async () => {

@@ -63,9 +63,14 @@
   "settings": {
     "title": "Settings",
     "tabs": {
+      "general": "General",
       "assets": "Assets",
       "tags": "Tags",
       "emotions": "Emotions"
+    },
+    "general": {
+      "language_label": "Idioma",
+      "language_description": "Elige el idioma de la interfaz"
     },
     "data_states": {
       "load_error": "Could not load data"
