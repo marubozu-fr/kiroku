@@ -10,6 +10,7 @@ function trade(overrides: Partial<TradeSummary> = {}): TradeSummary {
   return {
     id: 1,
     asset_id: 1,
+    account_type: 'live',
     status: 'Closed',
     direction: 'Long',
     stop_loss: null,

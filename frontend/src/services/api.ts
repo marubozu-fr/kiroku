@@ -23,17 +23,21 @@ interface RequestOptions {
  * Perform a request against the Kiroku API and unwrap the standard
  * `{ data, error }` envelope. Returns `data` on success; throws `ApiError`
  * on any HTTP error, API error message, or malformed response.
+ *
+ * A `FormData` body is sent as multipart/form-data (the browser sets the
+ * boundary header); anything else is JSON-encoded.
  */
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, signal } = options
+  const isFormData = body instanceof FormData
 
   let response: Response
   try {
     response = await fetch(`${API_BASE}${path}`, {
       method,
       signal,
-      headers: { 'Content-Type': 'application/json' },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: isFormData ? undefined : { 'Content-Type': 'application/json' },
+      body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
     })
   } catch (cause) {
     throw new ApiError(
@@ -63,6 +67,8 @@ export const api = {
   get: <T>(path: string, signal?: AbortSignal): Promise<T> =>
     request<T>(path, { method: 'GET', signal }),
   post: <T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
+    request<T>(path, { method: 'POST', body, signal }),
+  postForm: <T>(path: string, body: FormData, signal?: AbortSignal): Promise<T> =>
     request<T>(path, { method: 'POST', body, signal }),
   put: <T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
     request<T>(path, { method: 'PUT', body, signal }),

@@ -231,6 +231,12 @@
         "emotions": "No hay emociones registradas",
         "notes": "Sin notas",
         "screenshots": "Sin capturas"
+      },
+      "entries": "Entradas",
+      "exits": "Salidas",
+      "totals": {
+        "quantity": "Cant. total",
+        "avg_price": "Precio medio"
       }
     },
     "form": {
@@ -238,7 +244,6 @@
       "edit_title": "Editar trade",
       "load_error": "No se pudieron cargar los datos del formulario",
       "save_error_title": "No se pudo guardar el trade",
-      "add_activity": "Añadir actividad",
       "remove_activity": "Eliminar",
       "save_changes": "Guardar cambios",
       "create_trade": "Crear trade",
@@ -248,19 +253,16 @@
         "save_error": "No se pudo guardar el trade"
       },
       "sections": {
-        "asset": "Activo",
+        "configuration": "Configuración",
         "activities": "Actividades",
-        "risk_timeframe": "Riesgo y timeframe",
-        "tags_emotions": "Tags y emociones",
-        "notes": "Notas"
+        "notes": "Notas",
+        "screenshots": "Capturas"
       },
       "fields": {
         "asset_label": "Activo",
         "asset_placeholder": "Elige un activo",
         "asset_placeholder_empty": "No hay activos — añade uno en Ajustes",
-        "date_label": "Fecha",
         "date_placeholder": "Elige fecha y hora",
-        "type_label": "Tipo",
         "price_label": "Precio",
         "price_placeholder": "0.00",
         "quantity_label": "Cantidad",
@@ -282,7 +284,12 @@
         "notes_label": "Notas",
         "notes_placeholder": "Lógica del trade, observaciones…",
         "missed_opportunity_label": "Oportunidad perdida",
-        "missed_opportunity_description": "Un trade que identificaste pero que no llegaste a tomar"
+        "missed_opportunity_description": "Un trade que identificaste pero que no llegaste a tomar",
+        "direction_label": "Dirección",
+        "account_type_label": "Tipo de cuenta",
+        "timeframe_label": "Timeframe de entrada",
+        "entry_date_label": "Fecha de entrada",
+        "exit_date_label": "Fecha de salida"
       },
       "timeframe_units": {
         "m": "Minutos",
@@ -295,11 +302,40 @@
         "date_required": "La fecha es obligatoria",
         "price_positive": "El precio debe ser mayor que 0",
         "quantity_positive": "La cantidad debe ser mayor que 0",
-        "stop_loss_positive": "El Stop Loss debe ser mayor que 0",
         "risk_range": "El riesgo debe estar entre 0 y 100",
         "timeframe_value_required": "Introduce un valor de timeframe",
-        "timeframe_unit_required": "Elige una unidad"
+        "timeframe_unit_required": "Elige una unidad",
+        "direction_required": "La dirección es obligatoria",
+        "stop_loss_required": "El Stop Loss es obligatorio y debe ser mayor que 0",
+        "exit_exceeds_entry": "La cantidad de salida no puede superar la cantidad de entrada"
+      },
+      "add_entry": "Añadir entrada",
+      "add_exit": "Añadir salida",
+      "entries": "Entradas",
+      "exits": "Salidas",
+      "exits_empty": "Aún no hay salidas.",
+      "exits_locked": "Añade una entrada para desbloquear las salidas.",
+      "totals": {
+        "quantity": "Cant. total",
+        "avg_price": "Precio medio"
+      },
+      "screenshots": {
+        "add": "Añadir capturas",
+        "hint": "JPG, PNG o WebP, hasta 5 MB cada una. Se suben al guardar.",
+        "existing": "Guardada",
+        "remove": "Eliminar captura",
+        "invalid_file": "Se omitieron algunos archivos: solo se permiten JPG, PNG y WebP de hasta 5 MB.",
+        "upload_error": "El trade se guardó pero algunas capturas no se pudieron subir."
       }
+    },
+    "direction": {
+      "Long": "Long",
+      "Short": "Short"
+    },
+    "account_type": {
+      "test": "Test",
+      "demo": "Demo",
+      "live": "Live"
     }
   }
 }
