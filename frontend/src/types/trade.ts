@@ -6,6 +6,8 @@
  * list endpoint (`GET /api/trades`) returns — scalar columns only.
  */
 
+import type { Emotion, Tag } from '@/types/referenceData'
+
 export type TradeStatus = 'Open' | 'Closed' | 'Partial' | 'Breakeven'
 
 export type TradeDirection = 'Long' | 'Short'
@@ -30,4 +32,32 @@ export interface TradeSummary {
   trade_date: string | null
   created_at: string | null
   updated_at: string | null
+}
+
+export type ActivityType = 'Buy' | 'Sell'
+
+export interface TradeActivity {
+  id: number
+  trade_id: number
+  type: ActivityType
+  price: number
+  quantity: number
+  date: string
+  is_entry: boolean
+}
+
+export interface TradeScreenshot {
+  id: number
+  trade_id: number
+  filename: string
+  timeframe_unit: string | null
+  timeframe_value: number | null
+  created_at: string | null
+}
+
+export interface TradeDetail extends TradeSummary {
+  activities: TradeActivity[]
+  tags: Tag[]
+  emotions: Emotion[]
+  screenshots: TradeScreenshot[]
 }

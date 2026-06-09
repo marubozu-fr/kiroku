@@ -1,0 +1,8 @@
+.notes {
+  white-space: pre-wrap;
+}
+
+.thumbnail {
+  cursor: pointer;
+  background-color: var(--mantine-color-dark-6);
+}
