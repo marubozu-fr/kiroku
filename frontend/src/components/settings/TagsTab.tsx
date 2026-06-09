@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { IconPencil, IconPlus } from '@tabler/icons-react'
 import { ActionIcon, Button, Group, Switch, Table, Text } from '@mantine/core'
+import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { tagsApi } from '@/services/referenceData'
 import type { Tag } from '@/types/referenceData'
@@ -9,6 +10,7 @@ import { TagModal } from './TagModal'
 import { notifyError, notifySuccess } from './notify'
 
 export function TagsTab() {
+  const { t } = useTranslation()
   const { data, loading, error, reload } = useFetch(tagsApi.list)
   const [editing, setEditing] = useState<Tag | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -29,14 +31,14 @@ export function TagsTab() {
     try {
       if (tag.is_active) {
         await tagsApi.deactivate(tag.id)
-        notifySuccess(`${tag.name} deactivated`)
+        notifySuccess(t('settings.tags.notify.deactivated', { name: tag.name }))
       } else {
         await tagsApi.update(tag.id, { is_active: true })
-        notifySuccess(`${tag.name} activated`)
+        notifySuccess(t('settings.tags.notify.activated', { name: tag.name }))
       }
       reload()
     } catch (cause) {
-      notifyError(cause instanceof Error ? cause.message : 'Could not update tag')
+      notifyError(cause instanceof Error ? cause.message : t('settings.tags.notify.update_error'))
     } finally {
       setTogglingId(null)
     }
@@ -48,7 +50,7 @@ export function TagsTab() {
     <>
       <Group justify="flex-end" mb="md">
         <Button leftSection={<IconPlus size={20} />} onClick={openAdd}>
-          Add tag
+          {t('settings.tags.add')}
         </Button>
       </Group>
 
@@ -56,7 +58,7 @@ export function TagsTab() {
         loading={loading}
         error={error}
         isEmpty={tags.length === 0}
-        emptyMessage="No tags yet. Add tags to categorise and filter your trades."
+        emptyMessage={t('settings.tags.empty')}
         onRetry={reload}
       >
         <Table.ScrollContainer minWidth={600}>
@@ -64,16 +66,16 @@ export function TagsTab() {
             <Table.Thead>
               <Table.Tr>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                  Name
+                  {t('settings.tags.columns.name')}
                 </Table.Th>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                  Description
+                  {t('settings.tags.columns.description')}
                 </Table.Th>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                  Active
+                  {t('settings.tags.columns.active')}
                 </Table.Th>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed" w={60}>
-                  Edit
+                  {t('settings.tags.columns.edit')}
                 </Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -94,7 +96,7 @@ export function TagsTab() {
                       disabled={togglingId === tag.id}
                       onChange={() => toggleActive(tag)}
                       aria-label={
-                        tag.is_active ? `Deactivate ${tag.name}` : `Activate ${tag.name}`
+                        tag.is_active ? t('settings.tags.deactivate_aria', { name: tag.name }) : t('settings.tags.activate_aria', { name: tag.name })
                       }
                     />
                   </Table.Td>
@@ -103,7 +105,7 @@ export function TagsTab() {
                       variant="subtle"
                       color="gray"
                       onClick={() => openEdit(tag)}
-                      aria-label={`Edit ${tag.name}`}
+                      aria-label={t('settings.tags.edit_aria', { name: tag.name })}
                     >
                       <IconPencil size={20} />
                     </ActionIcon>

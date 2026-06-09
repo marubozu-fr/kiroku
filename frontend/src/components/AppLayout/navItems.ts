@@ -8,15 +8,15 @@ import {
 import type { Icon } from '@tabler/icons-react'
 
 export interface NavItem {
-  label: string
+  labelKey: string
   path: string
   icon: Icon
 }
 
 export const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/', icon: IconLayoutDashboard },
-  { label: 'Journal', path: '/journal', icon: IconNotebook },
-  { label: 'Analytics', path: '/analytics', icon: IconChartHistogram },
-  { label: 'Projections', path: '/projections', icon: IconTrendingUp },
-  { label: 'Settings', path: '/settings', icon: IconSettings },
+  { labelKey: 'nav.dashboard', path: '/', icon: IconLayoutDashboard },
+  { labelKey: 'nav.journal', path: '/journal', icon: IconNotebook },
+  { labelKey: 'nav.analytics', path: '/analytics', icon: IconChartHistogram },
+  { labelKey: 'nav.projections', path: '/projections', icon: IconTrendingUp },
+  { labelKey: 'nav.settings', path: '/settings', icon: IconSettings },
 ]

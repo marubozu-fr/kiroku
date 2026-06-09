@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { IconAlertTriangle, IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-react'
 import {
@@ -91,6 +92,7 @@ function isPositive(value: number | string): boolean {
  * Routes: /journal/new (create) and /journal/:id/edit (edit).
  */
 export function TradeFormPage() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const isEdit = id !== undefined
@@ -127,27 +129,27 @@ export function TradeFormPage() {
       missed_opportunity: false,
     },
     validate: {
-      asset_id: (value) => (value ? null : 'Asset is required'),
+      asset_id: (value) => (value ? null : t('trade.form.validation.asset_required')),
       activities: {
-        date: (value) => (value ? null : 'Date is required'),
-        price: (value) => (isPositive(value) ? null : 'Price must be greater than 0'),
+        date: (value) => (value ? null : t('trade.form.validation.date_required')),
+        price: (value) => (isPositive(value) ? null : t('trade.form.validation.price_positive')),
         quantity: (value) =>
-          isPositive(value) ? null : 'Quantity must be greater than 0',
+          isPositive(value) ? null : t('trade.form.validation.quantity_positive'),
       },
       stop_loss: (value) =>
-        value === '' || isPositive(value) ? null : 'Stop loss must be greater than 0',
+        value === '' || isPositive(value) ? null : t('trade.form.validation.stop_loss_positive'),
       risk_per_trade: (value) => {
         if (value === '') return null
         const parsed = Number(value)
-        return parsed > 0 && parsed <= 100 ? null : 'Risk must be between 0 and 100'
+        return parsed > 0 && parsed <= 100 ? null : t('trade.form.validation.risk_range')
       },
       timeframe_value: (value, values) =>
         values.timeframe_unit && !isPositive(value)
-          ? 'Enter a timeframe value'
+          ? t('trade.form.validation.timeframe_value_required')
           : null,
       timeframe_unit: (value, values) => {
         const hasValue = values.timeframe_value !== '' && values.timeframe_value !== null
-        return hasValue && !value ? 'Pick a unit' : null
+        return hasValue && !value ? t('trade.form.validation.timeframe_unit_required') : null
       },
     },
   })
@@ -252,10 +254,10 @@ export function TradeFormPage() {
       const saved = isEdit
         ? await tradesApi.update(tradeId, payload)
         : await tradesApi.create(payload)
-      notifySuccess(isEdit ? 'Trade updated' : 'Trade created')
+      notifySuccess(isEdit ? t('trade.form.notify.updated') : t('trade.form.notify.created'))
       navigate(`/journal/${saved.id}`)
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : 'Could not save trade'
+      const message = cause instanceof Error ? cause.message : t('trade.form.notify.save_error')
       setSubmitError(message)
       notifyError(message)
     } finally {
@@ -268,7 +270,7 @@ export function TradeFormPage() {
     <Anchor component={Link} to={backTo} size="sm" c="dimmed">
       <Group gap="xs">
         <IconArrowLeft size={16} />
-        {isEdit ? 'Back to trade' : 'Back to journal'}
+        {isEdit ? t('trade.back_to_trade') : t('trade.back_to_journal')}
       </Group>
     </Anchor>
   )
@@ -287,20 +289,20 @@ export function TradeFormPage() {
         <Alert
           color="orange"
           icon={<IconAlertTriangle size={20} />}
-          title={isNotFound ? 'Trade not found' : 'Could not load trade'}
+          title={isNotFound ? t('trade.not_found_title') : t('trade.load_error')}
         >
           {isNotFound ? (
             <Text size="sm">
-              This trade does not exist or has been deleted.{' '}
+              {t('trade.not_found_body')}{' '}
               <Anchor component={Link} to="/journal">
-                Return to journal
+                {t('trade.return_to_journal')}
               </Anchor>
             </Text>
           ) : (
             <Stack gap="sm" align="flex-start">
               <Text size="sm">{tradeFetch.error}</Text>
               <Button variant="default" size="xs" onClick={tradeFetch.reload}>
-                Retry
+                {t('common.actions.retry')}
               </Button>
             </Stack>
           )}
@@ -332,12 +334,12 @@ export function TradeFormPage() {
         <Alert
           color="orange"
           icon={<IconAlertTriangle size={20} />}
-          title="Could not load form data"
+          title={t('trade.form.load_error')}
         >
           <Stack gap="sm" align="flex-start">
             <Text size="sm">{referenceError}</Text>
             <Button variant="default" size="xs" onClick={reloadAll}>
-              Retry
+              {t('common.actions.retry')}
             </Button>
           </Stack>
         </Alert>
@@ -350,11 +352,11 @@ export function TradeFormPage() {
       <Stack gap="md">
         <Stack gap="xs">
           {backLink}
-          <Title order={2}>{isEdit ? 'Edit trade' : 'New trade'}</Title>
+          <Title order={2}>{isEdit ? t('trade.form.edit_title') : t('trade.form.new_title')}</Title>
         </Stack>
 
         {submitError && (
-          <Alert color="orange" icon={<IconAlertTriangle size={20} />} title="Could not save trade">
+          <Alert color="orange" icon={<IconAlertTriangle size={20} />} title={t('trade.form.save_error_title')}>
             {submitError}
           </Alert>
         )}
@@ -362,12 +364,12 @@ export function TradeFormPage() {
         {/* Asset */}
         <Card shadow="sm" radius="md" padding="md">
           <Title order={4} mb="sm">
-            Asset
+            {t('trade.form.sections.asset')}
           </Title>
           <Select
-            label="Asset"
+            label={t('trade.form.fields.asset_label')}
             placeholder={
-              assetOptions.length === 0 ? 'No assets — add one in Settings' : 'Pick an asset'
+              assetOptions.length === 0 ? t('trade.form.fields.asset_placeholder_empty') : t('trade.form.fields.asset_placeholder')
             }
             withAsterisk
             searchable
@@ -380,14 +382,14 @@ export function TradeFormPage() {
         {/* Activities */}
         <Card shadow="sm" radius="md" padding="md">
           <Group justify="space-between" mb="sm">
-            <Title order={4}>Activities</Title>
+            <Title order={4}>{t('trade.form.sections.activities')}</Title>
             <Button
               variant="default"
               size="xs"
               leftSection={<IconPlus size={16} />}
               onClick={() => form.insertListItem('activities', emptyActivity())}
             >
-              Add activity
+              {t('trade.form.add_activity')}
             </Button>
           </Group>
           <Stack gap="md">
@@ -395,8 +397,8 @@ export function TradeFormPage() {
               <Grid key={index} align="flex-end" gutter="xs">
                 <Grid.Col span={{ base: 12, sm: 3 }}>
                   <DateTimePicker
-                    label="Date"
-                    placeholder="Pick date & time"
+                    label={t('trade.form.fields.date_label')}
+                    placeholder={t('trade.form.fields.date_placeholder')}
                     withAsterisk
                     valueFormat="YYYY-MM-DD HH:mm"
                     value={
@@ -414,7 +416,7 @@ export function TradeFormPage() {
                   />
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, sm: 3 }}>
-                  <Input.Wrapper label="Type">
+                  <Input.Wrapper label={t('trade.form.fields.type_label')}>
                     <SegmentedControl
                       fullWidth
                       data={[
@@ -427,8 +429,8 @@ export function TradeFormPage() {
                 </Grid.Col>
                 <Grid.Col span={{ base: 6, sm: 2 }}>
                   <NumberInput
-                    label="Price"
-                    placeholder="0.00"
+                    label={t('trade.form.fields.price_label')}
+                    placeholder={t('trade.form.fields.price_placeholder')}
                     withAsterisk
                     min={0}
                     step={0.0001}
@@ -437,8 +439,8 @@ export function TradeFormPage() {
                 </Grid.Col>
                 <Grid.Col span={{ base: 6, sm: 2 }}>
                   <NumberInput
-                    label="Quantity"
-                    placeholder="0"
+                    label={t('trade.form.fields.quantity_label')}
+                    placeholder={t('trade.form.fields.quantity_placeholder')}
                     withAsterisk
                     min={0}
                     {...form.getInputProps(`activities.${index}.quantity`)}
@@ -453,7 +455,7 @@ export function TradeFormPage() {
                     disabled={form.values.activities.length <= 1}
                     onClick={() => form.removeListItem('activities', index)}
                   >
-                    Remove
+                    {t('trade.form.remove_activity')}
                   </Button>
                 </Grid.Col>
               </Grid>
@@ -464,13 +466,13 @@ export function TradeFormPage() {
         {/* Risk & timeframe */}
         <Card shadow="sm" radius="md" padding="md">
           <Title order={4} mb="sm">
-            Risk &amp; timeframe
+            {t('trade.form.sections.risk_timeframe')}
           </Title>
           <Grid gutter="md">
             <Grid.Col span={{ base: 12, sm: 6 }}>
               <NumberInput
-                label="Stop loss"
-                placeholder="Stop loss price"
+                label={t('trade.form.fields.stop_loss_label')}
+                placeholder={t('trade.form.fields.stop_loss_placeholder')}
                 min={0}
                 step={0.0001}
                 {...form.getInputProps('stop_loss')}
@@ -478,8 +480,8 @@ export function TradeFormPage() {
             </Grid.Col>
             <Grid.Col span={{ base: 12, sm: 6 }}>
               <NumberInput
-                label="Risk per trade (%)"
-                placeholder="e.g. 1"
+                label={t('trade.form.fields.risk_label')}
+                placeholder={t('trade.form.fields.risk_placeholder')}
                 min={0}
                 max={100}
                 suffix="%"
@@ -488,8 +490,8 @@ export function TradeFormPage() {
             </Grid.Col>
             <Grid.Col span={{ base: 6, sm: 6 }}>
               <NumberInput
-                label="Timeframe value"
-                placeholder="e.g. 15"
+                label={t('trade.form.fields.timeframe_value_label')}
+                placeholder={t('trade.form.fields.timeframe_value_placeholder')}
                 min={0}
                 allowDecimal={false}
                 {...form.getInputProps('timeframe_value')}
@@ -497,10 +499,10 @@ export function TradeFormPage() {
             </Grid.Col>
             <Grid.Col span={{ base: 6, sm: 6 }}>
               <Select
-                label="Timeframe unit"
-                placeholder="Pick a unit"
+                label={t('trade.form.fields.timeframe_unit_label')}
+                placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
                 clearable
-                data={[...TIMEFRAME_UNITS]}
+                data={TIMEFRAME_UNITS.map((unit) => ({ value: unit.value, label: t(`trade.form.timeframe_units.${unit.value}`) }))}
                 {...form.getInputProps('timeframe_unit')}
               />
             </Grid.Col>
@@ -510,12 +512,12 @@ export function TradeFormPage() {
         {/* Tags & emotions */}
         <Card shadow="sm" radius="md" padding="md">
           <Title order={4} mb="sm">
-            Tags &amp; emotions
+            {t('trade.form.sections.tags_emotions')}
           </Title>
           <Stack gap="md">
             <MultiSelect
-              label="Tags"
-              placeholder={tagOptions.length === 0 ? 'No tags available' : 'Pick tags'}
+              label={t('trade.form.fields.tags_label')}
+              placeholder={tagOptions.length === 0 ? t('trade.form.fields.tags_placeholder_empty') : t('trade.form.fields.tags_placeholder')}
               searchable
               clearable
               data={tagOptions}
@@ -523,8 +525,8 @@ export function TradeFormPage() {
               {...form.getInputProps('tag_ids')}
             />
             <MultiSelect
-              label="Emotions"
-              placeholder={emotionOptions.length === 0 ? 'No emotions available' : 'Pick emotions'}
+              label={t('trade.form.fields.emotions_label')}
+              placeholder={emotionOptions.length === 0 ? t('trade.form.fields.emotions_placeholder_empty') : t('trade.form.fields.emotions_placeholder')}
               searchable
               clearable
               data={emotionOptions}
@@ -550,20 +552,20 @@ export function TradeFormPage() {
         {/* Notes & flags */}
         <Card shadow="sm" radius="md" padding="md">
           <Title order={4} mb="sm">
-            Notes
+            {t('trade.form.sections.notes')}
           </Title>
           <Stack gap="md">
             <Textarea
-              label="Notes"
-              placeholder="Trade rationale, observations…"
+              label={t('trade.form.fields.notes_label')}
+              placeholder={t('trade.form.fields.notes_placeholder')}
               autosize
               minRows={3}
               maxRows={10}
               {...form.getInputProps('notes')}
             />
             <Checkbox
-              label="Missed opportunity"
-              description="A trade you identified but did not actually take"
+              label={t('trade.form.fields.missed_opportunity_label')}
+              description={t('trade.form.fields.missed_opportunity_description')}
               {...form.getInputProps('missed_opportunity', { type: 'checkbox' })}
             />
           </Stack>
@@ -571,10 +573,10 @@ export function TradeFormPage() {
 
         <Group justify="flex-end">
           <Button variant="default" onClick={() => navigate(backTo)}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
           <Button type="submit" loading={submitting}>
-            {isEdit ? 'Save changes' : 'Create trade'}
+            {isEdit ? t('trade.form.save_changes') : t('trade.form.create_trade')}
           </Button>
         </Group>
       </Stack>

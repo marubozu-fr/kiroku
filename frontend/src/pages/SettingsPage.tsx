@@ -1,23 +1,25 @@
 import { IconChartCandle, IconMoodSmile, IconTags } from '@tabler/icons-react'
 import { Stack, Tabs, Title } from '@mantine/core'
+import { useTranslation } from 'react-i18next'
 import { AssetsTab } from '@/components/settings/AssetsTab'
 import { EmotionsTab } from '@/components/settings/EmotionsTab'
 import { TagsTab } from '@/components/settings/TagsTab'
 
 export function SettingsPage() {
+  const { t } = useTranslation()
   return (
     <Stack gap="md">
-      <Title order={2}>Settings</Title>
+      <Title order={2}>{t('settings.title')}</Title>
       <Tabs defaultValue="assets">
         <Tabs.List>
           <Tabs.Tab value="assets" leftSection={<IconChartCandle size={20} />}>
-            Assets
+            {t('settings.tabs.assets')}
           </Tabs.Tab>
           <Tabs.Tab value="tags" leftSection={<IconTags size={20} />}>
-            Tags
+            {t('settings.tabs.tags')}
           </Tabs.Tab>
           <Tabs.Tab value="emotions" leftSection={<IconMoodSmile size={20} />}>
-            Emotions
+            {t('settings.tabs.emotions')}
           </Tabs.Tab>
         </Tabs.List>
 

@@ -1,6 +1,7 @@
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { Alert, Button, Center, Skeleton, Stack, Text } from '@mantine/core'
 import type { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface DataStatesProps {
   loading: boolean
@@ -23,6 +24,7 @@ export function DataStates({
   onRetry,
   children,
 }: DataStatesProps) {
+  const { t } = useTranslation()
   if (loading) {
     return (
       <Stack gap="xs">
@@ -38,12 +40,12 @@ export function DataStates({
       <Alert
         color="orange"
         icon={<IconAlertTriangle size={20} />}
-        title="Could not load data"
+        title={t('settings.data_states.load_error')}
       >
         <Stack gap="sm" align="flex-start">
           <Text size="sm">{error}</Text>
           <Button variant="default" size="xs" onClick={onRetry}>
-            Retry
+            {t('common.actions.retry')}
           </Button>
         </Stack>
       </Alert>

@@ -1,5 +1,8 @@
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
+// Initialise i18next for the test environment so components using
+// `useTranslation()` resolve keys (to their EN values) instead of rendering raw keys.
+import '@/i18n'
 
 // Several Mantine components (ScrollArea, Select) observe element size; jsdom
 // does not implement ResizeObserver.

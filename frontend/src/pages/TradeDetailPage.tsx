@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   IconAlertTriangle,
@@ -57,6 +58,7 @@ const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
  * Route: /journal/:id
  */
 export function TradeDetailPage() {
+  const { t } = useTranslation()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const tradeId = Number(id)
@@ -98,10 +100,10 @@ export function TradeDetailPage() {
     setDeletePending(true)
     try {
       await tradesApi.remove(tradeId)
-      notifySuccess('Trade deleted')
+      notifySuccess(t('trade.detail.notify.deleted'))
       navigate('/journal')
     } catch (cause) {
-      notifyError(cause instanceof Error ? cause.message : 'Could not delete trade')
+      notifyError(cause instanceof Error ? cause.message : t('trade.detail.notify.delete_error'))
     } finally {
       setDeletePending(false)
       closeDelete()
@@ -112,7 +114,7 @@ export function TradeDetailPage() {
     <Anchor component={Link} to="/journal" size="sm" c="dimmed">
       <Group gap="xs">
         <IconArrowLeft size={16} />
-        Back to journal
+        {t('trade.back_to_journal')}
       </Group>
     </Anchor>
   )
@@ -140,10 +142,10 @@ export function TradeDetailPage() {
       return (
         <Stack gap="md" align="flex-start">
           {backLink}
-          <Alert color="orange" icon={<IconAlertTriangle size={20} />} title="Trade not found">
-            This trade does not exist or has been deleted.{' '}
+          <Alert color="orange" icon={<IconAlertTriangle size={20} />} title={t('trade.not_found_title')}>
+            {t('trade.not_found_body')}{' '}
             <Anchor component={Link} to="/journal">
-              Return to journal
+              {t('trade.return_to_journal')}
             </Anchor>
           </Alert>
         </Stack>
@@ -153,11 +155,11 @@ export function TradeDetailPage() {
     return (
       <Stack gap="md" align="flex-start">
         {backLink}
-        <Alert color="orange" icon={<IconAlertTriangle size={20} />} title="Could not load trade">
+        <Alert color="orange" icon={<IconAlertTriangle size={20} />} title={t('trade.load_error')}>
           <Stack gap="sm" align="flex-start">
             <Text size="sm">{tradeFetch.error}</Text>
             <Button variant="default" size="xs" onClick={tradeFetch.reload}>
-              Retry
+              {t('common.actions.retry')}
             </Button>
           </Stack>
         </Alert>
@@ -177,7 +179,7 @@ export function TradeDetailPage() {
 
   // Duration only reads as a span for a closed trade; otherwise show "Open".
   const isClosed = trade.status === 'Closed'
-  const duration = isClosed ? formatTradeDuration(trade.activities) : 'Open'
+  const duration = isClosed ? formatTradeDuration(trade.activities) : t('trade.detail.duration_open')
 
   const lightboxShot =
     lightboxIndex === null ? null : orderedScreenshots[lightboxIndex] ?? null
@@ -212,13 +214,13 @@ export function TradeDetailPage() {
               leftSection={<IconPencil size={20} />}
               onClick={() => navigate(`/journal/${tradeId}/edit`)}
             >
-              Edit
+              {t('common.actions.edit')}
             </Button>
             <ActionIcon
               variant="filled"
               color="red"
               size="lg"
-              aria-label="Delete trade"
+              aria-label={t('trade.detail.delete_aria')}
               onClick={openDelete}
             >
               <IconTrash size={20} />
@@ -231,7 +233,7 @@ export function TradeDetailPage() {
           <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
-                P&amp;L
+                {t('trade.detail.metrics.pnl')}
               </Text>
               <Text size="xl" fw={700} ff="monospace" c={signedColor(trade.realized_pnl)}>
                 {formatPnl(trade.realized_pnl)}
@@ -241,7 +243,7 @@ export function TradeDetailPage() {
           <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
-                R Value
+                {t('trade.detail.metrics.r_value')}
               </Text>
               <Text size="xl" fw={700} ff="monospace" c={signedColor(trade.performance_r)}>
                 {formatR(trade.performance_r)}
@@ -251,7 +253,7 @@ export function TradeDetailPage() {
           <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
-                Stop Loss
+                {t('trade.detail.metrics.stop_loss')}
               </Text>
               <Text size="xl" fw={700} ff="monospace">
                 {trade.stop_loss !== null ? trade.stop_loss.toFixed(4) : '—'}
@@ -261,7 +263,7 @@ export function TradeDetailPage() {
           <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
-                Duration
+                {t('trade.detail.metrics.duration')}
               </Text>
               <Text size="xl" fw={700} ff="monospace" c={isClosed ? undefined : 'dimmed'}>
                 {duration}
@@ -273,11 +275,11 @@ export function TradeDetailPage() {
         {/* Activities */}
         <Card shadow="sm" radius="md" padding="md">
           <Title order={4} mb="sm">
-            Activities
+            {t('trade.detail.sections.activities')}
           </Title>
           {sortedActivities.length === 0 ? (
             <Text c="dimmed" size="sm">
-              No activities recorded
+              {t('trade.detail.empty.activities')}
             </Text>
           ) : (
             <Timeline active={sortedActivities.length} bulletSize={22} lineWidth={2}>
@@ -297,7 +299,7 @@ export function TradeDetailPage() {
                         {activity.type}
                       </Badge>
                       <Badge variant="outline" color="gray" size="sm">
-                        {activity.is_entry ? 'Entry' : 'Exit'}
+                        {activity.is_entry ? t('trade.detail.entry') : t('trade.detail.exit')}
                       </Badge>
                     </Group>
                   }
@@ -320,11 +322,11 @@ export function TradeDetailPage() {
         <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
           <Card shadow="sm" radius="md" padding="md">
             <Title order={4} mb="sm">
-              Tags
+              {t('trade.detail.sections.tags')}
             </Title>
             {trade.tags.length === 0 ? (
               <Text c="dimmed" size="sm">
-                No tags
+                {t('trade.detail.empty.tags')}
               </Text>
             ) : (
               <Group gap="xs">
@@ -339,11 +341,11 @@ export function TradeDetailPage() {
 
           <Card shadow="sm" radius="md" padding="md">
             <Title order={4} mb="sm">
-              Emotions
+              {t('trade.detail.sections.emotions')}
             </Title>
             {trade.emotions.length === 0 ? (
               <Text c="dimmed" size="sm">
-                No emotions recorded
+                {t('trade.detail.empty.emotions')}
               </Text>
             ) : (
               <Stack gap="sm">
@@ -377,7 +379,7 @@ export function TradeDetailPage() {
         {/* Notes */}
         <Card shadow="sm" radius="md" padding="md">
           <Title order={4} mb="sm">
-            Notes
+            {t('trade.detail.sections.notes')}
           </Title>
           {trade.notes ? (
             <Text size="sm" className={classes.notes}>
@@ -385,7 +387,7 @@ export function TradeDetailPage() {
             </Text>
           ) : (
             <Text c="dimmed" size="sm">
-              No notes
+              {t('trade.detail.empty.notes')}
             </Text>
           )}
         </Card>
@@ -393,11 +395,11 @@ export function TradeDetailPage() {
         {/* Screenshots */}
         <Card shadow="sm" radius="md" padding="md">
           <Title order={4} mb="sm">
-            Screenshots
+            {t('trade.detail.sections.screenshots')}
           </Title>
           {trade.screenshots.length === 0 ? (
             <Text c="dimmed" size="sm">
-              No screenshots
+              {t('trade.detail.empty.screenshots')}
             </Text>
           ) : (
             <Stack gap="md">
@@ -439,7 +441,7 @@ export function TradeDetailPage() {
             <ActionIcon
               variant="default"
               size="lg"
-              aria-label="Previous screenshot"
+              aria-label={t('trade.detail.prev_screenshot')}
               disabled={lightboxIndex === 0}
               onClick={() =>
                 setLightboxIndex((i) => (i === null ? i : Math.max(0, i - 1)))
@@ -457,7 +459,7 @@ export function TradeDetailPage() {
             <ActionIcon
               variant="default"
               size="lg"
-              aria-label="Next screenshot"
+              aria-label={t('trade.detail.next_screenshot')}
               disabled={lightboxIndex === orderedScreenshots.length - 1}
               onClick={() =>
                 setLightboxIndex((i) =>
@@ -472,15 +474,15 @@ export function TradeDetailPage() {
       </Modal>
 
       {/* Delete confirmation modal */}
-      <Modal opened={deleteOpened} onClose={closeDelete} title="Delete trade" centered>
+      <Modal opened={deleteOpened} onClose={closeDelete} title={t('trade.detail.delete_modal.title')} centered>
         <Stack gap="md">
-          <Text size="sm">Delete this trade? This cannot be undone.</Text>
+          <Text size="sm">{t('trade.detail.delete_modal.body')}</Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={closeDelete}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button color="red" loading={deletePending} onClick={handleDelete}>
-              Delete
+              {t('common.actions.delete')}
             </Button>
           </Group>
         </Stack>

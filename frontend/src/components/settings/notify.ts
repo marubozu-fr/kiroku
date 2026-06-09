@@ -1,4 +1,5 @@
 import { notifications } from '@mantine/notifications'
+import i18n from '@/i18n'
 
 /**
  * Notification helpers shared by the Settings tabs.
@@ -13,5 +14,5 @@ export function notifySuccess(message: string): void {
 }
 
 export function notifyError(message: string): void {
-  notifications.show({ color: 'orange', title: 'Something went wrong', message })
+  notifications.show({ color: 'orange', title: i18n.t('common.notifications.error_title'), message })
 }

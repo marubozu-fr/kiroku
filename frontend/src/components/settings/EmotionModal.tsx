@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button, Group, Modal, Select, Stack, Textarea, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useTranslation } from 'react-i18next'
 import { emotionsApi } from '@/services/referenceData'
 import {
   EMOTION_CATEGORIES,
@@ -25,20 +26,21 @@ interface EmotionFormValues {
 }
 
 export function EmotionModal({ opened, emotion, onClose, onSaved }: EmotionModalProps) {
+  const { t } = useTranslation()
   const [submitting, setSubmitting] = useState(false)
   const form = useForm<EmotionFormValues>({
     initialValues: { name: '', description: '', severity: null, category: null },
     validate: {
       name: (value) => {
         const length = value.trim().length
-        if (length < 3) return 'Name must be at least 3 characters'
-        if (length > 100) return 'Name must be at most 100 characters'
+        if (length < 3) return t('settings.emotions.form.name_min')
+        if (length > 100) return t('settings.emotions.form.name_max')
         return null
       },
       description: (value) =>
-        value.length > 500 ? 'Description must be at most 500 characters' : null,
-      severity: (value) => (value ? null : 'Severity is required'),
-      category: (value) => (value ? null : 'Category is required'),
+        value.length > 500 ? t('settings.emotions.form.description_max') : null,
+      severity: (value) => (value ? null : t('settings.emotions.form.severity_required')),
+      category: (value) => (value ? null : t('settings.emotions.form.category_required')),
     },
   })
 
@@ -66,14 +68,14 @@ export function EmotionModal({ opened, emotion, onClose, onSaved }: EmotionModal
     try {
       if (emotion) {
         await emotionsApi.update(emotion.id, payload)
-        notifySuccess(`${payload.name} updated`)
+        notifySuccess(t('settings.emotions.notify.updated', { name: payload.name }))
       } else {
         await emotionsApi.create(payload)
-        notifySuccess(`${payload.name} created`)
+        notifySuccess(t('settings.emotions.notify.created', { name: payload.name }))
       }
       onSaved()
     } catch (cause) {
-      notifyError(cause instanceof Error ? cause.message : 'Could not save emotion')
+      notifyError(cause instanceof Error ? cause.message : t('settings.emotions.notify.save_error'))
     } finally {
       setSubmitting(false)
     }
@@ -83,44 +85,44 @@ export function EmotionModal({ opened, emotion, onClose, onSaved }: EmotionModal
     <Modal
       opened={opened}
       onClose={onClose}
-      title={emotion ? 'Edit emotion' : 'Add emotion'}
+      title={emotion ? t('settings.emotions.modal.edit_title') : t('settings.emotions.modal.add_title')}
       centered
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
           <TextInput
-            label="Name"
-            placeholder="FOMO"
+            label={t('settings.emotions.form.name_label')}
+            placeholder={t('settings.emotions.form.name_placeholder')}
             withAsterisk
             {...form.getInputProps('name')}
           />
           <Select
-            label="Category"
-            placeholder="Pick a category"
+            label={t('settings.emotions.form.category_label')}
+            placeholder={t('settings.emotions.form.category_placeholder')}
             withAsterisk
             data={[...EMOTION_CATEGORIES]}
             {...form.getInputProps('category')}
           />
           <Select
-            label="Severity"
-            placeholder="Pick a severity"
+            label={t('settings.emotions.form.severity_label')}
+            placeholder={t('settings.emotions.form.severity_placeholder')}
             withAsterisk
             data={[...EMOTION_SEVERITIES]}
             {...form.getInputProps('severity')}
           />
           <Textarea
-            label="Description"
-            placeholder="Optional notes about this emotion"
+            label={t('settings.emotions.form.description_label')}
+            placeholder={t('settings.emotions.form.description_placeholder')}
             autosize
             minRows={2}
             {...form.getInputProps('description')}
           />
           <Group justify="flex-end" mt="xs">
             <Button variant="default" onClick={onClose}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" loading={submitting}>
-              {emotion ? 'Save' : 'Create'}
+              {emotion ? t('common.actions.save') : t('common.actions.create')}
             </Button>
           </Group>
         </Stack>

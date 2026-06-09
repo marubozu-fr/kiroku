@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { Alert, Badge, Button, Center, Skeleton, Stack, Table, Text } from '@mantine/core'
@@ -27,6 +28,7 @@ interface TradeTableProps {
  * Click a row to open the trade detail page.
  */
 export function TradeTable({ year, assetName }: TradeTableProps) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { data, loading, error, reload } = useFetch(
     useCallback((signal: AbortSignal) => tradesApi.list(year, signal), [year]),
@@ -47,12 +49,12 @@ export function TradeTable({ year, assetName }: TradeTableProps) {
       <Alert
         color="orange"
         icon={<IconAlertTriangle size={20} />}
-        title="Could not load trades"
+        title={t('journal.table.load_error')}
       >
         <Stack gap="sm" align="flex-start">
           <Text size="sm">{error}</Text>
           <Button variant="default" size="xs" onClick={reload}>
-            Retry
+            {t('common.actions.retry')}
           </Button>
         </Stack>
       </Alert>
@@ -65,7 +67,7 @@ export function TradeTable({ year, assetName }: TradeTableProps) {
     return (
       <Center mih={160}>
         <Text c="dimmed" size="sm" ta="center">
-          No trades for {year}. Add one to start filling your journal.
+          {t('journal.table.empty', { year })}
         </Text>
       </Center>
     )
@@ -77,22 +79,22 @@ export function TradeTable({ year, assetName }: TradeTableProps) {
         <Table.Thead>
           <Table.Tr>
             <Table.Th tt="uppercase" fz="xs" c="dimmed">
-              Date
+              {t('journal.table.header.date')}
             </Table.Th>
             <Table.Th tt="uppercase" fz="xs" c="dimmed">
-              Asset
+              {t('journal.table.header.asset')}
             </Table.Th>
             <Table.Th tt="uppercase" fz="xs" c="dimmed">
-              Direction
+              {t('journal.table.header.direction')}
             </Table.Th>
             <Table.Th tt="uppercase" fz="xs" c="dimmed">
-              Status
+              {t('journal.table.header.status')}
             </Table.Th>
             <Table.Th tt="uppercase" fz="xs" c="dimmed" ta="right">
-              P&amp;L
+              {t('journal.table.header.pnl')}
             </Table.Th>
             <Table.Th tt="uppercase" fz="xs" c="dimmed" ta="right">
-              R
+              {t('journal.table.header.r')}
             </Table.Th>
           </Table.Tr>
         </Table.Thead>
