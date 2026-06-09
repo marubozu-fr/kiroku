@@ -67,6 +67,15 @@ async def apply_migrations() -> None:
         """
       )
 
+    # account_type (issue #48): single account-type enum (test/demo/live)
+    # replacing the never-implemented multi-select `types` array. Existing rows
+    # have no account-type data to migrate, so the NOT NULL DEFAULT back-fills
+    # them all to 'live' — the intended fallback.
+    if "account_type" not in columns:
+      await connection.execute(
+        "ALTER TABLE trades ADD COLUMN account_type TEXT NOT NULL DEFAULT 'live'"
+      )
+
     await connection.commit()
 
 
