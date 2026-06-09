@@ -60,7 +60,7 @@ export function TagsTab() {
         onRetry={reload}
       >
         <Table.ScrollContainer minWidth={600}>
-          <Table striped highlightOnHover>
+          <Table striped highlightOnHover fz="sm" verticalSpacing="xs">
             <Table.Thead>
               <Table.Tr>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed">
