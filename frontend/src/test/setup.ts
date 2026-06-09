@@ -10,6 +10,10 @@ class ResizeObserverMock {
 }
 globalThis.ResizeObserver = ResizeObserverMock
 
+// Mantine's Combobox (Select) scrolls the active option into view on open;
+// jsdom does not implement Element.prototype.scrollIntoView.
+Element.prototype.scrollIntoView = vi.fn()
+
 // Mantine reads `window.matchMedia` on mount; jsdom does not implement it.
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
