@@ -33,6 +33,7 @@ class AssetUpdate(BaseModel):
   name: Optional[str] = Field(default=None, min_length=2, max_length=50)
   category: Optional[AssetCategory] = None
   currency: Optional[str] = Field(default=None, max_length=10)
+  is_active: Optional[bool] = None
 
 
 class AssetResponse(BaseModel):

@@ -1,4 +1,5 @@
 import { createTheme } from '@mantine/core'
+import type { CSSVariablesResolver } from '@mantine/core'
 
 /**
  * Kiroku Mantine theme.
@@ -12,4 +13,14 @@ import { createTheme } from '@mantine/core'
  */
 export const theme = createTheme({
   fontFamilyMonospace: 'JetBrains Mono, SF Mono, Consolas, monospace',
+})
+
+/**
+ * Form errors use orange — red is reserved for financial loss
+ * (docs/DESIGN_SYSTEM.md). Remap Mantine's error colour variable accordingly.
+ */
+export const cssVariablesResolver: CSSVariablesResolver = (mantineTheme) => ({
+  variables: {},
+  light: { '--mantine-color-error': mantineTheme.colors.orange[6] },
+  dark: { '--mantine-color-error': mantineTheme.colors.orange[6] },
 })

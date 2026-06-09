@@ -119,6 +119,19 @@ def test_delete_tag_soft_deletes() -> None:
     assert fetched.json()["data"]["is_active"] is False
 
 
+def test_update_tag_reactivates() -> None:
+  with TestClient(app) as client:
+    created = _create(client).json()["data"]
+    client.delete(f"/api/tags/{created['id']}")
+
+    response = client.put(
+      f"/api/tags/{created['id']}", json={"is_active": True}
+    )
+
+    assert response.status_code == 200
+    assert response.json()["data"]["is_active"] is True
+
+
 def test_delete_tag_not_found() -> None:
   with TestClient(app) as client:
     response = client.delete("/api/tags/999")

@@ -11,7 +11,7 @@ import '@mantine/core/styles.css'
 import '@mantine/notifications/styles.css'
 
 import { App } from '@/App'
-import { theme } from '@/theme'
+import { cssVariablesResolver, theme } from '@/theme'
 
 const rootElement = document.getElementById('root')
 if (!rootElement) {
@@ -20,7 +20,11 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <MantineProvider theme={theme} defaultColorScheme="dark">
+    <MantineProvider
+      theme={theme}
+      cssVariablesResolver={cssVariablesResolver}
+      defaultColorScheme="dark"
+    >
       <Notifications />
       <BrowserRouter>
         <App />
