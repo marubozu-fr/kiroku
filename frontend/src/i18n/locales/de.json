@@ -1,59 +1,59 @@
 {
   "common": {
     "actions": {
-      "save": "Save",
-      "cancel": "Cancel",
-      "delete": "Delete",
-      "edit": "Edit",
-      "create": "Create",
-      "close": "Close",
-      "confirm": "Confirm",
-      "back": "Back",
-      "retry": "Retry"
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "delete": "Löschen",
+      "edit": "Bearbeiten",
+      "create": "Erstellen",
+      "close": "Schließen",
+      "confirm": "Bestätigen",
+      "back": "Zurück",
+      "retry": "Wiederholen"
     },
     "status": {
-      "loading": "Loading…",
-      "saving": "Saving…",
-      "error": "An error occurred",
-      "no_data": "No data available"
+      "loading": "Wird geladen…",
+      "saving": "Wird gespeichert…",
+      "error": "Ein Fehler ist aufgetreten",
+      "no_data": "Keine Daten verfügbar"
     },
     "notifications": {
-      "error_title": "Something went wrong"
+      "error_title": "Etwas ist schiefgelaufen"
     }
   },
   "app": {
-    "toggle_color_scheme": "Toggle color scheme"
+    "toggle_color_scheme": "Farbschema umschalten"
   },
   "nav": {
     "dashboard": "Dashboard",
     "journal": "Journal",
     "analytics": "Analytics",
-    "projections": "Projections",
-    "settings": "Settings"
+    "projections": "Projektionen",
+    "settings": "Einstellungen"
   },
   "dashboard": {
     "title": "Dashboard",
-    "empty": "No data yet — start by logging a trade."
+    "empty": "Noch keine Daten — beginne, indem du einen Trade erfasst."
   },
   "analytics": {
     "title": "Analytics",
-    "placeholder": "Performance analytics will appear here."
+    "placeholder": "Hier erscheinen die Performance-Analysen."
   },
   "projections": {
-    "title": "Projections",
-    "placeholder": "Equity projections will appear here."
+    "title": "Projektionen",
+    "placeholder": "Hier erscheinen die Kapitalprojektionen."
   },
   "journal": {
     "title": "Journal",
-    "add_trade": "Add trade",
-    "year": "Year",
+    "add_trade": "Trade hinzufügen",
+    "year": "Jahr",
     "table": {
-      "load_error": "Could not load trades",
-      "empty": "No trades for {{year}}. Add one to start filling your journal.",
+      "load_error": "Trades konnten nicht geladen werden",
+      "empty": "Keine Trades für {{year}}. Füge einen hinzu, um dein Journal zu füllen.",
       "header": {
-        "date": "Date",
+        "date": "Datum",
         "asset": "Asset",
-        "direction": "Direction",
+        "direction": "Richtung",
         "status": "Status",
         "pnl": "P&L",
         "r": "R"
@@ -61,244 +61,244 @@
     }
   },
   "settings": {
-    "title": "Settings",
+    "title": "Einstellungen",
     "tabs": {
       "general": "Allgemein",
       "assets": "Assets",
       "tags": "Tags",
-      "emotions": "Emotions"
+      "emotions": "Emotionen"
     },
     "general": {
       "language_label": "Sprache",
       "language_description": "Wähle die Anzeigesprache"
     },
     "data_states": {
-      "load_error": "Could not load data"
+      "load_error": "Daten konnten nicht geladen werden"
     },
     "assets": {
-      "add": "Add asset",
-      "empty": "No assets yet. Add your first instrument to start journaling trades.",
+      "add": "Asset hinzufügen",
+      "empty": "Noch keine Assets. Füge dein erstes Instrument hinzu, um Trades zu erfassen.",
       "columns": {
         "name": "Name",
-        "category": "Category",
-        "currency": "Currency",
-        "active": "Active",
-        "edit": "Edit"
+        "category": "Kategorie",
+        "currency": "Währung",
+        "active": "Aktiv",
+        "edit": "Bearbeiten"
       },
-      "activate_aria": "Activate {{name}}",
-      "deactivate_aria": "Deactivate {{name}}",
-      "edit_aria": "Edit {{name}}",
+      "activate_aria": "{{name}} aktivieren",
+      "deactivate_aria": "{{name}} deaktivieren",
+      "edit_aria": "{{name}} bearbeiten",
       "modal": {
-        "add_title": "Add asset",
-        "edit_title": "Edit asset"
+        "add_title": "Asset hinzufügen",
+        "edit_title": "Asset bearbeiten"
       },
       "form": {
         "name_label": "Name",
         "name_placeholder": "EUR/USD",
-        "category_label": "Category",
-        "category_placeholder": "Pick a category",
-        "currency_label": "Currency",
+        "category_label": "Kategorie",
+        "category_placeholder": "Kategorie wählen",
+        "currency_label": "Währung",
         "currency_placeholder": "USD",
-        "name_min": "Name must be at least 2 characters",
-        "name_max": "Name must be at most 50 characters",
-        "category_required": "Category is required",
-        "currency_max": "Currency must be at most 10 characters"
+        "name_min": "Der Name muss mindestens 2 Zeichen lang sein",
+        "name_max": "Der Name darf höchstens 50 Zeichen lang sein",
+        "category_required": "Kategorie ist erforderlich",
+        "currency_max": "Die Währung darf höchstens 10 Zeichen lang sein"
       },
       "notify": {
-        "created": "{{name}} created",
-        "updated": "{{name}} updated",
-        "activated": "{{name}} activated",
-        "deactivated": "{{name}} deactivated",
-        "save_error": "Could not save asset",
-        "update_error": "Could not update asset"
+        "created": "{{name}} erstellt",
+        "updated": "{{name}} aktualisiert",
+        "activated": "{{name}} aktiviert",
+        "deactivated": "{{name}} deaktiviert",
+        "save_error": "Asset konnte nicht gespeichert werden",
+        "update_error": "Asset konnte nicht aktualisiert werden"
       }
     },
     "tags": {
-      "add": "Add tag",
-      "empty": "No tags yet. Add tags to categorise and filter your trades.",
+      "add": "Tag hinzufügen",
+      "empty": "Noch keine Tags. Füge Tags hinzu, um deine Trades zu kategorisieren und zu filtern.",
       "columns": {
         "name": "Name",
-        "description": "Description",
-        "active": "Active",
-        "edit": "Edit"
+        "description": "Beschreibung",
+        "active": "Aktiv",
+        "edit": "Bearbeiten"
       },
-      "activate_aria": "Activate {{name}}",
-      "deactivate_aria": "Deactivate {{name}}",
-      "edit_aria": "Edit {{name}}",
+      "activate_aria": "{{name}} aktivieren",
+      "deactivate_aria": "{{name}} deaktivieren",
+      "edit_aria": "{{name}} bearbeiten",
       "modal": {
-        "add_title": "Add tag",
-        "edit_title": "Edit tag"
+        "add_title": "Tag hinzufügen",
+        "edit_title": "Tag bearbeiten"
       },
       "form": {
         "name_label": "Name",
         "name_placeholder": "Breakout",
-        "description_label": "Description",
-        "description_placeholder": "Optional notes about when this tag applies",
-        "name_min": "Name must be at least 3 characters",
-        "name_max": "Name must be at most 100 characters",
-        "description_max": "Description must be at most 500 characters"
+        "description_label": "Beschreibung",
+        "description_placeholder": "Optionale Notizen, wann dieser Tag gilt",
+        "name_min": "Der Name muss mindestens 3 Zeichen lang sein",
+        "name_max": "Der Name darf höchstens 100 Zeichen lang sein",
+        "description_max": "Die Beschreibung darf höchstens 500 Zeichen lang sein"
       },
       "notify": {
-        "created": "{{name}} created",
-        "updated": "{{name}} updated",
-        "activated": "{{name}} activated",
-        "deactivated": "{{name}} deactivated",
-        "save_error": "Could not save tag",
-        "update_error": "Could not update tag"
+        "created": "{{name}} erstellt",
+        "updated": "{{name}} aktualisiert",
+        "activated": "{{name}} aktiviert",
+        "deactivated": "{{name}} deaktiviert",
+        "save_error": "Tag konnte nicht gespeichert werden",
+        "update_error": "Tag konnte nicht aktualisiert werden"
       }
     },
     "emotions": {
-      "add": "Add emotion",
-      "empty": "No emotions yet. Add emotions to tag your mental state on each trade.",
+      "add": "Emotion hinzufügen",
+      "empty": "Noch keine Emotionen. Füge Emotionen hinzu, um deinen mentalen Zustand bei jedem Trade festzuhalten.",
       "columns": {
         "name": "Name",
-        "description": "Description",
-        "severity": "Severity",
-        "actions": "Actions"
+        "description": "Beschreibung",
+        "severity": "Intensität",
+        "actions": "Aktionen"
       },
-      "edit_aria": "Edit {{name}}",
-      "delete_aria": "Delete {{name}}",
+      "edit_aria": "{{name}} bearbeiten",
+      "delete_aria": "{{name}} löschen",
       "modal": {
-        "add_title": "Add emotion",
-        "edit_title": "Edit emotion"
+        "add_title": "Emotion hinzufügen",
+        "edit_title": "Emotion bearbeiten"
       },
       "form": {
         "name_label": "Name",
         "name_placeholder": "FOMO",
-        "category_label": "Category",
-        "category_placeholder": "Pick a category",
-        "severity_label": "Severity",
-        "severity_placeholder": "Pick a severity",
-        "description_label": "Description",
-        "description_placeholder": "Optional notes about this emotion",
-        "name_min": "Name must be at least 3 characters",
-        "name_max": "Name must be at most 100 characters",
-        "description_max": "Description must be at most 500 characters",
-        "severity_required": "Severity is required",
-        "category_required": "Category is required"
+        "category_label": "Kategorie",
+        "category_placeholder": "Kategorie wählen",
+        "severity_label": "Intensität",
+        "severity_placeholder": "Intensität wählen",
+        "description_label": "Beschreibung",
+        "description_placeholder": "Optionale Notizen zu dieser Emotion",
+        "name_min": "Der Name muss mindestens 3 Zeichen lang sein",
+        "name_max": "Der Name darf höchstens 100 Zeichen lang sein",
+        "description_max": "Die Beschreibung darf höchstens 500 Zeichen lang sein",
+        "severity_required": "Intensität ist erforderlich",
+        "category_required": "Kategorie ist erforderlich"
       },
       "notify": {
-        "created": "{{name}} created",
-        "updated": "{{name}} updated",
-        "deleted": "{{name}} deleted",
-        "save_error": "Could not save emotion",
-        "delete_error": "Could not delete emotion"
+        "created": "{{name}} erstellt",
+        "updated": "{{name}} aktualisiert",
+        "deleted": "{{name}} gelöscht",
+        "save_error": "Emotion konnte nicht gespeichert werden",
+        "delete_error": "Emotion konnte nicht gelöscht werden"
       },
       "delete_modal": {
-        "title": "Delete emotion",
-        "confirm": "Delete <strong>{{name}}</strong>? This cannot be undone."
+        "title": "Emotion löschen",
+        "confirm": "<strong>{{name}}</strong> löschen? Dies kann nicht rückgängig gemacht werden."
       }
     }
   },
   "trade": {
-    "back_to_journal": "Back to journal",
-    "back_to_trade": "Back to trade",
-    "not_found_title": "Trade not found",
-    "not_found_body": "This trade does not exist or has been deleted.",
-    "return_to_journal": "Return to journal",
-    "load_error": "Could not load trade",
+    "back_to_journal": "Zurück zum Journal",
+    "back_to_trade": "Zurück zum Trade",
+    "not_found_title": "Trade nicht gefunden",
+    "not_found_body": "Dieser Trade existiert nicht oder wurde gelöscht.",
+    "return_to_journal": "Zurück zum Journal",
+    "load_error": "Trade konnte nicht geladen werden",
     "detail": {
-      "delete_aria": "Delete trade",
-      "duration_open": "Open",
+      "delete_aria": "Trade löschen",
+      "duration_open": "Offen",
       "entry": "Entry",
       "exit": "Exit",
-      "prev_screenshot": "Previous screenshot",
-      "next_screenshot": "Next screenshot",
+      "prev_screenshot": "Vorheriger Screenshot",
+      "next_screenshot": "Nächster Screenshot",
       "notify": {
-        "deleted": "Trade deleted",
-        "delete_error": "Could not delete trade"
+        "deleted": "Trade gelöscht",
+        "delete_error": "Trade konnte nicht gelöscht werden"
       },
       "delete_modal": {
-        "title": "Delete trade",
-        "body": "Delete this trade? This cannot be undone."
+        "title": "Trade löschen",
+        "body": "Diesen Trade löschen? Dies kann nicht rückgängig gemacht werden."
       },
       "metrics": {
         "pnl": "P&L",
-        "r_value": "R Value",
+        "r_value": "R-Wert",
         "stop_loss": "Stop Loss",
-        "duration": "Duration"
+        "duration": "Dauer"
       },
       "sections": {
-        "activities": "Activities",
+        "activities": "Aktivitäten",
         "tags": "Tags",
-        "emotions": "Emotions",
-        "notes": "Notes",
+        "emotions": "Emotionen",
+        "notes": "Notizen",
         "screenshots": "Screenshots"
       },
       "empty": {
-        "activities": "No activities recorded",
-        "tags": "No tags",
-        "emotions": "No emotions recorded",
-        "notes": "No notes",
-        "screenshots": "No screenshots"
+        "activities": "Keine Aktivitäten erfasst",
+        "tags": "Keine Tags",
+        "emotions": "Keine Emotionen erfasst",
+        "notes": "Keine Notizen",
+        "screenshots": "Keine Screenshots"
       }
     },
     "form": {
-      "new_title": "New trade",
-      "edit_title": "Edit trade",
-      "load_error": "Could not load form data",
-      "save_error_title": "Could not save trade",
-      "add_activity": "Add activity",
-      "remove_activity": "Remove",
-      "save_changes": "Save changes",
-      "create_trade": "Create trade",
+      "new_title": "Neuer Trade",
+      "edit_title": "Trade bearbeiten",
+      "load_error": "Formulardaten konnten nicht geladen werden",
+      "save_error_title": "Trade konnte nicht gespeichert werden",
+      "add_activity": "Aktivität hinzufügen",
+      "remove_activity": "Entfernen",
+      "save_changes": "Änderungen speichern",
+      "create_trade": "Trade erstellen",
       "notify": {
-        "created": "Trade created",
-        "updated": "Trade updated",
-        "save_error": "Could not save trade"
+        "created": "Trade erstellt",
+        "updated": "Trade aktualisiert",
+        "save_error": "Trade konnte nicht gespeichert werden"
       },
       "sections": {
         "asset": "Asset",
-        "activities": "Activities",
-        "risk_timeframe": "Risk & timeframe",
-        "tags_emotions": "Tags & emotions",
-        "notes": "Notes"
+        "activities": "Aktivitäten",
+        "risk_timeframe": "Risiko & Timeframe",
+        "tags_emotions": "Tags & Emotionen",
+        "notes": "Notizen"
       },
       "fields": {
         "asset_label": "Asset",
-        "asset_placeholder": "Pick an asset",
-        "asset_placeholder_empty": "No assets — add one in Settings",
-        "date_label": "Date",
-        "date_placeholder": "Pick date & time",
-        "type_label": "Type",
-        "price_label": "Price",
+        "asset_placeholder": "Asset wählen",
+        "asset_placeholder_empty": "Keine Assets — füge eines in den Einstellungen hinzu",
+        "date_label": "Datum",
+        "date_placeholder": "Datum & Uhrzeit wählen",
+        "type_label": "Typ",
+        "price_label": "Preis",
         "price_placeholder": "0.00",
-        "quantity_label": "Quantity",
+        "quantity_label": "Menge",
         "quantity_placeholder": "0",
-        "stop_loss_label": "Stop loss",
-        "stop_loss_placeholder": "Stop loss price",
-        "risk_label": "Risk per trade (%)",
-        "risk_placeholder": "e.g. 1",
-        "timeframe_value_label": "Timeframe value",
-        "timeframe_value_placeholder": "e.g. 15",
-        "timeframe_unit_label": "Timeframe unit",
-        "timeframe_unit_placeholder": "Pick a unit",
+        "stop_loss_label": "Stop Loss",
+        "stop_loss_placeholder": "Stop-Loss-Preis",
+        "risk_label": "Risiko pro Trade (%)",
+        "risk_placeholder": "z. B. 1",
+        "timeframe_value_label": "Timeframe-Wert",
+        "timeframe_value_placeholder": "z. B. 15",
+        "timeframe_unit_label": "Timeframe-Einheit",
+        "timeframe_unit_placeholder": "Einheit wählen",
         "tags_label": "Tags",
-        "tags_placeholder": "Pick tags",
-        "tags_placeholder_empty": "No tags available",
-        "emotions_label": "Emotions",
-        "emotions_placeholder": "Pick emotions",
-        "emotions_placeholder_empty": "No emotions available",
-        "notes_label": "Notes",
-        "notes_placeholder": "Trade rationale, observations…",
-        "missed_opportunity_label": "Missed opportunity",
-        "missed_opportunity_description": "A trade you identified but did not actually take"
+        "tags_placeholder": "Tags wählen",
+        "tags_placeholder_empty": "Keine Tags verfügbar",
+        "emotions_label": "Emotionen",
+        "emotions_placeholder": "Emotionen wählen",
+        "emotions_placeholder_empty": "Keine Emotionen verfügbar",
+        "notes_label": "Notizen",
+        "notes_placeholder": "Trade-Begründung, Beobachtungen…",
+        "missed_opportunity_label": "Verpasste Gelegenheit",
+        "missed_opportunity_description": "Ein Trade, den du erkannt, aber nicht tatsächlich eingegangen bist"
       },
       "timeframe_units": {
-        "m": "Minutes",
-        "h": "Hours",
-        "d": "Days",
-        "w": "Weeks"
+        "m": "Minuten",
+        "h": "Stunden",
+        "d": "Tage",
+        "w": "Wochen"
       },
       "validation": {
-        "asset_required": "Asset is required",
-        "date_required": "Date is required",
-        "price_positive": "Price must be greater than 0",
-        "quantity_positive": "Quantity must be greater than 0",
-        "stop_loss_positive": "Stop loss must be greater than 0",
-        "risk_range": "Risk must be between 0 and 100",
-        "timeframe_value_required": "Enter a timeframe value",
-        "timeframe_unit_required": "Pick a unit"
+        "asset_required": "Asset ist erforderlich",
+        "date_required": "Datum ist erforderlich",
+        "price_positive": "Der Preis muss größer als 0 sein",
+        "quantity_positive": "Die Menge muss größer als 0 sein",
+        "stop_loss_positive": "Der Stop Loss muss größer als 0 sein",
+        "risk_range": "Das Risiko muss zwischen 0 und 100 liegen",
+        "timeframe_value_required": "Gib einen Timeframe-Wert ein",
+        "timeframe_unit_required": "Einheit wählen"
       }
     }
   }
