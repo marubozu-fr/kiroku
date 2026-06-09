@@ -12,9 +12,11 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { IconMoon, IconSun } from '@tabler/icons-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { navItems } from './navItems'
 
 export function AppLayout() {
+  const { t } = useTranslation()
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure()
   const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true)
   const { colorScheme, toggleColorScheme } = useMantineColorScheme()
@@ -53,7 +55,7 @@ export function AppLayout() {
             variant="default"
             size="lg"
             onClick={toggleColorScheme}
-            aria-label="Toggle color scheme"
+            aria-label={t('app.toggle_color_scheme')}
           >
             {colorScheme === 'dark' ? <IconSun size={20} /> : <IconMoon size={20} />}
           </ActionIcon>
@@ -71,7 +73,7 @@ export function AppLayout() {
               key={item.path}
               component={Link}
               to={item.path}
-              label={item.label}
+              label={t(item.labelKey)}
               leftSection={<item.icon size={20} stroke={1.5} />}
               active={isActive}
               onClick={mobileOpened ? toggleMobile : undefined}

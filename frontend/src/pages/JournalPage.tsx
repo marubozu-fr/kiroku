@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { IconPlus } from '@tabler/icons-react'
 import { Button, Group, Select, Stack, Title } from '@mantine/core'
@@ -15,6 +16,7 @@ import { tradesApi } from '@/services/trades'
  * is resolved client-side from the reference-data assets list.
  */
 export function JournalPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const years = useFetch(useCallback((signal: AbortSignal) => tradesApi.years(signal), []))
   const assets = useFetch(assetsApi.list)
@@ -44,14 +46,14 @@ export function JournalPage() {
   return (
     <Stack gap="md">
       <Group justify="space-between">
-        <Title order={2}>Journal</Title>
+        <Title order={2}>{t('journal.title')}</Title>
         <Button leftSection={<IconPlus size={20} />} onClick={() => navigate('/journal/new')}>
-          Add trade
+          {t('journal.add_trade')}
         </Button>
       </Group>
 
       <Select
-        aria-label="Year"
+        aria-label={t('journal.year')}
         w={120}
         allowDeselect={false}
         data={yearOptions.map(String)}

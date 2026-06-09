@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { IconPencil, IconPlus } from '@tabler/icons-react'
 import { ActionIcon, Badge, Button, Group, Switch, Table, Text } from '@mantine/core'
+import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { assetsApi } from '@/services/referenceData'
 import type { Asset } from '@/types/referenceData'
@@ -9,6 +10,7 @@ import { DataStates } from './DataStates'
 import { notifyError, notifySuccess } from './notify'
 
 export function AssetsTab() {
+  const { t } = useTranslation()
   const { data, loading, error, reload } = useFetch(assetsApi.list)
   const [editing, setEditing] = useState<Asset | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -29,14 +31,14 @@ export function AssetsTab() {
     try {
       if (asset.is_active) {
         await assetsApi.deactivate(asset.id)
-        notifySuccess(`${asset.name} deactivated`)
+        notifySuccess(t('settings.assets.notify.deactivated', { name: asset.name }))
       } else {
         await assetsApi.update(asset.id, { is_active: true })
-        notifySuccess(`${asset.name} activated`)
+        notifySuccess(t('settings.assets.notify.activated', { name: asset.name }))
       }
       reload()
     } catch (cause) {
-      notifyError(cause instanceof Error ? cause.message : 'Could not update asset')
+      notifyError(cause instanceof Error ? cause.message : t('settings.assets.notify.update_error'))
     } finally {
       setTogglingId(null)
     }
@@ -48,7 +50,7 @@ export function AssetsTab() {
     <>
       <Group justify="flex-end" mb="md">
         <Button leftSection={<IconPlus size={20} />} onClick={openAdd}>
-          Add asset
+          {t('settings.assets.add')}
         </Button>
       </Group>
 
@@ -56,7 +58,7 @@ export function AssetsTab() {
         loading={loading}
         error={error}
         isEmpty={assets.length === 0}
-        emptyMessage="No assets yet. Add your first instrument to start journaling trades."
+        emptyMessage={t('settings.assets.empty')}
         onRetry={reload}
       >
         <Table.ScrollContainer minWidth={600}>
@@ -64,19 +66,19 @@ export function AssetsTab() {
             <Table.Thead>
               <Table.Tr>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                  Name
+                  {t('settings.assets.columns.name')}
                 </Table.Th>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                  Category
+                  {t('settings.assets.columns.category')}
                 </Table.Th>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                  Currency
+                  {t('settings.assets.columns.currency')}
                 </Table.Th>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                  Active
+                  {t('settings.assets.columns.active')}
                 </Table.Th>
                 <Table.Th tt="uppercase" fz="xs" c="dimmed" w={60}>
-                  Edit
+                  {t('settings.assets.columns.edit')}
                 </Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -99,8 +101,8 @@ export function AssetsTab() {
                       onChange={() => toggleActive(asset)}
                       aria-label={
                         asset.is_active
-                          ? `Deactivate ${asset.name}`
-                          : `Activate ${asset.name}`
+                          ? t('settings.assets.deactivate_aria', { name: asset.name })
+                          : t('settings.assets.activate_aria', { name: asset.name })
                       }
                     />
                   </Table.Td>
@@ -109,7 +111,7 @@ export function AssetsTab() {
                       variant="subtle"
                       color="gray"
                       onClick={() => openEdit(asset)}
-                      aria-label={`Edit ${asset.name}`}
+                      aria-label={t('settings.assets.edit_aria', { name: asset.name })}
                     >
                       <IconPencil size={20} />
                     </ActionIcon>

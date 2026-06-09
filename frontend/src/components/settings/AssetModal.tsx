@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button, Group, Modal, Select, Stack, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useTranslation } from 'react-i18next'
 import { assetsApi } from '@/services/referenceData'
 import { ASSET_CATEGORIES } from '@/types/referenceData'
 import type { Asset, AssetCategory } from '@/types/referenceData'
@@ -21,19 +22,20 @@ interface AssetFormValues {
 }
 
 export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps) {
+  const { t } = useTranslation()
   const [submitting, setSubmitting] = useState(false)
   const form = useForm<AssetFormValues>({
     initialValues: { name: '', category: null, currency: '' },
     validate: {
       name: (value) => {
         const length = value.trim().length
-        if (length < 2) return 'Name must be at least 2 characters'
-        if (length > 50) return 'Name must be at most 50 characters'
+        if (length < 2) return t('settings.assets.form.name_min')
+        if (length > 50) return t('settings.assets.form.name_max')
         return null
       },
-      category: (value) => (value ? null : 'Category is required'),
+      category: (value) => (value ? null : t('settings.assets.form.category_required')),
       currency: (value) =>
-        value.trim().length > 10 ? 'Currency must be at most 10 characters' : null,
+        value.trim().length > 10 ? t('settings.assets.form.currency_max') : null,
     },
   })
 
@@ -60,14 +62,14 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
     try {
       if (asset) {
         await assetsApi.update(asset.id, payload)
-        notifySuccess(`${payload.name} updated`)
+        notifySuccess(t('settings.assets.notify.updated', { name: payload.name }))
       } else {
         await assetsApi.create(payload)
-        notifySuccess(`${payload.name} created`)
+        notifySuccess(t('settings.assets.notify.created', { name: payload.name }))
       }
       onSaved()
     } catch (cause) {
-      notifyError(cause instanceof Error ? cause.message : 'Could not save asset')
+      notifyError(cause instanceof Error ? cause.message : t('settings.assets.notify.save_error'))
     } finally {
       setSubmitting(false)
     }
@@ -77,35 +79,35 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
     <Modal
       opened={opened}
       onClose={onClose}
-      title={asset ? 'Edit asset' : 'Add asset'}
+      title={asset ? t('settings.assets.modal.edit_title') : t('settings.assets.modal.add_title')}
       centered
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
           <TextInput
-            label="Name"
-            placeholder="EUR/USD"
+            label={t('settings.assets.form.name_label')}
+            placeholder={t('settings.assets.form.name_placeholder')}
             withAsterisk
             {...form.getInputProps('name')}
           />
           <Select
-            label="Category"
-            placeholder="Pick a category"
+            label={t('settings.assets.form.category_label')}
+            placeholder={t('settings.assets.form.category_placeholder')}
             withAsterisk
             data={[...ASSET_CATEGORIES]}
             {...form.getInputProps('category')}
           />
           <TextInput
-            label="Currency"
-            placeholder="USD"
+            label={t('settings.assets.form.currency_label')}
+            placeholder={t('settings.assets.form.currency_placeholder')}
             {...form.getInputProps('currency')}
           />
           <Group justify="flex-end" mt="xs">
             <Button variant="default" onClick={onClose}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" loading={submitting}>
-              {asset ? 'Save' : 'Create'}
+              {asset ? t('common.actions.save') : t('common.actions.create')}
             </Button>
           </Group>
         </Stack>

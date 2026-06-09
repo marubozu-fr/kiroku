@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Button, Group, Modal, Stack, Textarea, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useTranslation } from 'react-i18next'
 import { tagsApi } from '@/services/referenceData'
 import type { Tag } from '@/types/referenceData'
 import { notifyError, notifySuccess } from './notify'
@@ -19,18 +20,19 @@ interface TagFormValues {
 }
 
 export function TagModal({ opened, tag, onClose, onSaved }: TagModalProps) {
+  const { t } = useTranslation()
   const [submitting, setSubmitting] = useState(false)
   const form = useForm<TagFormValues>({
     initialValues: { name: '', description: '' },
     validate: {
       name: (value) => {
         const length = value.trim().length
-        if (length < 3) return 'Name must be at least 3 characters'
-        if (length > 100) return 'Name must be at most 100 characters'
+        if (length < 3) return t('settings.tags.form.name_min')
+        if (length > 100) return t('settings.tags.form.name_max')
         return null
       },
       description: (value) =>
-        value.length > 500 ? 'Description must be at most 500 characters' : null,
+        value.length > 500 ? t('settings.tags.form.description_max') : null,
     },
   })
 
@@ -54,14 +56,14 @@ export function TagModal({ opened, tag, onClose, onSaved }: TagModalProps) {
     try {
       if (tag) {
         await tagsApi.update(tag.id, payload)
-        notifySuccess(`${payload.name} updated`)
+        notifySuccess(t('settings.tags.notify.updated', { name: payload.name }))
       } else {
         await tagsApi.create(payload)
-        notifySuccess(`${payload.name} created`)
+        notifySuccess(t('settings.tags.notify.created', { name: payload.name }))
       }
       onSaved()
     } catch (cause) {
-      notifyError(cause instanceof Error ? cause.message : 'Could not save tag')
+      notifyError(cause instanceof Error ? cause.message : t('settings.tags.notify.save_error'))
     } finally {
       setSubmitting(false)
     }
@@ -71,30 +73,30 @@ export function TagModal({ opened, tag, onClose, onSaved }: TagModalProps) {
     <Modal
       opened={opened}
       onClose={onClose}
-      title={tag ? 'Edit tag' : 'Add tag'}
+      title={tag ? t('settings.tags.modal.edit_title') : t('settings.tags.modal.add_title')}
       centered
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
           <TextInput
-            label="Name"
-            placeholder="Breakout"
+            label={t('settings.tags.form.name_label')}
+            placeholder={t('settings.tags.form.name_placeholder')}
             withAsterisk
             {...form.getInputProps('name')}
           />
           <Textarea
-            label="Description"
-            placeholder="Optional notes about when this tag applies"
+            label={t('settings.tags.form.description_label')}
+            placeholder={t('settings.tags.form.description_placeholder')}
             autosize
             minRows={2}
             {...form.getInputProps('description')}
           />
           <Group justify="flex-end" mt="xs">
             <Button variant="default" onClick={onClose}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button type="submit" loading={submitting}>
-              {tag ? 'Save' : 'Create'}
+              {tag ? t('common.actions.save') : t('common.actions.create')}
             </Button>
           </Group>
         </Stack>

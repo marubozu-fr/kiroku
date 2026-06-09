@@ -11,6 +11,7 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { Trans, useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { emotionsApi } from '@/services/referenceData'
 import { EMOTION_CATEGORIES } from '@/types/referenceData'
@@ -27,6 +28,7 @@ const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
 }
 
 export function EmotionsTab() {
+  const { t } = useTranslation()
   const { data, loading, error, reload } = useFetch(emotionsApi.grouped)
   const [editing, setEditing] = useState<Emotion | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
@@ -50,11 +52,11 @@ export function EmotionsTab() {
     setDeletePending(true)
     try {
       await emotionsApi.remove(deleting.id)
-      notifySuccess(`${deleting.name} deleted`)
+      notifySuccess(t('settings.emotions.notify.deleted', { name: deleting.name }))
       setDeleting(null)
       reload()
     } catch (cause) {
-      notifyError(cause instanceof Error ? cause.message : 'Could not delete emotion')
+      notifyError(cause instanceof Error ? cause.message : t('settings.emotions.notify.delete_error'))
     } finally {
       setDeletePending(false)
     }
@@ -70,7 +72,7 @@ export function EmotionsTab() {
     <>
       <Group justify="flex-end" mb="md">
         <Button leftSection={<IconPlus size={20} />} onClick={openAdd}>
-          Add emotion
+          {t('settings.emotions.add')}
         </Button>
       </Group>
 
@@ -78,7 +80,7 @@ export function EmotionsTab() {
         loading={loading}
         error={error}
         isEmpty={totalEmotions === 0}
-        emptyMessage="No emotions yet. Add emotions to tag your mental state on each trade."
+        emptyMessage={t('settings.emotions.empty')}
         onRetry={reload}
       >
         <Stack gap="lg">
@@ -92,16 +94,16 @@ export function EmotionsTab() {
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                        Name
+                        {t('settings.emotions.columns.name')}
                       </Table.Th>
                       <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                        Description
+                        {t('settings.emotions.columns.description')}
                       </Table.Th>
                       <Table.Th tt="uppercase" fz="xs" c="dimmed">
-                        Severity
+                        {t('settings.emotions.columns.severity')}
                       </Table.Th>
                       <Table.Th tt="uppercase" fz="xs" c="dimmed" w={100}>
-                        Actions
+                        {t('settings.emotions.columns.actions')}
                       </Table.Th>
                     </Table.Tr>
                   </Table.Thead>
@@ -125,7 +127,7 @@ export function EmotionsTab() {
                               variant="subtle"
                               color="gray"
                               onClick={() => openEdit(emotion)}
-                              aria-label={`Edit ${emotion.name}`}
+                              aria-label={t('settings.emotions.edit_aria', { name: emotion.name })}
                             >
                               <IconPencil size={20} />
                             </ActionIcon>
@@ -133,7 +135,7 @@ export function EmotionsTab() {
                               variant="subtle"
                               color="red"
                               onClick={() => setDeleting(emotion)}
-                              aria-label={`Delete ${emotion.name}`}
+                              aria-label={t('settings.emotions.delete_aria', { name: emotion.name })}
                             >
                               <IconTrash size={20} />
                             </ActionIcon>
@@ -162,19 +164,23 @@ export function EmotionsTab() {
       <Modal
         opened={deleting !== null}
         onClose={() => setDeleting(null)}
-        title="Delete emotion"
+        title={t('settings.emotions.delete_modal.title')}
         centered
       >
         <Stack gap="md">
           <Text size="sm">
-            Delete <strong>{deleting?.name}</strong>? This cannot be undone.
+            <Trans
+              i18nKey="settings.emotions.delete_modal.confirm"
+              values={{ name: deleting?.name ?? '' }}
+              components={{ strong: <strong /> }}
+            />
           </Text>
           <Group justify="flex-end">
             <Button variant="default" onClick={() => setDeleting(null)}>
-              Cancel
+              {t('common.actions.cancel')}
             </Button>
             <Button color="red" loading={deletePending} onClick={confirmDelete}>
-              Delete
+              {t('common.actions.delete')}
             </Button>
           </Group>
         </Stack>
