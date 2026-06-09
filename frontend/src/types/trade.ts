@@ -12,9 +12,12 @@ export type TradeStatus = 'Open' | 'Closed' | 'Partial' | 'Breakeven'
 
 export type TradeDirection = 'Long' | 'Short'
 
+export type AccountType = 'test' | 'demo' | 'live'
+
 export interface TradeSummary {
   id: number
   asset_id: number | null
+  account_type: AccountType
   status: TradeStatus
   direction: TradeDirection | null
   stop_loss: number | null
@@ -76,6 +79,7 @@ export interface TradeActivityInput {
  */
 export interface TradeInput {
   asset_id: number
+  account_type: AccountType
   stop_loss: number | null
   notes: string | null
   missed_opportunity: boolean

@@ -24,6 +24,7 @@ function makeTrade(overrides: Partial<TradeDetail> = {}): TradeDetail {
   return {
     id: 1,
     asset_id: 1,
+    account_type: 'live',
     status: 'Closed',
     direction: 'Long',
     stop_loss: null,
@@ -228,9 +229,47 @@ describe('TradeDetailPage', () => {
     // Notes text
     expect(screen.getByText('Great setup, followed the plan.')).toBeInTheDocument()
 
-    // Activity type badges (Buy entry, Sell exit)
-    expect(screen.getByText('Buy')).toBeInTheDocument()
-    expect(screen.getByText('Sell')).toBeInTheDocument()
+    // Activity type badges (Buy entry, Sell exit) appear in the entries/exits
+    // summary and again in the per-activity timeline.
+    expect(screen.getAllByText('Buy').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Sell').length).toBeGreaterThan(0)
+  })
+
+  it('shows the account type badge and entries/exits totals', async () => {
+    const trade = makeTrade({
+      account_type: 'demo',
+      avg_entry_price: 1.081,
+      avg_exit_price: 1.0948,
+      activities: [
+        {
+          id: 30,
+          trade_id: 1,
+          type: 'Buy',
+          price: 1.081,
+          quantity: 10000,
+          date: '2026-03-04T09:00:00Z',
+          is_entry: true,
+        },
+        {
+          id: 31,
+          trade_id: 1,
+          type: 'Sell',
+          price: 1.0948,
+          quantity: 10000,
+          date: '2026-03-04T15:30:00Z',
+          is_entry: false,
+        },
+      ],
+    })
+
+    stubApi(trade)
+    renderDetail()
+
+    await screen.findByText('EUR/USD')
+    expect(screen.getByText('Demo')).toBeInTheDocument()
+    // Weighted-average entry / exit prices, monospace with 5 decimals.
+    expect(screen.getByText('1.08100')).toBeInTheDocument()
+    expect(screen.getByText('1.09480')).toBeInTheDocument()
   })
 
   it('renders screenshot group label and thumbnail image', async () => {

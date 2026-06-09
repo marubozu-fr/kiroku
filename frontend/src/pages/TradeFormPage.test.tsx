@@ -60,6 +60,7 @@ function makeTrade(overrides: Partial<TradeDetail> = {}): TradeDetail {
   return {
     id: 1,
     asset_id: 1,
+    account_type: 'live',
     status: 'Closed',
     direction: 'Long',
     stop_loss: 1.07,
@@ -116,7 +117,7 @@ interface StubOptions {
 /**
  * Route a mocked fetch by path and method. Reference-data GETs always resolve;
  * the trade GET resolves only when a trade is provided; POST/PUT echo back a
- * trade (or fail with `saveError`).
+ * trade (or fail with `saveError`); screenshot POSTs echo a screenshot record.
  */
 function stubApi({ trade, saveError }: StubOptions = {}) {
   const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
@@ -125,6 +126,13 @@ function stubApi({ trade, saveError }: StubOptions = {}) {
     if (input.startsWith('/api/assets')) return jsonResponse(assets)
     if (input.startsWith('/api/tags')) return jsonResponse(tags)
     if (input.startsWith('/api/emotions/grouped')) return jsonResponse(emotionsGrouped)
+
+    if (method === 'POST' && input.includes('/screenshots')) {
+      return jsonResponse({ id: 99 })
+    }
+    if (method === 'DELETE' && input.startsWith('/api/screenshots/')) {
+      return jsonResponse({ id: 99 })
+    }
 
     if ((method === 'POST' || method === 'PUT') && input.startsWith('/api/trades')) {
       if (saveError) {
@@ -171,15 +179,28 @@ function renderEdit(tradeId = 1) {
   )
 }
 
-/** Read the JSON body of the first POST/PUT call to /api/trades. */
+/** Read the JSON body of the first POST/PUT to /api/trades (not /screenshots). */
 function lastSaveBody(fetchMock: ReturnType<typeof stubApi>): TradeDetail & Record<string, unknown> {
   const call = fetchMock.mock.calls.find(
     ([input, init]: [string, RequestInit?]) =>
       ((init?.method ?? 'GET') === 'POST' || (init?.method ?? 'GET') === 'PUT') &&
-      input.startsWith('/api/trades'),
+      input.startsWith('/api/trades') &&
+      !input.includes('/screenshots'),
   )
   if (!call) throw new Error('No save request was made')
   return JSON.parse(call[1]?.body as string)
+}
+
+/** Fill the minimum required fields for a valid create: direction, entry, stop loss. */
+function fillRequired() {
+  fireEvent.click(screen.getByPlaceholderText('Pick an asset'))
+  fireEvent.click(screen.getByText('EUR/USD'))
+  fireEvent.click(screen.getByText('Long'))
+  fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1000' } })
+  fireEvent.change(screen.getByLabelText('Price'), { target: { value: '1.08' } })
+  fireEvent.change(screen.getByLabelText('Stop loss', { exact: false }), {
+    target: { value: '1.07' },
+  })
 }
 
 afterEach(() => {
@@ -191,18 +212,17 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('TradeFormPage — create mode', () => {
-  it('renders the form sections with one activity row', async () => {
+  it('renders configuration and activities with one entry and no exits', async () => {
     stubApi()
     renderNew()
 
     expect(await screen.findByText('New trade')).toBeInTheDocument()
+    expect(screen.getByText('Configuration')).toBeInTheDocument()
     expect(screen.getByText('Activities')).toBeInTheDocument()
-    expect(screen.getByText('Risk & timeframe')).toBeInTheDocument()
-    // One activity row → exactly one Date / Price / Quantity field. Labels
-    // carry a required asterisk, so match by substring.
-    expect(screen.getAllByLabelText('Date', { exact: false })).toHaveLength(1)
-    expect(screen.getByLabelText('Price', { exact: false })).toBeInTheDocument()
-    expect(screen.getByLabelText('Quantity', { exact: false })).toBeInTheDocument()
+    // One entry row → exactly one Quantity / Price field; no exit rows yet.
+    expect(screen.getByLabelText('Entry date')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Exit date')).not.toBeInTheDocument()
+    expect(screen.getAllByLabelText('Quantity')).toHaveLength(1)
   })
 
   it('blocks submit and shows validation errors when required fields are empty', async () => {
@@ -213,6 +233,7 @@ describe('TradeFormPage — create mode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Create trade' }))
 
     expect(await screen.findByText('Asset is required')).toBeInTheDocument()
+    expect(screen.getByText('Direction is required')).toBeInTheDocument()
     expect(screen.getByText('Price must be greater than 0')).toBeInTheDocument()
 
     const saveCalls = fetchMock.mock.calls.filter(
@@ -221,43 +242,52 @@ describe('TradeFormPage — create mode', () => {
     expect(saveCalls).toHaveLength(0)
   })
 
-  it('adds and removes activity rows', async () => {
+  it('unlocks the exits section once an entry quantity is set', async () => {
     stubApi()
     renderNew()
 
     await screen.findByText('New trade')
-    expect(screen.getAllByLabelText('Date', { exact: false })).toHaveLength(1)
+    const addExit = screen.getByRole('button', { name: /add exit/i })
+    expect(addExit).toBeDisabled()
 
-    fireEvent.click(screen.getByRole('button', { name: /add activity/i }))
-    expect(screen.getAllByLabelText('Date', { exact: false })).toHaveLength(2)
+    fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1000' } })
+    expect(screen.getByRole('button', { name: /add exit/i })).toBeEnabled()
 
-    fireEvent.click(screen.getAllByRole('button', { name: /remove/i })[0])
-    expect(screen.getAllByLabelText('Date', { exact: false })).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: /add exit/i }))
+    expect(screen.getByLabelText('Exit date')).toBeInTheDocument()
   })
 
-  it('submits a create request and redirects to the new trade', async () => {
+  it('adds and removes entry rows', async () => {
+    stubApi()
+    renderNew()
+
+    await screen.findByText('New trade')
+    expect(screen.getAllByLabelText('Quantity')).toHaveLength(1)
+
+    fireEvent.click(screen.getByRole('button', { name: /add entry/i }))
+    expect(screen.getAllByLabelText('Quantity')).toHaveLength(2)
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Remove' })[0])
+    expect(screen.getAllByLabelText('Quantity')).toHaveLength(1)
+  })
+
+  it('submits a create request with direction-typed activities and account type', async () => {
     const fetchMock = stubApi()
     renderNew()
 
     await screen.findByText('New trade')
 
-    // Pick an active asset (the inactive "Retired pair" must not be offered).
+    // The inactive "Retired pair" must not be offered.
     fireEvent.click(screen.getByPlaceholderText('Pick an asset'))
     expect(screen.queryByText('Retired pair')).not.toBeInTheDocument()
-    fireEvent.click(await screen.findByText('EUR/USD'))
-
-    fireEvent.change(screen.getByLabelText('Price', { exact: false }), {
-      target: { value: '1.08' },
-    })
-    fireEvent.change(screen.getByLabelText('Quantity', { exact: false }), {
-      target: { value: '1000' },
-    })
+    fillRequired()
 
     fireEvent.click(screen.getByRole('button', { name: 'Create trade' }))
 
     await waitFor(() => {
       const body = lastSaveBody(fetchMock)
       expect(body.asset_id).toBe(1)
+      expect(body.account_type).toBe('live')
       expect(body.activities).toHaveLength(1)
       expect(body.activities[0].price).toBe(1.08)
       expect(body.activities[0].quantity).toBe(1000)
@@ -267,20 +297,37 @@ describe('TradeFormPage — create mode', () => {
     expect(await screen.findByText('Trade detail')).toBeInTheDocument()
   })
 
+  it('blocks submit when exit quantity exceeds entry quantity', async () => {
+    const fetchMock = stubApi()
+    renderNew()
+
+    await screen.findByText('New trade')
+    fillRequired()
+
+    fireEvent.click(screen.getByRole('button', { name: /add exit/i }))
+    const quantities = screen.getAllByLabelText('Quantity')
+    fireEvent.change(quantities[1], { target: { value: '5000' } })
+
+    expect(
+      await screen.findByText('Exit quantity cannot exceed entry quantity'),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Create trade' }))
+    await waitFor(() => {
+      const saveCalls = fetchMock.mock.calls.filter(
+        ([input, init]: [string, RequestInit?]) =>
+          (init?.method ?? 'GET') === 'POST' && !input.includes('/screenshots'),
+      )
+      expect(saveCalls).toHaveLength(0)
+    })
+  })
+
   it('shows a server error when the save fails', async () => {
     stubApi({ saveError: 'Asset 1 not found' })
     renderNew()
 
     await screen.findByText('New trade')
-
-    fireEvent.click(screen.getByPlaceholderText('Pick an asset'))
-    fireEvent.click(await screen.findByText('EUR/USD'))
-    fireEvent.change(screen.getByLabelText('Price', { exact: false }), {
-      target: { value: '1.08' },
-    })
-    fireEvent.change(screen.getByLabelText('Quantity', { exact: false }), {
-      target: { value: '1000' },
-    })
+    fillRequired()
     fireEvent.click(screen.getByRole('button', { name: 'Create trade' }))
 
     expect(await screen.findByText('Asset 1 not found')).toBeInTheDocument()
@@ -288,19 +335,19 @@ describe('TradeFormPage — create mode', () => {
 })
 
 describe('TradeFormPage — edit mode', () => {
-  it('prefills all fields from the existing trade', async () => {
+  it('prefills all fields from the existing trade, splitting entries and exits', async () => {
     stubApi({ trade: makeTrade() })
     renderEdit()
 
     expect(await screen.findByText('Edit trade')).toBeInTheDocument()
 
-    // Asset select shows the resolved name; notes and risk are prefilled.
     expect(await screen.findByDisplayValue('EUR/USD')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Followed the plan.')).toBeInTheDocument()
     expect(screen.getByLabelText('Risk per trade (%)')).toHaveValue('1.5%')
 
-    // Two activities are prefilled from the trade.
-    expect(screen.getAllByLabelText('Date', { exact: false })).toHaveLength(2)
+    // One Buy entry and one Sell exit are split into the two sub-sections.
+    expect(screen.getByLabelText('Entry date')).toBeInTheDocument()
+    expect(screen.getByLabelText('Exit date')).toBeInTheDocument()
   })
 
   it('submits a PUT with the prefilled values and redirects', async () => {
@@ -308,7 +355,6 @@ describe('TradeFormPage — edit mode', () => {
     renderEdit()
 
     await screen.findByText('Edit trade')
-    // Wait for prefill to settle (price field populated).
     await screen.findByDisplayValue('Followed the plan.')
 
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
@@ -321,12 +367,16 @@ describe('TradeFormPage — edit mode', () => {
       expect(call).toBeDefined()
       const body = JSON.parse(call![1]?.body as string)
       expect(body.asset_id).toBe(1)
+      expect(body.account_type).toBe('live')
       expect(body.notes).toBe('Followed the plan.')
       expect(body.timeframe_unit).toBe('m')
       expect(body.timeframe_value).toBe(15)
       expect(body.tag_ids).toEqual([10])
       expect(body.emotion_ids).toEqual([20])
+      // One Buy entry + one Sell exit, recombined into activities.
       expect(body.activities).toHaveLength(2)
+      expect(body.activities[0].type).toBe('Buy')
+      expect(body.activities[1].type).toBe('Sell')
     })
 
     expect(await screen.findByText('Trade detail')).toBeInTheDocument()

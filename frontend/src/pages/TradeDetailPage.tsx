@@ -18,6 +18,7 @@ import {
   Badge,
   Button,
   Card,
+  Divider,
   Group,
   Image,
   Modal,
@@ -43,7 +44,7 @@ import { assetsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
 import { EMOTION_CATEGORIES } from '@/types/referenceData'
 import type { EmotionSeverity } from '@/types/referenceData'
-import type { TradeScreenshot } from '@/types/trade'
+import type { AccountType, TradeDirection, TradeScreenshot } from '@/types/trade'
 import classes from './TradeDetailPage.module.css'
 
 // Severity colours per docs/DESIGN_SYSTEM.md — not re-exported from EmotionsTab.
@@ -51,6 +52,19 @@ const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
   Good: 'green',
   Warning: 'orange',
   Bad: 'red',
+}
+
+// Direction uses teal/grape (non-semantic) — green/red are reserved for P&L.
+const DIRECTION_COLOR: Record<TradeDirection, string> = {
+  Long: 'teal',
+  Short: 'grape',
+}
+
+// Account-type badge colours — non-semantic, never green/red.
+const ACCOUNT_TYPE_COLOR: Record<AccountType, string> = {
+  live: 'blue',
+  demo: 'cyan',
+  test: 'gray',
 }
 
 /**
@@ -177,6 +191,13 @@ export function TradeDetailPage() {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   )
 
+  const entries = sortedActivities.filter((a) => a.is_entry)
+  const exits = sortedActivities.filter((a) => !a.is_entry)
+  const entryQty = entries.reduce((sum, a) => sum + a.quantity, 0)
+  const exitQty = exits.reduce((sum, a) => sum + a.quantity, 0)
+  const entryType = trade.direction === 'Short' ? 'Sell' : 'Buy'
+  const exitType = trade.direction === 'Short' ? 'Buy' : 'Sell'
+
   // Duration only reads as a span for a closed trade; otherwise show "Open".
   const isClosed = trade.status === 'Closed'
   const duration = isClosed ? formatTradeDuration(trade.activities) : t('trade.detail.duration_open')
@@ -198,12 +219,15 @@ export function TradeDetailPage() {
               </Text>
               <Group gap="xs">
                 {trade.direction && (
-                  <Badge variant="light" color={trade.direction === 'Long' ? 'blue' : 'grape'}>
-                    {trade.direction}
+                  <Badge variant="light" color={DIRECTION_COLOR[trade.direction]}>
+                    {t(`trade.direction.${trade.direction}`)}
                   </Badge>
                 )}
                 <Badge variant="light" color={STATUS_COLOR[trade.status]}>
                   {trade.status}
+                </Badge>
+                <Badge variant="light" color={ACCOUNT_TYPE_COLOR[trade.account_type]}>
+                  {t(`trade.account_type.${trade.account_type}`)}
                 </Badge>
               </Group>
             </Group>
@@ -282,7 +306,62 @@ export function TradeDetailPage() {
               {t('trade.detail.empty.activities')}
             </Text>
           ) : (
-            <Timeline active={sortedActivities.length} bulletSize={22} lineWidth={2}>
+            <Stack gap="md">
+              {/* Entries / Exits summary, side by side with computed totals */}
+              <SimpleGrid cols={{ base: 1, sm: 2 }}>
+                <Stack gap={4}>
+                  <Group gap="xs">
+                    <Text fw={600} size="sm">
+                      {t('trade.detail.entries')}
+                    </Text>
+                    <Badge variant="light" color={DIRECTION_COLOR.Long} size="sm">
+                      {entryType}
+                    </Badge>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                      {t('trade.detail.totals.quantity')}{' '}
+                      <Text span ff="monospace">
+                        {entryQty}
+                      </Text>
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {t('trade.detail.totals.avg_price')}{' '}
+                      <Text span ff="monospace">
+                        {trade.avg_entry_price !== null ? trade.avg_entry_price.toFixed(5) : '—'}
+                      </Text>
+                    </Text>
+                  </Group>
+                </Stack>
+                <Stack gap={4}>
+                  <Group gap="xs">
+                    <Text fw={600} size="sm">
+                      {t('trade.detail.exits')}
+                    </Text>
+                    <Badge variant="light" color={DIRECTION_COLOR.Short} size="sm">
+                      {exitType}
+                    </Badge>
+                  </Group>
+                  <Group justify="space-between">
+                    <Text size="xs" c="dimmed">
+                      {t('trade.detail.totals.quantity')}{' '}
+                      <Text span ff="monospace" c={exitQty > 0 ? undefined : 'dimmed'}>
+                        {exitQty > 0 ? exitQty : '—'}
+                      </Text>
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {t('trade.detail.totals.avg_price')}{' '}
+                      <Text span ff="monospace" c={trade.avg_exit_price !== null ? undefined : 'dimmed'}>
+                        {trade.avg_exit_price !== null ? trade.avg_exit_price.toFixed(5) : '—'}
+                      </Text>
+                    </Text>
+                  </Group>
+                </Stack>
+              </SimpleGrid>
+
+              <Divider />
+
+              <Timeline active={sortedActivities.length} bulletSize={22} lineWidth={2}>
               {sortedActivities.map((activity) => (
                 <Timeline.Item
                   key={activity.id}
@@ -314,7 +393,8 @@ export function TradeDetailPage() {
                   </Group>
                 </Timeline.Item>
               ))}
-            </Timeline>
+              </Timeline>
+            </Stack>
           )}
         </Card>
 

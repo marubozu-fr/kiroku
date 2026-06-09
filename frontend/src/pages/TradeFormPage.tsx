@@ -1,21 +1,34 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { IconAlertTriangle, IconArrowLeft, IconPlus, IconTrash } from '@tabler/icons-react'
 import {
+  IconAlertTriangle,
+  IconArrowLeft,
+  IconPhoto,
+  IconPlus,
+  IconTrash,
+  IconUpload,
+  IconX,
+} from '@tabler/icons-react'
+import {
+  ActionIcon,
   Alert,
   Anchor,
   Badge,
   Button,
   Card,
   Checkbox,
+  Divider,
+  FileButton,
   Grid,
   Group,
+  Image,
   Input,
   MultiSelect,
   NumberInput,
   SegmentedControl,
   Select,
+  SimpleGrid,
   Skeleton,
   Stack,
   Text,
@@ -26,12 +39,25 @@ import { DateTimePicker } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import dayjs from 'dayjs'
 import { notifyError, notifySuccess } from '@/components/settings/notify'
+import {
+  executionTotals,
+  isPositiveNumber,
+  isValidScreenshot,
+} from '@/components/trade-form/execution'
+import type { ExecutionRow } from '@/components/trade-form/execution'
 import { useFetch } from '@/hooks/useFetch'
 import { assetsApi, emotionsApi, tagsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
 import { ASSET_CATEGORIES, EMOTION_CATEGORIES } from '@/types/referenceData'
 import type { Emotion, EmotionSeverity } from '@/types/referenceData'
-import type { ActivityType, TradeInput } from '@/types/trade'
+import type {
+  AccountType,
+  ActivityType,
+  TradeDirection,
+  TradeInput,
+  TradeScreenshot,
+} from '@/types/trade'
+import classes from './TradeFormPage.module.css'
 
 // Severity colours per docs/DESIGN_SYSTEM.md (red reserved for P&L, but allowed
 // here for the "Bad" emotion semantics as on the detail view).
@@ -41,25 +67,29 @@ const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
   Bad: 'red',
 }
 
-const TIMEFRAME_UNITS: readonly { value: string; label: string }[] = [
-  { value: 'm', label: 'Minutes' },
-  { value: 'h', label: 'Hours' },
-  { value: 'd', label: 'Days' },
-  { value: 'w', label: 'Weeks' },
-]
-
-interface ActivityFormValue {
-  type: ActivityType
-  date: string
-  price: number | string
-  quantity: number | string
+// Direction uses teal/grape (non-semantic) — green/red are reserved for P&L.
+const DIRECTION_COLOR: Record<TradeDirection, string> = {
+  Long: 'teal',
+  Short: 'grape',
 }
+
+const ACCOUNT_TYPES: readonly AccountType[] = ['test', 'demo', 'live']
+
+const TIMEFRAME_UNITS: readonly { value: string }[] = [
+  { value: 'm' },
+  { value: 'h' },
+  { value: 'd' },
+  { value: 'w' },
+]
 
 interface TradeFormValues {
   asset_id: string | null
-  activities: ActivityFormValue[]
+  account_type: AccountType
+  direction: TradeDirection | null
   stop_loss: number | string
   risk_per_trade: number | string
+  entries: ExecutionRow[]
+  exits: ExecutionRow[]
   tag_ids: string[]
   emotion_ids: string[]
   timeframe_unit: string | null
@@ -68,8 +98,8 @@ interface TradeFormValues {
   missed_opportunity: boolean
 }
 
-function emptyActivity(): ActivityFormValue {
-  return { type: 'Buy', date: dayjs().toISOString(), price: '', quantity: '' }
+function emptyRow(): ExecutionRow {
+  return { date: dayjs().toISOString(), price: '', quantity: '' }
 }
 
 /** Coerce a NumberInput value (number or empty string) to a number or null. */
@@ -79,12 +109,6 @@ function toNumberOrNull(value: number | string): number | null {
   }
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : null
-}
-
-/** True when a NumberInput value is a finite number strictly greater than 0. */
-function isPositive(value: number | string): boolean {
-  const parsed = typeof value === 'string' ? Number(value) : value
-  return Number.isFinite(parsed) && parsed > 0
 }
 
 /**
@@ -111,6 +135,12 @@ export function TradeFormPage() {
 
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  // Screenshots staged client-side as File objects; uploaded after the trade
+  // is saved. On edit, existing screenshots are shown and may be marked for
+  // deletion (applied on submit).
+  const [stagedFiles, setStagedFiles] = useState<File[]>([])
+  const [existingScreenshots, setExistingScreenshots] = useState<TradeScreenshot[]>([])
+  const [removedScreenshotIds, setRemovedScreenshotIds] = useState<number[]>([])
   // Prefill the form from the loaded trade exactly once (edit mode). A ref
   // avoids re-triggering the effect and keeps user edits from being clobbered.
   const prefilled = useRef(false)
@@ -118,9 +148,12 @@ export function TradeFormPage() {
   const form = useForm<TradeFormValues>({
     initialValues: {
       asset_id: null,
-      activities: [emptyActivity()],
+      account_type: 'live',
+      direction: null,
       stop_loss: '',
       risk_per_trade: '',
+      entries: [emptyRow()],
+      exits: [],
       tag_ids: [],
       emotion_ids: [],
       timeframe_unit: null,
@@ -130,21 +163,30 @@ export function TradeFormPage() {
     },
     validate: {
       asset_id: (value) => (value ? null : t('trade.form.validation.asset_required')),
-      activities: {
+      direction: (value) => (value ? null : t('trade.form.validation.direction_required')),
+      entries: {
         date: (value) => (value ? null : t('trade.form.validation.date_required')),
-        price: (value) => (isPositive(value) ? null : t('trade.form.validation.price_positive')),
+        price: (value) =>
+          isPositiveNumber(value) ? null : t('trade.form.validation.price_positive'),
         quantity: (value) =>
-          isPositive(value) ? null : t('trade.form.validation.quantity_positive'),
+          isPositiveNumber(value) ? null : t('trade.form.validation.quantity_positive'),
+      },
+      exits: {
+        date: (value) => (value ? null : t('trade.form.validation.date_required')),
+        price: (value) =>
+          isPositiveNumber(value) ? null : t('trade.form.validation.price_positive'),
+        quantity: (value) =>
+          isPositiveNumber(value) ? null : t('trade.form.validation.quantity_positive'),
       },
       stop_loss: (value) =>
-        value === '' || isPositive(value) ? null : t('trade.form.validation.stop_loss_positive'),
+        isPositiveNumber(value) ? null : t('trade.form.validation.stop_loss_required'),
       risk_per_trade: (value) => {
         if (value === '') return null
         const parsed = Number(value)
         return parsed > 0 && parsed <= 100 ? null : t('trade.form.validation.risk_range')
       },
       timeframe_value: (value, values) =>
-        values.timeframe_unit && !isPositive(value)
+        values.timeframe_unit && !isPositiveNumber(value)
           ? t('trade.form.validation.timeframe_value_required')
           : null,
       timeframe_unit: (value, values) => {
@@ -153,6 +195,27 @@ export function TradeFormPage() {
       },
     },
   })
+
+  // --- Derived: direction-driven types, totals, gating ---
+  const direction = form.values.direction
+  const entryType: ActivityType = direction === 'Short' ? 'Sell' : 'Buy'
+  const exitType: ActivityType = direction === 'Short' ? 'Buy' : 'Sell'
+  const hasEntry = form.values.entries.some((row) => isPositiveNumber(row.quantity))
+  const entryTotals = executionTotals(form.values.entries)
+  const exitTotals = executionTotals(form.values.exits)
+  const exitExceedsEntry = exitTotals.quantity > entryTotals.quantity
+
+  // --- Screenshot previews via object URLs; revoked on change / unmount ---
+  const previews = useMemo(
+    () => stagedFiles.map((file) => ({ file, url: URL.createObjectURL(file) })),
+    [stagedFiles],
+  )
+  useEffect(
+    () => () => {
+      previews.forEach((preview) => URL.revokeObjectURL(preview.url))
+    },
+    [previews],
+  )
 
   // --- Reference data, shaped for the selectors ---
   const assetOptions = useMemo(
@@ -202,22 +265,24 @@ export function TradeFormPage() {
       return
     }
     const trade = tradeFetch.data
-    const sortedActivities = [...trade.activities].sort(
+    const sorted = [...trade.activities].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     )
+    const toRow = (activity: (typeof sorted)[number]): ExecutionRow => ({
+      date: activity.date,
+      price: activity.price,
+      quantity: activity.quantity,
+    })
+    const entries = sorted.filter((a) => a.is_entry).map(toRow)
+    const exits = sorted.filter((a) => !a.is_entry).map(toRow)
     form.setValues({
       asset_id: trade.asset_id !== null ? String(trade.asset_id) : null,
-      activities:
-        sortedActivities.length > 0
-          ? sortedActivities.map((activity) => ({
-              type: activity.type,
-              date: activity.date,
-              price: activity.price,
-              quantity: activity.quantity,
-            }))
-          : [emptyActivity()],
+      account_type: trade.account_type,
+      direction: trade.direction,
       stop_loss: trade.stop_loss ?? '',
       risk_per_trade: trade.risk_per_trade ?? '',
+      entries: entries.length > 0 ? entries : [emptyRow()],
+      exits,
       tag_ids: trade.tags.map((tag) => String(tag.id)),
       emotion_ids: trade.emotions.map((emotion) => String(emotion.id)),
       timeframe_unit: trade.timeframe_unit ?? null,
@@ -225,35 +290,87 @@ export function TradeFormPage() {
       notes: trade.notes ?? '',
       missed_opportunity: trade.missed_opportunity,
     })
+    setExistingScreenshots(trade.screenshots)
     form.resetDirty()
     prefilled.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, tradeFetch.data])
 
+  // --- Screenshot staging handlers ---
+  const handleAddFiles = (files: File[]) => {
+    const valid = files.filter(isValidScreenshot)
+    if (valid.length < files.length) {
+      notifyError(t('trade.form.screenshots.invalid_file'))
+    }
+    if (valid.length > 0) {
+      setStagedFiles((current) => [...current, ...valid])
+    }
+  }
+
+  const removeStagedFile = (index: number) => {
+    setStagedFiles((current) => current.filter((_, i) => i !== index))
+  }
+
+  const removeExistingScreenshot = (screenshotId: number) => {
+    setExistingScreenshots((current) => current.filter((shot) => shot.id !== screenshotId))
+    setRemovedScreenshotIds((current) => [...current, screenshotId])
+  }
+
   const handleSubmit = form.onSubmit(async (values) => {
+    if (exitExceedsEntry) {
+      const message = t('trade.form.validation.exit_exceeds_entry')
+      setSubmitError(message)
+      return
+    }
     setSubmitError(null)
     setSubmitting(true)
+
+    const activities = [
+      ...values.entries.map((row) => ({
+        type: entryType,
+        price: Number(row.price),
+        quantity: Number(row.quantity),
+        date: row.date,
+      })),
+      ...values.exits.map((row) => ({
+        type: exitType,
+        price: Number(row.price),
+        quantity: Number(row.quantity),
+        date: row.date,
+      })),
+    ]
+
     const payload: TradeInput = {
       asset_id: Number(values.asset_id),
+      account_type: values.account_type,
       stop_loss: toNumberOrNull(values.stop_loss),
       notes: values.notes.trim() === '' ? null : values.notes.trim(),
       missed_opportunity: values.missed_opportunity,
       risk_per_trade: toNumberOrNull(values.risk_per_trade),
       timeframe_unit: values.timeframe_unit || null,
       timeframe_value: toNumberOrNull(values.timeframe_value),
-      activities: values.activities.map((activity) => ({
-        type: activity.type,
-        price: Number(activity.price),
-        quantity: Number(activity.quantity),
-        date: activity.date,
-      })),
+      activities,
       tag_ids: values.tag_ids.map(Number),
       emotion_ids: values.emotion_ids.map(Number),
     }
+
     try {
       const saved = isEdit
         ? await tradesApi.update(tradeId, payload)
         : await tradesApi.create(payload)
+
+      // Apply screenshot changes against the saved trade id.
+      try {
+        for (const screenshotId of removedScreenshotIds) {
+          await tradesApi.removeScreenshot(screenshotId)
+        }
+        for (const file of stagedFiles) {
+          await tradesApi.uploadScreenshot(saved.id, file)
+        }
+      } catch {
+        notifyError(t('trade.form.screenshots.upload_error'))
+      }
+
       notifySuccess(isEdit ? t('trade.form.notify.updated') : t('trade.form.notify.created'))
       navigate(`/journal/${saved.id}`)
     } catch (cause) {
@@ -347,238 +464,435 @@ export function TradeFormPage() {
     )
   }
 
+  const renderExecutionRows = (field: 'entries' | 'exits', disabled: boolean) =>
+    form.values[field].map((_, index) => (
+      <Stack key={index} gap="xs" className={classes.execRow}>
+        <DateTimePicker
+          aria-label={t(`trade.form.fields.${field === 'entries' ? 'entry' : 'exit'}_date_label`)}
+          placeholder={t('trade.form.fields.date_placeholder')}
+          size="xs"
+          valueFormat="YYYY-MM-DD HH:mm"
+          disabled={disabled}
+          value={form.values[field][index].date ? dayjs(form.values[field][index].date).toDate() : null}
+          onChange={(value) =>
+            form.setFieldValue(
+              `${field}.${index}.date`,
+              value ? dayjs(value).toISOString() : '',
+            )
+          }
+          error={form.errors[`${field}.${index}.date`]}
+        />
+        <Group gap="xs" align="flex-start" wrap="nowrap">
+          <NumberInput
+            aria-label={t('trade.form.fields.quantity_label')}
+            placeholder={t('trade.form.fields.quantity_placeholder')}
+            size="xs"
+            min={0}
+            disabled={disabled}
+            flex={1}
+            {...form.getInputProps(`${field}.${index}.quantity`)}
+          />
+          <NumberInput
+            aria-label={t('trade.form.fields.price_label')}
+            placeholder={t('trade.form.fields.price_placeholder')}
+            size="xs"
+            min={0}
+            step={0.0001}
+            disabled={disabled}
+            flex={1}
+            {...form.getInputProps(`${field}.${index}.price`)}
+          />
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="lg"
+            aria-label={t('trade.form.remove_activity')}
+            disabled={disabled || (field === 'entries' && form.values.entries.length <= 1)}
+            onClick={() => form.removeListItem(field, index)}
+          >
+            <IconTrash size={16} />
+          </ActionIcon>
+        </Group>
+      </Stack>
+    ))
+
+  const renderTotals = (totals: { quantity: number; avgPrice: number | null }) => (
+    <Group justify="space-between">
+      <Text size="xs" c="dimmed">
+        {t('trade.form.totals.quantity')}{' '}
+        <Text span ff="monospace" c={totals.quantity > 0 ? undefined : 'dimmed'}>
+          {totals.quantity > 0 ? totals.quantity : '—'}
+        </Text>
+      </Text>
+      <Text size="xs" c="dimmed">
+        {t('trade.form.totals.avg_price')}{' '}
+        <Text span ff="monospace" c={totals.avgPrice !== null ? undefined : 'dimmed'}>
+          {totals.avgPrice !== null ? totals.avgPrice.toFixed(5) : '—'}
+        </Text>
+      </Text>
+    </Group>
+  )
+
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap="md">
-        <Stack gap="xs">
-          {backLink}
-          <Title order={2}>{isEdit ? t('trade.form.edit_title') : t('trade.form.new_title')}</Title>
-        </Stack>
+        <Group justify="space-between" align="flex-start" wrap="wrap">
+          <Stack gap="xs">
+            {backLink}
+            <Title order={2}>
+              {isEdit ? t('trade.form.edit_title') : t('trade.form.new_title')}
+            </Title>
+          </Stack>
+          <Group gap="xs">
+            <Button variant="default" onClick={() => navigate(backTo)}>
+              {t('common.actions.cancel')}
+            </Button>
+            <Button type="submit" loading={submitting}>
+              {isEdit ? t('trade.form.save_changes') : t('trade.form.create_trade')}
+            </Button>
+          </Group>
+        </Group>
 
         {submitError && (
-          <Alert color="orange" icon={<IconAlertTriangle size={20} />} title={t('trade.form.save_error_title')}>
+          <Alert
+            color="orange"
+            icon={<IconAlertTriangle size={20} />}
+            title={t('trade.form.save_error_title')}
+          >
             {submitError}
           </Alert>
         )}
 
-        {/* Asset */}
-        <Card shadow="sm" radius="md" padding="md">
-          <Title order={4} mb="sm">
-            {t('trade.form.sections.asset')}
-          </Title>
-          <Select
-            label={t('trade.form.fields.asset_label')}
-            placeholder={
-              assetOptions.length === 0 ? t('trade.form.fields.asset_placeholder_empty') : t('trade.form.fields.asset_placeholder')
-            }
-            withAsterisk
-            searchable
-            data={assetOptions}
-            disabled={assetOptions.length === 0}
-            {...form.getInputProps('asset_id')}
-          />
-        </Card>
-
-        {/* Activities */}
-        <Card shadow="sm" radius="md" padding="md">
-          <Group justify="space-between" mb="sm">
-            <Title order={4}>{t('trade.form.sections.activities')}</Title>
-            <Button
-              variant="default"
-              size="xs"
-              leftSection={<IconPlus size={16} />}
-              onClick={() => form.insertListItem('activities', emptyActivity())}
-            >
-              {t('trade.form.add_activity')}
-            </Button>
-          </Group>
-          <Stack gap="md">
-            {form.values.activities.map((_, index) => (
-              <Grid key={index} align="flex-end" gutter="xs">
-                <Grid.Col span={{ base: 12, sm: 3 }}>
-                  <DateTimePicker
-                    label={t('trade.form.fields.date_label')}
-                    placeholder={t('trade.form.fields.date_placeholder')}
-                    withAsterisk
-                    valueFormat="YYYY-MM-DD HH:mm"
-                    value={
-                      form.values.activities[index].date
-                        ? dayjs(form.values.activities[index].date).toDate()
-                        : null
-                    }
-                    onChange={(value) =>
-                      form.setFieldValue(
-                        `activities.${index}.date`,
-                        value ? dayjs(value).toISOString() : '',
-                      )
-                    }
-                    error={form.errors[`activities.${index}.date`]}
+        <Grid gutter="md">
+          {/* LEFT: Configuration */}
+          <Grid.Col span={{ base: 12, sm: 5 }}>
+            <Card shadow="sm" radius="md" padding="md">
+              <Title order={4} mb="sm">
+                {t('trade.form.sections.configuration')}
+              </Title>
+              <Stack gap="md">
+                <Select
+                  label={t('trade.form.fields.asset_label')}
+                  placeholder={
+                    assetOptions.length === 0
+                      ? t('trade.form.fields.asset_placeholder_empty')
+                      : t('trade.form.fields.asset_placeholder')
+                  }
+                  withAsterisk
+                  searchable
+                  data={assetOptions}
+                  disabled={assetOptions.length === 0}
+                  {...form.getInputProps('asset_id')}
+                />
+                <Input.Wrapper label={t('trade.form.fields.account_type_label')} withAsterisk>
+                  <SegmentedControl
+                    fullWidth
+                    data={ACCOUNT_TYPES.map((value) => ({
+                      value,
+                      label: t(`trade.account_type.${value}`),
+                    }))}
+                    {...form.getInputProps('account_type')}
                   />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, sm: 3 }}>
-                  <Input.Wrapper label={t('trade.form.fields.type_label')}>
+                </Input.Wrapper>
+                <Input.Wrapper label={t('trade.form.fields.timeframe_label')}>
+                  <Grid gutter="xs">
+                    <Grid.Col span={6}>
+                      <Select
+                        aria-label={t('trade.form.fields.timeframe_unit_label')}
+                        placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
+                        clearable
+                        data={TIMEFRAME_UNITS.map((unit) => ({
+                          value: unit.value,
+                          label: t(`trade.form.timeframe_units.${unit.value}`),
+                        }))}
+                        {...form.getInputProps('timeframe_unit')}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={6}>
+                      <NumberInput
+                        aria-label={t('trade.form.fields.timeframe_value_label')}
+                        placeholder={t('trade.form.fields.timeframe_value_placeholder')}
+                        min={0}
+                        allowDecimal={false}
+                        {...form.getInputProps('timeframe_value')}
+                      />
+                    </Grid.Col>
+                  </Grid>
+                </Input.Wrapper>
+                <MultiSelect
+                  label={t('trade.form.fields.tags_label')}
+                  placeholder={
+                    tagOptions.length === 0
+                      ? t('trade.form.fields.tags_placeholder_empty')
+                      : t('trade.form.fields.tags_placeholder')
+                  }
+                  searchable
+                  clearable
+                  data={tagOptions}
+                  disabled={tagOptions.length === 0}
+                  {...form.getInputProps('tag_ids')}
+                />
+                <MultiSelect
+                  label={t('trade.form.fields.emotions_label')}
+                  placeholder={
+                    emotionOptions.length === 0
+                      ? t('trade.form.fields.emotions_placeholder_empty')
+                      : t('trade.form.fields.emotions_placeholder')
+                  }
+                  searchable
+                  clearable
+                  data={emotionOptions}
+                  disabled={emotionOptions.length === 0}
+                  renderOption={({ option }) => {
+                    const emotion = emotionById.get(option.value)
+                    return (
+                      <Group gap="xs" wrap="nowrap">
+                        {emotion && (
+                          <Badge size="xs" variant="light" color={SEVERITY_COLOR[emotion.severity]}>
+                            {emotion.severity}
+                          </Badge>
+                        )}
+                        <span>{option.label}</span>
+                      </Group>
+                    )
+                  }}
+                  {...form.getInputProps('emotion_ids')}
+                />
+              </Stack>
+            </Card>
+          </Grid.Col>
+
+          {/* RIGHT: Activities + Notes + Screenshots */}
+          <Grid.Col span={{ base: 12, sm: 7 }}>
+            <Stack gap="md">
+              <Card shadow="sm" radius="md" padding="md">
+                <Title order={4} mb="sm">
+                  {t('trade.form.sections.activities')}
+                </Title>
+                <Stack gap="md">
+                  <Input.Wrapper
+                    label={t('trade.form.fields.direction_label')}
+                    withAsterisk
+                    error={form.errors.direction}
+                  >
                     <SegmentedControl
                       fullWidth
+                      color={direction ? DIRECTION_COLOR[direction] : undefined}
                       data={[
-                        { label: 'Buy', value: 'Buy' },
-                        { label: 'Sell', value: 'Sell' },
+                        { value: 'Long', label: t('trade.direction.Long') },
+                        { value: 'Short', label: t('trade.direction.Short') },
                       ]}
-                      {...form.getInputProps(`activities.${index}.type`)}
+                      value={direction ?? ''}
+                      onChange={(value) => form.setFieldValue('direction', value as TradeDirection)}
                     />
                   </Input.Wrapper>
-                </Grid.Col>
-                <Grid.Col span={{ base: 6, sm: 2 }}>
-                  <NumberInput
-                    label={t('trade.form.fields.price_label')}
-                    placeholder={t('trade.form.fields.price_placeholder')}
-                    withAsterisk
-                    min={0}
-                    step={0.0001}
-                    {...form.getInputProps(`activities.${index}.price`)}
+
+                  <Grid gutter="md">
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <NumberInput
+                        label={t('trade.form.fields.stop_loss_label')}
+                        placeholder={t('trade.form.fields.stop_loss_placeholder')}
+                        withAsterisk
+                        min={0}
+                        step={0.0001}
+                        {...form.getInputProps('stop_loss')}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <NumberInput
+                        label={t('trade.form.fields.risk_label')}
+                        placeholder={t('trade.form.fields.risk_placeholder')}
+                        min={0}
+                        max={100}
+                        suffix="%"
+                        {...form.getInputProps('risk_per_trade')}
+                      />
+                    </Grid.Col>
+                  </Grid>
+
+                  <Divider />
+
+                  <Grid gutter="md">
+                    {/* Entries */}
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <Stack gap="xs" className={classes.execColumn}>
+                        <Group gap="xs">
+                          <Text fw={600} size="sm">
+                            {t('trade.form.entries')}
+                          </Text>
+                          <Badge variant="light" color={DIRECTION_COLOR[direction ?? 'Long']} size="sm">
+                            {entryType}
+                          </Badge>
+                        </Group>
+                        {renderExecutionRows('entries', false)}
+                        <Button
+                          variant="light"
+                          size="xs"
+                          leftSection={<IconPlus size={16} />}
+                          onClick={() => form.insertListItem('entries', emptyRow())}
+                        >
+                          {t('trade.form.add_entry')}
+                        </Button>
+                        {renderTotals(entryTotals)}
+                      </Stack>
+                    </Grid.Col>
+
+                    {/* Exits */}
+                    <Grid.Col span={{ base: 12, sm: 6 }}>
+                      <Stack
+                        gap="xs"
+                        className={`${classes.execColumn} ${hasEntry ? '' : classes.execColumnDisabled}`}
+                      >
+                        <Group gap="xs">
+                          <Text fw={600} size="sm">
+                            {t('trade.form.exits')}
+                          </Text>
+                          <Badge variant="light" color={DIRECTION_COLOR[direction ?? 'Long']} size="sm">
+                            {exitType}
+                          </Badge>
+                        </Group>
+                        {form.values.exits.length === 0 ? (
+                          <Text size="xs" c="dimmed">
+                            {hasEntry
+                              ? t('trade.form.exits_empty')
+                              : t('trade.form.exits_locked')}
+                          </Text>
+                        ) : (
+                          renderExecutionRows('exits', !hasEntry)
+                        )}
+                        <Button
+                          variant="light"
+                          size="xs"
+                          leftSection={<IconPlus size={16} />}
+                          disabled={!hasEntry}
+                          onClick={() => form.insertListItem('exits', emptyRow())}
+                        >
+                          {t('trade.form.add_exit')}
+                        </Button>
+                        {renderTotals(exitTotals)}
+                      </Stack>
+                    </Grid.Col>
+                  </Grid>
+
+                  {exitExceedsEntry && (
+                    <Text size="xs" c="orange">
+                      {t('trade.form.validation.exit_exceeds_entry')}
+                    </Text>
+                  )}
+                </Stack>
+              </Card>
+
+              {/* Notes & flags */}
+              <Card shadow="sm" radius="md" padding="md">
+                <Title order={4} mb="sm">
+                  {t('trade.form.sections.notes')}
+                </Title>
+                <Stack gap="md">
+                  <Textarea
+                    label={t('trade.form.fields.notes_label')}
+                    placeholder={t('trade.form.fields.notes_placeholder')}
+                    autosize
+                    minRows={3}
+                    maxRows={10}
+                    {...form.getInputProps('notes')}
                   />
-                </Grid.Col>
-                <Grid.Col span={{ base: 6, sm: 2 }}>
-                  <NumberInput
-                    label={t('trade.form.fields.quantity_label')}
-                    placeholder={t('trade.form.fields.quantity_placeholder')}
-                    withAsterisk
-                    min={0}
-                    {...form.getInputProps(`activities.${index}.quantity`)}
+                  <Checkbox
+                    label={t('trade.form.fields.missed_opportunity_label')}
+                    description={t('trade.form.fields.missed_opportunity_description')}
+                    {...form.getInputProps('missed_opportunity', { type: 'checkbox' })}
                   />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, sm: 2 }}>
-                  <Button
-                    variant="subtle"
-                    color="gray"
-                    fullWidth
-                    leftSection={<IconTrash size={16} />}
-                    disabled={form.values.activities.length <= 1}
-                    onClick={() => form.removeListItem('activities', index)}
+                </Stack>
+              </Card>
+
+              {/* Screenshots */}
+              <Card shadow="sm" radius="md" padding="md">
+                <Title order={4} mb="sm">
+                  {t('trade.form.sections.screenshots')}
+                </Title>
+                <Stack gap="md">
+                  <FileButton
+                    multiple
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleAddFiles}
                   >
-                    {t('trade.form.remove_activity')}
-                  </Button>
-                </Grid.Col>
-              </Grid>
-            ))}
-          </Stack>
-        </Card>
-
-        {/* Risk & timeframe */}
-        <Card shadow="sm" radius="md" padding="md">
-          <Title order={4} mb="sm">
-            {t('trade.form.sections.risk_timeframe')}
-          </Title>
-          <Grid gutter="md">
-            <Grid.Col span={{ base: 12, sm: 6 }}>
-              <NumberInput
-                label={t('trade.form.fields.stop_loss_label')}
-                placeholder={t('trade.form.fields.stop_loss_placeholder')}
-                min={0}
-                step={0.0001}
-                {...form.getInputProps('stop_loss')}
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 12, sm: 6 }}>
-              <NumberInput
-                label={t('trade.form.fields.risk_label')}
-                placeholder={t('trade.form.fields.risk_placeholder')}
-                min={0}
-                max={100}
-                suffix="%"
-                {...form.getInputProps('risk_per_trade')}
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 6, sm: 6 }}>
-              <NumberInput
-                label={t('trade.form.fields.timeframe_value_label')}
-                placeholder={t('trade.form.fields.timeframe_value_placeholder')}
-                min={0}
-                allowDecimal={false}
-                {...form.getInputProps('timeframe_value')}
-              />
-            </Grid.Col>
-            <Grid.Col span={{ base: 6, sm: 6 }}>
-              <Select
-                label={t('trade.form.fields.timeframe_unit_label')}
-                placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
-                clearable
-                data={TIMEFRAME_UNITS.map((unit) => ({ value: unit.value, label: t(`trade.form.timeframe_units.${unit.value}`) }))}
-                {...form.getInputProps('timeframe_unit')}
-              />
-            </Grid.Col>
-          </Grid>
-        </Card>
-
-        {/* Tags & emotions */}
-        <Card shadow="sm" radius="md" padding="md">
-          <Title order={4} mb="sm">
-            {t('trade.form.sections.tags_emotions')}
-          </Title>
-          <Stack gap="md">
-            <MultiSelect
-              label={t('trade.form.fields.tags_label')}
-              placeholder={tagOptions.length === 0 ? t('trade.form.fields.tags_placeholder_empty') : t('trade.form.fields.tags_placeholder')}
-              searchable
-              clearable
-              data={tagOptions}
-              disabled={tagOptions.length === 0}
-              {...form.getInputProps('tag_ids')}
-            />
-            <MultiSelect
-              label={t('trade.form.fields.emotions_label')}
-              placeholder={emotionOptions.length === 0 ? t('trade.form.fields.emotions_placeholder_empty') : t('trade.form.fields.emotions_placeholder')}
-              searchable
-              clearable
-              data={emotionOptions}
-              disabled={emotionOptions.length === 0}
-              renderOption={({ option }) => {
-                const emotion = emotionById.get(option.value)
-                return (
-                  <Group gap="xs" wrap="nowrap">
-                    {emotion && (
-                      <Badge size="xs" variant="light" color={SEVERITY_COLOR[emotion.severity]}>
-                        {emotion.severity}
-                      </Badge>
+                    {(props) => (
+                      <Button
+                        {...props}
+                        variant="default"
+                        leftSection={<IconUpload size={16} />}
+                      >
+                        {t('trade.form.screenshots.add')}
+                      </Button>
                     )}
-                    <span>{option.label}</span>
-                  </Group>
-                )
-              }}
-              {...form.getInputProps('emotion_ids')}
-            />
-          </Stack>
-        </Card>
+                  </FileButton>
+                  <Text size="xs" c="dimmed">
+                    {t('trade.form.screenshots.hint')}
+                  </Text>
 
-        {/* Notes & flags */}
-        <Card shadow="sm" radius="md" padding="md">
-          <Title order={4} mb="sm">
-            {t('trade.form.sections.notes')}
-          </Title>
-          <Stack gap="md">
-            <Textarea
-              label={t('trade.form.fields.notes_label')}
-              placeholder={t('trade.form.fields.notes_placeholder')}
-              autosize
-              minRows={3}
-              maxRows={10}
-              {...form.getInputProps('notes')}
-            />
-            <Checkbox
-              label={t('trade.form.fields.missed_opportunity_label')}
-              description={t('trade.form.fields.missed_opportunity_description')}
-              {...form.getInputProps('missed_opportunity', { type: 'checkbox' })}
-            />
-          </Stack>
-        </Card>
-
-        <Group justify="flex-end">
-          <Button variant="default" onClick={() => navigate(backTo)}>
-            {t('common.actions.cancel')}
-          </Button>
-          <Button type="submit" loading={submitting}>
-            {isEdit ? t('trade.form.save_changes') : t('trade.form.create_trade')}
-          </Button>
-        </Group>
+                  {(existingScreenshots.length > 0 || previews.length > 0) && (
+                    <SimpleGrid cols={{ base: 2, sm: 3 }}>
+                      {existingScreenshots.map((shot) => (
+                        <Card key={shot.id} padding={4} radius="sm" className={classes.preview}>
+                          <Image
+                            src={`/api/screenshots/${shot.filename}`}
+                            height={100}
+                            radius="sm"
+                            fit="contain"
+                            className={classes.previewImage}
+                            alt={shot.filename}
+                          />
+                          <Badge size="xs" variant="light" mt={4}>
+                            {t('trade.form.screenshots.existing')}
+                          </Badge>
+                          <ActionIcon
+                            variant="filled"
+                            color="red"
+                            size="sm"
+                            radius="xl"
+                            className={classes.removeButton}
+                            aria-label={t('trade.form.screenshots.remove')}
+                            onClick={() => removeExistingScreenshot(shot.id)}
+                          >
+                            <IconX size={14} />
+                          </ActionIcon>
+                        </Card>
+                      ))}
+                      {previews.map((preview, index) => (
+                        <Card key={preview.url} padding={4} radius="sm" className={classes.preview}>
+                          <Image
+                            src={preview.url}
+                            height={100}
+                            radius="sm"
+                            fit="contain"
+                            className={classes.previewImage}
+                            alt={preview.file.name}
+                          />
+                          <Group gap={4} mt={4} wrap="nowrap">
+                            <IconPhoto size={14} />
+                            <Text size="xs" truncate flex={1}>
+                              {preview.file.name}
+                            </Text>
+                          </Group>
+                          <ActionIcon
+                            variant="filled"
+                            color="red"
+                            size="sm"
+                            radius="xl"
+                            className={classes.removeButton}
+                            aria-label={t('trade.form.screenshots.remove')}
+                            onClick={() => removeStagedFile(index)}
+                          >
+                            <IconX size={14} />
+                          </ActionIcon>
+                        </Card>
+                      ))}
+                    </SimpleGrid>
+                  )}
+                </Stack>
+              </Card>
+            </Stack>
+          </Grid.Col>
+        </Grid>
       </Stack>
     </form>
   )

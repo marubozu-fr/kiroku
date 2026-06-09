@@ -231,6 +231,12 @@
         "emotions": "Keine Emotionen erfasst",
         "notes": "Keine Notizen",
         "screenshots": "Keine Screenshots"
+      },
+      "entries": "Einstiege",
+      "exits": "Ausstiege",
+      "totals": {
+        "quantity": "Gesamtmenge",
+        "avg_price": "Ø Preis"
       }
     },
     "form": {
@@ -238,7 +244,6 @@
       "edit_title": "Trade bearbeiten",
       "load_error": "Formulardaten konnten nicht geladen werden",
       "save_error_title": "Trade konnte nicht gespeichert werden",
-      "add_activity": "Aktivität hinzufügen",
       "remove_activity": "Entfernen",
       "save_changes": "Änderungen speichern",
       "create_trade": "Trade erstellen",
@@ -248,19 +253,16 @@
         "save_error": "Trade konnte nicht gespeichert werden"
       },
       "sections": {
-        "asset": "Asset",
+        "configuration": "Konfiguration",
         "activities": "Aktivitäten",
-        "risk_timeframe": "Risiko & Timeframe",
-        "tags_emotions": "Tags & Emotionen",
-        "notes": "Notizen"
+        "notes": "Notizen",
+        "screenshots": "Screenshots"
       },
       "fields": {
         "asset_label": "Asset",
         "asset_placeholder": "Asset wählen",
         "asset_placeholder_empty": "Keine Assets — füge eines in den Einstellungen hinzu",
-        "date_label": "Datum",
         "date_placeholder": "Datum & Uhrzeit wählen",
-        "type_label": "Typ",
         "price_label": "Preis",
         "price_placeholder": "0.00",
         "quantity_label": "Menge",
@@ -282,7 +284,12 @@
         "notes_label": "Notizen",
         "notes_placeholder": "Trade-Begründung, Beobachtungen…",
         "missed_opportunity_label": "Verpasste Gelegenheit",
-        "missed_opportunity_description": "Ein Trade, den du erkannt, aber nicht tatsächlich eingegangen bist"
+        "missed_opportunity_description": "Ein Trade, den du erkannt, aber nicht tatsächlich eingegangen bist",
+        "direction_label": "Richtung",
+        "account_type_label": "Kontotyp",
+        "timeframe_label": "Einstiegs-Timeframe",
+        "entry_date_label": "Einstiegsdatum",
+        "exit_date_label": "Ausstiegsdatum"
       },
       "timeframe_units": {
         "m": "Minuten",
@@ -295,11 +302,40 @@
         "date_required": "Datum ist erforderlich",
         "price_positive": "Der Preis muss größer als 0 sein",
         "quantity_positive": "Die Menge muss größer als 0 sein",
-        "stop_loss_positive": "Der Stop Loss muss größer als 0 sein",
         "risk_range": "Das Risiko muss zwischen 0 und 100 liegen",
         "timeframe_value_required": "Gib einen Timeframe-Wert ein",
-        "timeframe_unit_required": "Einheit wählen"
+        "timeframe_unit_required": "Einheit wählen",
+        "direction_required": "Richtung ist erforderlich",
+        "stop_loss_required": "Stop Loss ist erforderlich und muss größer als 0 sein",
+        "exit_exceeds_entry": "Die Ausstiegsmenge darf die Einstiegsmenge nicht überschreiten"
+      },
+      "add_entry": "Einstieg hinzufügen",
+      "add_exit": "Ausstieg hinzufügen",
+      "entries": "Einstiege",
+      "exits": "Ausstiege",
+      "exits_empty": "Noch keine Ausstiege.",
+      "exits_locked": "Füge einen Einstieg hinzu, um Ausstiege freizuschalten.",
+      "totals": {
+        "quantity": "Gesamtmenge",
+        "avg_price": "Ø Preis"
+      },
+      "screenshots": {
+        "add": "Screenshots hinzufügen",
+        "hint": "JPG, PNG oder WebP, je bis zu 5 MB. Werden beim Speichern hochgeladen.",
+        "existing": "Gespeichert",
+        "remove": "Screenshot entfernen",
+        "invalid_file": "Einige Dateien wurden übersprungen: Nur JPG, PNG und WebP bis 5 MB sind erlaubt.",
+        "upload_error": "Der Trade wurde gespeichert, aber einige Screenshots konnten nicht hochgeladen werden."
       }
+    },
+    "direction": {
+      "Long": "Long",
+      "Short": "Short"
+    },
+    "account_type": {
+      "test": "Test",
+      "demo": "Demo",
+      "live": "Live"
     }
   }
 }
