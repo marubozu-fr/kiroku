@@ -149,6 +149,22 @@ describe('TradeDetailPage', () => {
     expect(screen.getByText('+1.50R')).toBeInTheDocument()
   })
 
+  it('formats the risk/reward as a 1 : x ratio', async () => {
+    stubApi(makeTrade({ risk: 50, reward: 120 }))
+    renderDetail()
+
+    expect(await screen.findByText('1 : 2.4')).toBeInTheDocument()
+  })
+
+  it('shows "Open" for the duration when the trade is not closed', async () => {
+    stubApi(makeTrade({ status: 'Open' }))
+    renderDetail()
+
+    await screen.findByText('EUR/USD')
+    // The status badge also reads "Open", so scope to the Duration metric.
+    expect(screen.getByText('Duration').parentElement).toHaveTextContent('Open')
+  })
+
   it('renders tags, emotions, notes, and activities', async () => {
     const trade = makeTrade({
       notes: 'Great setup, followed the plan.',

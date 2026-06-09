@@ -1,7 +1,17 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { IconAlertTriangle, IconArrowLeft, IconPencil, IconTrash } from '@tabler/icons-react'
 import {
+  IconAlertTriangle,
+  IconArrowLeft,
+  IconChevronLeft,
+  IconChevronRight,
+  IconLogin,
+  IconLogout,
+  IconPencil,
+  IconTrash,
+} from '@tabler/icons-react'
+import {
+  ActionIcon,
   Alert,
   Anchor,
   Badge,
@@ -14,6 +24,7 @@ import {
   Skeleton,
   Stack,
   Text,
+  Timeline,
   Title,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -57,7 +68,7 @@ export function TradeDetailPage() {
 
   const [deleteOpened, { open: openDelete, close: closeDelete }] = useDisclosure(false)
   const [deletePending, setDeletePending] = useState(false)
-  const [lightboxScreenshot, setLightboxScreenshot] = useState<TradeScreenshot | null>(null)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   // All hooks must run unconditionally before any early returns.
   const assetName = useMemo(() => {
@@ -77,6 +88,12 @@ export function TradeDetailPage() {
     return map
   }, [tradeFetch.data?.screenshots])
 
+  // Flat, display-ordered list backing the lightbox prev/next navigation.
+  const orderedScreenshots = useMemo(
+    () => Array.from(screenshotGroups.values()).flat(),
+    [screenshotGroups],
+  )
+
   const handleDelete = async () => {
     setDeletePending(true)
     try {
@@ -90,6 +107,15 @@ export function TradeDetailPage() {
       closeDelete()
     }
   }
+
+  const backLink = (
+    <Anchor component={Link} to="/journal" size="sm" c="dimmed">
+      <Group gap="xs">
+        <IconArrowLeft size={16} />
+        Back to journal
+      </Group>
+    </Anchor>
+  )
 
   // --- Loading state ---
   if (tradeFetch.loading) {
@@ -113,12 +139,7 @@ export function TradeDetailPage() {
     if (isNotFound) {
       return (
         <Stack gap="md" align="flex-start">
-          <Anchor component={Link} to="/journal" size="sm" c="dimmed">
-            <Group gap="xs">
-              <IconArrowLeft size={16} />
-              Back to journal
-            </Group>
-          </Anchor>
+          {backLink}
           <Alert color="orange" icon={<IconAlertTriangle size={20} />} title="Trade not found">
             This trade does not exist or has been deleted.{' '}
             <Anchor component={Link} to="/journal">
@@ -131,12 +152,7 @@ export function TradeDetailPage() {
 
     return (
       <Stack gap="md" align="flex-start">
-        <Anchor component={Link} to="/journal" size="sm" c="dimmed">
-          <Group gap="xs">
-            <IconArrowLeft size={16} />
-            Back to journal
-          </Group>
-        </Anchor>
+        {backLink}
         <Alert color="orange" icon={<IconAlertTriangle size={20} />} title="Could not load trade">
           <Stack gap="sm" align="flex-start">
             <Text size="sm">{tradeFetch.error}</Text>
@@ -159,24 +175,42 @@ export function TradeDetailPage() {
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   )
 
-  const duration = formatTradeDuration(trade.activities)
+  // Duration only reads as a span for a closed trade; otherwise show "Open".
+  const isClosed = trade.status === 'Closed'
+  const duration = isClosed ? formatTradeDuration(trade.activities) : 'Open'
 
   const rrRatio: string =
     trade.risk !== null && trade.reward !== null && trade.risk !== 0
-      ? (trade.reward / trade.risk).toFixed(2)
+      ? `1 : ${(trade.reward / trade.risk).toFixed(1)}`
       : '—'
+
+  const lightboxShot =
+    lightboxIndex === null ? null : orderedScreenshots[lightboxIndex] ?? null
 
   return (
     <>
       <Stack gap="md">
-        {/* Top row: back link + actions */}
-        <Group justify="space-between" align="center">
-          <Anchor component={Link} to="/journal" size="sm" c="dimmed">
-            <Group gap="xs">
-              <IconArrowLeft size={16} />
-              Back to journal
+        {/* Page header: identity + actions */}
+        <Group justify="space-between" align="flex-start" wrap="wrap">
+          <Stack gap="xs">
+            {backLink}
+            <Group gap="md" align="center" wrap="wrap">
+              <Title order={2}>{assetName}</Title>
+              <Text size="sm" c="dimmed" ff="monospace">
+                {formatDate(trade.trade_date)}
+              </Text>
+              <Group gap="xs">
+                {trade.direction && (
+                  <Badge variant="light" color={trade.direction === 'Long' ? 'blue' : 'grape'}>
+                    {trade.direction}
+                  </Badge>
+                )}
+                <Badge variant="light" color={STATUS_COLOR[trade.status]}>
+                  {trade.status}
+                </Badge>
+              </Group>
             </Group>
-          </Anchor>
+          </Stack>
           <Group gap="xs">
             <Button
               variant="default"
@@ -185,46 +219,21 @@ export function TradeDetailPage() {
             >
               Edit
             </Button>
-            <Button
+            <ActionIcon
               variant="filled"
               color="red"
-              leftSection={<IconTrash size={20} />}
+              size="lg"
+              aria-label="Delete trade"
               onClick={openDelete}
             >
-              Delete
-            </Button>
+              <IconTrash size={20} />
+            </ActionIcon>
           </Group>
         </Group>
 
-        {/* Header card */}
-        <Card shadow="sm" radius="md" padding="md">
-          <Group gap="md" align="center" wrap="wrap">
-            <Stack gap={2}>
-              <Text size="xl" fw={700}>
-                {assetName}
-              </Text>
-              <Text size="sm" c="dimmed" ff="monospace">
-                {formatDate(trade.trade_date)}
-              </Text>
-            </Stack>
-            <Group gap="xs">
-              {trade.direction ? (
-                <Badge variant="light" color={trade.direction === 'Long' ? 'blue' : 'grape'}>
-                  {trade.direction}
-                </Badge>
-              ) : (
-                <Text c="dimmed">—</Text>
-              )}
-              <Badge variant="light" color={STATUS_COLOR[trade.status]}>
-                {trade.status}
-              </Badge>
-            </Group>
-          </Group>
-        </Card>
-
         {/* Key metrics */}
-        <Card shadow="sm" radius="md" padding="md">
-          <SimpleGrid cols={{ base: 2, sm: 4 }}>
+        <SimpleGrid cols={{ base: 2, sm: 4 }}>
+          <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
                 P&amp;L
@@ -233,6 +242,8 @@ export function TradeDetailPage() {
                 {formatPnl(trade.realized_pnl)}
               </Text>
             </Stack>
+          </Card>
+          <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
                 R Value
@@ -241,6 +252,8 @@ export function TradeDetailPage() {
                 {formatR(trade.performance_r)}
               </Text>
             </Stack>
+          </Card>
+          <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
                 Risk / Reward
@@ -249,16 +262,18 @@ export function TradeDetailPage() {
                 {rrRatio}
               </Text>
             </Stack>
+          </Card>
+          <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
                 Duration
               </Text>
-              <Text size="xl" fw={700} ff="monospace">
+              <Text size="xl" fw={700} ff="monospace" c={isClosed ? undefined : 'dimmed'}>
                 {duration}
               </Text>
             </Stack>
-          </SimpleGrid>
-        </Card>
+          </Card>
+        </SimpleGrid>
 
         {/* Activities */}
         <Card shadow="sm" radius="md" padding="md">
@@ -267,15 +282,18 @@ export function TradeDetailPage() {
           </Title>
           {sortedActivities.length === 0 ? (
             <Text c="dimmed" size="sm">
-              No activities recorded.
+              No activities recorded
             </Text>
           ) : (
-            <Stack gap="xs">
+            <Timeline active={sortedActivities.length} bulletSize={22} lineWidth={2}>
               {sortedActivities.map((activity) => (
-                <div key={activity.id} className={classes.activityRow}>
-                  <div className={classes.activityDot} />
-                  <div className={classes.activityLine}>
-                    <Group gap="xs" align="center">
+                <Timeline.Item
+                  key={activity.id}
+                  bullet={
+                    activity.is_entry ? <IconLogin size={12} /> : <IconLogout size={12} />
+                  }
+                  title={
+                    <Group gap="xs">
                       <Badge
                         variant="light"
                         color={activity.type === 'Buy' ? 'teal' : 'orange'}
@@ -286,76 +304,80 @@ export function TradeDetailPage() {
                       <Badge variant="outline" color="gray" size="sm">
                         {activity.is_entry ? 'Entry' : 'Exit'}
                       </Badge>
-                      <Text size="sm" ff="monospace">
-                        {activity.price.toFixed(4)} &times; {activity.quantity}
-                      </Text>
-                      <Text size="sm" c="dimmed" ff="monospace">
-                        {formatDate(activity.date)}
-                      </Text>
                     </Group>
-                  </div>
-                </div>
-              ))}
-            </Stack>
-          )}
-        </Card>
-
-        {/* Tags */}
-        <Card shadow="sm" radius="md" padding="md">
-          <Title order={4} mb="sm">
-            Tags
-          </Title>
-          {trade.tags.length === 0 ? (
-            <Text c="dimmed" size="sm">
-              No tags.
-            </Text>
-          ) : (
-            <Group gap="xs">
-              {trade.tags.map((tag) => (
-                <Badge key={tag.id} variant="light" color="gray">
-                  {tag.name}
-                </Badge>
-              ))}
-            </Group>
-          )}
-        </Card>
-
-        {/* Emotions */}
-        <Card shadow="sm" radius="md" padding="md">
-          <Title order={4} mb="sm">
-            Emotions
-          </Title>
-          {trade.emotions.length === 0 ? (
-            <Text c="dimmed" size="sm">
-              No emotions recorded.
-            </Text>
-          ) : (
-            <Stack gap="sm">
-              {EMOTION_CATEGORIES.filter((category) =>
-                trade.emotions.some((e) => e.category === category),
-              ).map((category) => (
-                <Stack key={category} gap="xs">
-                  <Text size="sm" fw={600} c="dimmed">
-                    {category}
-                  </Text>
+                  }
+                >
                   <Group gap="xs">
-                    {trade.emotions
-                      .filter((e) => e.category === category)
-                      .map((emotion) => (
-                        <Badge
-                          key={emotion.id}
-                          variant="light"
-                          color={SEVERITY_COLOR[emotion.severity]}
-                        >
-                          {emotion.name}
-                        </Badge>
-                      ))}
+                    <Text size="sm" ff="monospace">
+                      {activity.price.toFixed(4)} &times; {activity.quantity}
+                    </Text>
+                    <Text size="sm" c="dimmed" ff="monospace">
+                      {formatDate(activity.date)}
+                    </Text>
                   </Group>
-                </Stack>
+                </Timeline.Item>
               ))}
-            </Stack>
+            </Timeline>
           )}
         </Card>
+
+        {/* Tags & emotions, side by side on wide screens */}
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+          <Card shadow="sm" radius="md" padding="md">
+            <Title order={4} mb="sm">
+              Tags
+            </Title>
+            {trade.tags.length === 0 ? (
+              <Text c="dimmed" size="sm">
+                No tags
+              </Text>
+            ) : (
+              <Group gap="xs">
+                {trade.tags.map((tag) => (
+                  <Badge key={tag.id} variant="light" color="gray">
+                    {tag.name}
+                  </Badge>
+                ))}
+              </Group>
+            )}
+          </Card>
+
+          <Card shadow="sm" radius="md" padding="md">
+            <Title order={4} mb="sm">
+              Emotions
+            </Title>
+            {trade.emotions.length === 0 ? (
+              <Text c="dimmed" size="sm">
+                No emotions recorded
+              </Text>
+            ) : (
+              <Stack gap="sm">
+                {EMOTION_CATEGORIES.filter((category) =>
+                  trade.emotions.some((e) => e.category === category),
+                ).map((category) => (
+                  <Stack key={category} gap="xs">
+                    <Text size="sm" fw={600} c="dimmed">
+                      {category}
+                    </Text>
+                    <Group gap="xs">
+                      {trade.emotions
+                        .filter((e) => e.category === category)
+                        .map((emotion) => (
+                          <Badge
+                            key={emotion.id}
+                            variant="light"
+                            color={SEVERITY_COLOR[emotion.severity]}
+                          >
+                            {emotion.name}
+                          </Badge>
+                        ))}
+                    </Group>
+                  </Stack>
+                ))}
+              </Stack>
+            )}
+          </Card>
+        </SimpleGrid>
 
         {/* Notes */}
         <Card shadow="sm" radius="md" padding="md">
@@ -368,7 +390,7 @@ export function TradeDetailPage() {
             </Text>
           ) : (
             <Text c="dimmed" size="sm">
-              No notes.
+              No notes
             </Text>
           )}
         </Card>
@@ -380,7 +402,7 @@ export function TradeDetailPage() {
           </Title>
           {trade.screenshots.length === 0 ? (
             <Text c="dimmed" size="sm">
-              No screenshots.
+              No screenshots
             </Text>
           ) : (
             <Stack gap="md">
@@ -394,11 +416,11 @@ export function TradeDetailPage() {
                       <Image
                         key={shot.id}
                         src={`/api/screenshots/${shot.filename}`}
-                        height={100}
+                        height={120}
                         radius="sm"
-                        fit="cover"
+                        fit="contain"
                         className={classes.thumbnail}
-                        onClick={() => setLightboxScreenshot(shot)}
+                        onClick={() => setLightboxIndex(orderedScreenshots.indexOf(shot))}
                         alt={shot.filename}
                       />
                     ))}
@@ -412,18 +434,45 @@ export function TradeDetailPage() {
 
       {/* Lightbox modal */}
       <Modal
-        opened={lightboxScreenshot !== null}
-        onClose={() => setLightboxScreenshot(null)}
-        size="xl"
-        centered
-        title={lightboxScreenshot?.filename ?? ''}
+        opened={lightboxShot !== null}
+        onClose={() => setLightboxIndex(null)}
+        fullScreen
+        title={lightboxShot?.filename ?? ''}
       >
-        {lightboxScreenshot && (
-          <Image
-            src={`/api/screenshots/${lightboxScreenshot.filename}`}
-            fit="contain"
-            alt={lightboxScreenshot.filename}
-          />
+        {lightboxShot && (
+          <Group gap="sm" align="center" wrap="nowrap">
+            <ActionIcon
+              variant="default"
+              size="lg"
+              aria-label="Previous screenshot"
+              disabled={lightboxIndex === 0}
+              onClick={() =>
+                setLightboxIndex((i) => (i === null ? i : Math.max(0, i - 1)))
+              }
+            >
+              <IconChevronLeft size={20} />
+            </ActionIcon>
+            <Image
+              src={`/api/screenshots/${lightboxShot.filename}`}
+              fit="contain"
+              flex={1}
+              mah="80vh"
+              alt={lightboxShot.filename}
+            />
+            <ActionIcon
+              variant="default"
+              size="lg"
+              aria-label="Next screenshot"
+              disabled={lightboxIndex === orderedScreenshots.length - 1}
+              onClick={() =>
+                setLightboxIndex((i) =>
+                  i === null ? i : Math.min(orderedScreenshots.length - 1, i + 1),
+                )
+              }
+            >
+              <IconChevronRight size={20} />
+            </ActionIcon>
+          </Group>
         )}
       </Modal>
 
