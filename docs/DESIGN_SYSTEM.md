@@ -51,7 +51,7 @@ All prices, P&L, percentages, and R values use monospace:
 
 ### Data Density
 - Traders want to see information, not whitespace
-- Use Mantine's `size="sm"` for tables and compact data views
+- Use Mantine's `fz="sm"` `verticalSpacing="xs"` for tables and compact data views
 - Cards: use Mantine `Card` with `padding="md"`
 - Prefer tables over card grids for list data
 
@@ -123,4 +123,4 @@ Every data-driven component must handle:
 | Use green/red ONLY for P&L and win/loss | Use red for form errors or green for success toasts |
 | Design empty states for every list/table | Leave blank screens when there's no data |
 | Let Mantine handle dark theme consistency | Override Mantine's dark background colors |
-| Use `size="sm"` for dense data views | Over-space trading data with large padding |
+| Use `fz="sm"` `verticalSpacing="xs"` for dense data views | Over-space trading data with large padding |
