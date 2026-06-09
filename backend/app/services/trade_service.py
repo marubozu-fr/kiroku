@@ -1,7 +1,8 @@
+import shutil
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from app.database import database
+from app.database import SCREENSHOTS_DIR, database
 from app.errors import NotFoundError
 from app.models.trade import TradeCreate, TradeUpdate
 from app.repositories import trade_repository
@@ -281,5 +282,8 @@ async def delete_trade(trade_id: int) -> dict[str, Any]:
   if existing is None:
     raise TradeNotFoundError(f"Trade {trade_id} not found")
   detail = await _assemble_detail(trade_id)
+  # Remove the trade's screenshot files from disk. The DB rows cascade via FK,
+  # but the files on disk do not, so clean up the directory first.
+  shutil.rmtree(SCREENSHOTS_DIR / str(trade_id), ignore_errors=True)
   await trade_repository.delete_trade(trade_id)
   return detail
