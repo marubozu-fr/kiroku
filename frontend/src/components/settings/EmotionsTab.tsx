@@ -88,7 +88,7 @@ export function EmotionsTab() {
             <Stack key={category} gap="xs">
               <Title order={5}>{category}</Title>
               <Table.ScrollContainer minWidth={600}>
-                <Table striped highlightOnHover>
+                <Table striped highlightOnHover fz="sm" verticalSpacing="xs">
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th tt="uppercase" fz="xs" c="dimmed">

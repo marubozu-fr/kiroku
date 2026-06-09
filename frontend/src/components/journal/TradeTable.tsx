@@ -73,7 +73,7 @@ export function TradeTable({ year, assetName }: TradeTableProps) {
 
   return (
     <Table.ScrollContainer minWidth={720}>
-      <Table striped highlightOnHover>
+      <Table striped highlightOnHover fz="sm" verticalSpacing="xs">
         <Table.Thead>
           <Table.Tr>
             <Table.Th tt="uppercase" fz="xs" c="dimmed">
