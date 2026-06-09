@@ -21,7 +21,7 @@ import {
   Textarea,
   Title,
 } from '@mantine/core'
-import { DateInput } from '@mantine/dates'
+import { DateTimePicker } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import dayjs from 'dayjs'
 import { notifyError, notifySuccess } from '@/components/settings/notify'
@@ -68,7 +68,7 @@ interface TradeFormValues {
 }
 
 function emptyActivity(): ActivityFormValue {
-  return { type: 'Buy', date: dayjs().format('YYYY-MM-DD'), price: '', quantity: '' }
+  return { type: 'Buy', date: dayjs().toISOString(), price: '', quantity: '' }
 }
 
 /** Coerce a NumberInput value (number or empty string) to a number or null. */
@@ -209,7 +209,7 @@ export function TradeFormPage() {
         sortedActivities.length > 0
           ? sortedActivities.map((activity) => ({
               type: activity.type,
-              date: activity.date.slice(0, 10),
+              date: activity.date,
               price: activity.price,
               quantity: activity.quantity,
             }))
@@ -394,11 +394,11 @@ export function TradeFormPage() {
             {form.values.activities.map((_, index) => (
               <Grid key={index} align="flex-end" gutter="xs">
                 <Grid.Col span={{ base: 12, sm: 3 }}>
-                  <DateInput
+                  <DateTimePicker
                     label="Date"
-                    placeholder="Pick a date"
+                    placeholder="Pick date & time"
                     withAsterisk
-                    valueFormat="YYYY-MM-DD"
+                    valueFormat="YYYY-MM-DD HH:mm"
                     value={
                       form.values.activities[index].date
                         ? dayjs(form.values.activities[index].date).toDate()
@@ -407,7 +407,7 @@ export function TradeFormPage() {
                     onChange={(value) =>
                       form.setFieldValue(
                         `activities.${index}.date`,
-                        value ? dayjs(value).format('YYYY-MM-DD') : '',
+                        value ? dayjs(value).toISOString() : '',
                       )
                     }
                     error={form.errors[`activities.${index}.date`]}
