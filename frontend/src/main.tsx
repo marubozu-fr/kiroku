@@ -11,6 +11,7 @@ import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import '@mantine/notifications/styles.css'
 
+import '@/i18n' // Must run before any component calls useTranslation()
 import { App } from '@/App'
 import { cssVariablesResolver, theme } from '@/theme'
 
