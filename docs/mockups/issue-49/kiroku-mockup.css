@@ -1,0 +1,330 @@
+/*
+ * Kiroku — Issue #49 mockup stylesheet.
+ *
+ * These CSS variables mirror Mantine's built-in dark theme so the static
+ * mockups are visually faithful. In the real app these come from Mantine
+ * tokens (var(--mantine-color-*)) — never hardcoded. Engineers translate
+ * the classes below 1:1 to Mantine components (see README.md mapping).
+ *
+ * Semantic colors per docs/DESIGN_SYSTEM.md:
+ *   profit = green.6, loss = red.6, form errors = orange.
+ *   Direction badges use NON-semantic hues (Long=teal, Short=grape) so they
+ *   never collide with P&L green/red.
+ */
+
+:root {
+  /* Mantine dark surface scale (dark.7 body, dark.6 cards, dark.5 inputs/borders) */
+  --body-bg: #1a1b1e;          /* dark.7 */
+  --card-bg: #25262b;          /* dark.6 */
+  --input-bg: #2c2e33;         /* dark.5 */
+  --border: #373a40;           /* dark.4 */
+  --border-strong: #5c5f66;    /* dark.3 */
+
+  /* Text */
+  --text: #c1c2c5;            /* dark.0 */
+  --text-bright: #f1f3f5;     /* near white headings */
+  --dimmed: #909296;          /* Mantine dimmed */
+
+  /* Brand / primary (Mantine blue.6 default primary) */
+  --primary: #228be6;
+  --primary-hover: #1c7ed6;
+
+  /* Semantic — financial only */
+  --profit: #40c057;          /* green.6 */
+  --loss: #fa5252;            /* red.6 */
+  --orange: #fd7e14;          /* form errors / Warning severity */
+
+  /* Non-semantic badge hues */
+  --teal: #12b886;            /* Long direction */
+  --grape: #be4bdb;           /* Short direction */
+  --blue: #228be6;            /* Open status */
+  --yellow: #fab005;          /* Partial status */
+  --gray: #868e96;            /* Closed / Breakeven */
+
+  /* Mantine spacing scale */
+  --sp-xs: 10px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 20px;
+  --sp-xl: 32px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--body-bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---- App shell stand-in (AppShell) ---- */
+.shell { display: flex; min-height: 100vh; }
+
+.navbar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  padding: var(--sp-md) var(--sp-sm);
+}
+.navbar .brand {
+  font-size: 18px; font-weight: 700; color: var(--text-bright);
+  padding: var(--sp-xs) var(--sp-sm); margin-bottom: var(--sp-md);
+}
+.navbar .brand .sub { color: var(--dimmed); font-weight: 400; font-size: 13px; }
+.navlink {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  padding: var(--sp-xs) var(--sp-sm); border-radius: var(--radius-sm);
+  color: var(--text); margin-bottom: 2px; font-size: 14px;
+}
+.navlink.active { background: rgba(34, 139, 230, 0.15); color: #74c0fc; }
+.navlink .ic { width: 20px; text-align: center; opacity: 0.85; }
+
+.main { flex: 1; padding: var(--sp-md); }
+.content { max-width: 1400px; margin: 0 auto; }
+
+/* ---- Page header row (Group justify=space-between) ---- */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-md); margin-bottom: var(--sp-md); flex-wrap: wrap;
+}
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-bright); margin: 0; }
+.page-header .right { display: flex; align-items: center; gap: var(--sp-sm); }
+
+/* ---- Two-column layout (Grid: left config / right activities) ---- */
+.two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: var(--sp-md);
+  align-items: start;
+}
+
+/* ---- Card (Mantine Card padding=md radius=md) ---- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.card:last-child { margin-bottom: 0; }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-sm);
+}
+.card-title { font-size: 15px; font-weight: 600; color: var(--text-bright); margin: 0; }
+.section-divider {
+  border: none; border-top: 1px solid var(--border);
+  margin: var(--sp-sm) calc(-1 * var(--sp-md)) var(--sp-md);
+}
+
+/* ---- Form fields (TextInput / NumberInput / Select label above) ---- */
+.field { margin-bottom: var(--sp-sm); }
+.field > label {
+  display: block; font-size: 13px; font-weight: 500;
+  margin-bottom: 4px; color: var(--text);
+}
+.field .asterisk { color: var(--orange); margin-left: 2px; }
+.field .hint { font-size: 12px; color: var(--dimmed); margin-top: 4px; }
+.field .err { font-size: 12px; color: var(--orange); margin-top: 4px; }
+
+.input,
+select.input,
+textarea.input {
+  width: 100%; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text-bright); padding: 7px 10px; font-size: 14px;
+  font-family: var(--sans);
+}
+.input::placeholder { color: var(--dimmed); }
+.input:focus { outline: none; border-color: var(--primary); }
+.input.mono { font-family: var(--mono); text-align: right; }
+.input:disabled, .input.disabled {
+  opacity: 0.5; background: var(--body-bg); cursor: not-allowed;
+}
+textarea.input { resize: vertical; min-height: 72px; text-align: left; }
+
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-sm); }
+.row-inline { display: flex; gap: var(--sp-sm); align-items: flex-end; }
+
+/* ---- SegmentedControl ---- */
+.segmented {
+  display: inline-flex; background: var(--input-bg);
+  border-radius: var(--radius-sm); padding: 3px; gap: 2px; width: 100%;
+}
+.segmented .seg {
+  flex: 1; text-align: center; padding: 6px 12px; border-radius: 3px;
+  font-size: 14px; font-weight: 500; color: var(--dimmed); cursor: pointer;
+  user-select: none;
+}
+.segmented .seg.active {
+  background: var(--card-bg); color: var(--text-bright);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+/* Direction segmented uses non-semantic hues when active */
+.segmented .seg.active.long { color: var(--teal); }
+.segmented .seg.active.short { color: var(--grape); }
+
+/* ---- Badges ---- */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  line-height: 1.6; text-transform: none;
+}
+.badge.long   { background: rgba(18,184,134,0.15); color: #38d9a9; }
+.badge.short  { background: rgba(190,75,219,0.15); color: #da77f2; }
+.badge.open   { background: rgba(34,139,230,0.15); color: #74c0fc; }
+.badge.partial{ background: rgba(250,176,5,0.15);  color: #ffd43b; }
+.badge.closed { background: rgba(134,142,150,0.18); color: #adb5bd; }
+.badge.live   { background: rgba(64,192,87,0.12);  color: #69db7c; }
+.badge.demo   { background: rgba(34,139,230,0.12); color: #74c0fc; }
+.badge.test   { background: rgba(134,142,150,0.18); color: #adb5bd; }
+.badge.good   { background: rgba(64,192,87,0.15);  color: #69db7c; }
+.badge.warn   { background: rgba(253,126,20,0.15); color: #ffa94d; }
+.badge.bad    { background: rgba(250,82,82,0.15);  color: #ff8787; }
+.badge.cat    { background: transparent; border: 1px solid var(--border-strong); color: var(--dimmed); }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-sm); font-size: 14px;
+  font-weight: 500; cursor: pointer; border: 1px solid transparent;
+  font-family: var(--sans);
+}
+.btn.filled { background: var(--primary); color: #fff; }
+.btn.filled:hover { background: var(--primary-hover); }
+.btn.default { background: var(--input-bg); color: var(--text-bright); border-color: var(--border); }
+.btn.light { background: rgba(34,139,230,0.15); color: #74c0fc; }
+.btn.danger { background: var(--loss); color: #fff; }
+.btn.sm { padding: 5px 10px; font-size: 13px; }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; font-size: 14px;
+}
+.icon-btn:hover { background: var(--input-bg); }
+.icon-btn.danger:hover { color: var(--loss); border-color: var(--loss); }
+.icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- Financial number helper (<Money>/<RValue>) ---- */
+.mono { font-family: var(--mono); }
+.num  { font-family: var(--mono); text-align: right; }
+.profit { color: var(--profit); }
+.loss   { color: var(--loss); }
+.neutral{ color: var(--dimmed); }
+
+/* ---- Entries / Exits columns ---- */
+.activities-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-md);
+}
+.exec-column { background: var(--body-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-sm); }
+.exec-column.disabled { opacity: 0.55; }
+.exec-column h4 {
+  margin: 0 0 var(--sp-xs); font-size: 13px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.4px; color: var(--dimmed);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.exec-column .type-tag { font-size: 11px; font-weight: 600; }
+.entries-column h4 .type-tag { color: var(--teal); }
+.exits-column h4 .type-tag { color: var(--grape); }
+
+.exec-row {
+  display: grid; grid-template-columns: 1.3fr 1fr 1fr 28px;
+  gap: 6px; align-items: center; margin-bottom: 6px;
+}
+.exec-row .colhead {
+  font-size: 11px; color: var(--dimmed); text-transform: uppercase;
+}
+.exec-totals {
+  display: flex; justify-content: space-between; gap: var(--sp-sm);
+  margin-top: var(--sp-xs); padding-top: var(--sp-xs);
+  border-top: 1px dashed var(--border); font-size: 13px;
+}
+.exec-totals .lbl { color: var(--dimmed); }
+.exec-totals .val { font-family: var(--mono); color: var(--text-bright); }
+
+/* ---- Screenshots dropzone + previews ---- */
+.dropzone {
+  border: 2px dashed var(--border-strong); border-radius: var(--radius-md);
+  padding: var(--sp-xl); text-align: center; color: var(--dimmed);
+  cursor: pointer; background: var(--body-bg);
+}
+.dropzone:hover { border-color: var(--primary); color: var(--text); }
+.dropzone .big { font-size: 28px; margin-bottom: 6px; }
+
+.preview-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--sp-sm); margin-top: var(--sp-sm);
+}
+.preview {
+  position: relative; border: 1px solid var(--border);
+  border-radius: var(--radius-md); overflow: hidden; background: var(--input-bg);
+}
+.preview .thumb {
+  width: 100%; height: 100px; display: flex; align-items: center;
+  justify-content: center; color: var(--dimmed); font-size: 12px;
+  background: repeating-linear-gradient(45deg, #2c2e33, #2c2e33 10px, #303237 10px, #303237 20px);
+}
+.preview .meta { padding: 6px 8px; font-size: 11px; color: var(--dimmed); display:flex; justify-content:space-between; align-items:center; }
+.preview .del {
+  position: absolute; top: 4px; right: 4px; width: 22px; height: 22px;
+  border-radius: 999px; background: rgba(0,0,0,0.6); color: #fff;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  font-size: 12px; border: none;
+}
+.badge-existing {
+  position: absolute; top: 4px; left: 4px; font-size: 10px;
+  background: rgba(0,0,0,0.6); color: #fff; padding: 1px 6px; border-radius: 999px;
+}
+
+/* ---- Metric cards (Trade detail) ---- */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-md); margin-bottom: var(--sp-md); }
+.metric { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-md); }
+.metric .lbl { font-size: 13px; color: var(--dimmed); margin-bottom: 6px; }
+.metric .val { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--text-bright); }
+
+/* ---- Definition list for detail config ---- */
+.dl { display: grid; grid-template-columns: auto 1fr; gap: 6px var(--sp-md); font-size: 14px; }
+.dl dt { color: var(--dimmed); }
+.dl dd { margin: 0; color: var(--text-bright); }
+.dl dd.mono { font-family: var(--mono); }
+
+/* ---- Timeline (activities, detail view) ---- */
+.timeline { position: relative; padding-left: 22px; }
+.timeline::before { content: ''; position: absolute; left: 6px; top: 4px; bottom: 4px; width: 2px; background: var(--border); }
+.tl-item { position: relative; margin-bottom: var(--sp-md); }
+.tl-item:last-child { margin-bottom: 0; }
+.tl-dot { position: absolute; left: -22px; top: 2px; width: 14px; height: 14px; border-radius: 999px; border: 3px solid var(--card-bg); }
+.tl-dot.entry { background: var(--teal); }
+.tl-dot.exit { background: var(--grape); }
+.tl-row { display: flex; gap: var(--sp-md); align-items: baseline; flex-wrap: wrap; }
+.tl-row .price, .tl-row .qty { font-family: var(--mono); }
+.tl-row .date { color: var(--dimmed); font-size: 13px; }
+
+.hint { color: var(--dimmed); font-size: 13px; }
+.badge-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-group { margin-bottom: var(--sp-sm); }
+.cat-group .cat-label { font-size: 11px; text-transform: uppercase; color: var(--dimmed); margin-bottom: 4px; }
+
+.note { font-size: 12px; color: var(--dimmed); margin: var(--sp-md) 0; padding: var(--sp-sm); border-left: 3px solid var(--primary); background: rgba(34,139,230,0.06); }
+
+/* ---- Responsive: stack at Mantine `sm` (~768px) ---- */
+@media (max-width: 768px) {
+  .navbar { display: none; }              /* becomes hamburger drawer */
+  .two-col { grid-template-columns: 1fr; } /* config stacks above activities */
+  .activities-grid { grid-template-columns: 1fr; } /* entries above exits */
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .row-2 { grid-template-columns: 1fr; }
+}

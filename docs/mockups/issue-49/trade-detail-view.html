@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<!--
+  Issue #49 — Trade DETAIL view. Route: /journal/{id}. Consumes TradeResponse.
+  Reflects new field grouping (Configuration / Activities) and shows account_type.
+  Read-only: avg entry/exit, R, P&L are backend-computed.
+
+  Mantine mapping:
+    Direction badge  -> Badge color=teal (Long) / grape (Short)  [NON-semantic]
+    Status badge     -> Badge color=blue/gray/yellow
+    Account badge    -> Badge (Live/Demo/Test)
+    .metrics         -> SimpleGrid cols={{ base:2, sm:4 }} of metric Cards
+    .timeline        -> Mantine Timeline (entry bullet highlighted)
+    .preview-grid    -> SimpleGrid of thumbnails; click -> lightbox Modal
+    P&L / R          -> <Money>/<RValue> monospace, signed, semantic color
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiroku — Trade detail</title>
+  <link rel="stylesheet" href="kiroku-mockup.css">
+</head>
+<body>
+  <div class="shell">
+    <nav class="navbar">
+      <div class="brand">記録 <span class="sub">Kiroku</span></div>
+      <a class="navlink"><span class="ic">▣</span> Dashboard</a>
+      <a class="navlink active"><span class="ic">▤</span> Journal</a>
+      <a class="navlink"><span class="ic">▥</span> Analytics</a>
+      <a class="navlink"><span class="ic">▦</span> Projections</a>
+      <a class="navlink"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <!-- Header: asset · date · direction badge · status badge · account badge -->
+        <div class="page-header">
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
+            <h1 class="page-title">EUR/USD</h1>
+            <span class="hint mono">2026-06-08</span>
+            <span class="badge long">Long</span>
+            <span class="badge closed">Closed</span>
+            <!-- account_type displayed -->
+            <span class="badge live">Live</span>
+          </div>
+          <div class="right">
+            <button class="btn default">Edit</button>
+            <button class="icon-btn danger" title="Delete trade">🗑</button>
+          </div>
+        </div>
+
+        <!-- Metrics row: P&L · R · Risk/Reward · Duration -->
+        <div class="metrics">
+          <div class="metric">
+            <div class="lbl">P&amp;L</div>
+            <div class="val profit">+56.70</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">R</div>
+            <div class="val profit">+2.4R</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Risk / Reward</div>
+            <div class="val">1 : 2.4</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Duration</div>
+            <div class="val">1d</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <!-- LEFT: CONFIGURATION (mirrors form grouping) -->
+          <div class="config-col">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Configuration</h3></div>
+              <dl class="dl">
+                <dt>Asset</dt>          <dd>EUR/USD</dd>
+                <dt>Account type</dt>   <dd><span class="badge live">Live</span></dd>
+                <dt>Entry timeframe</dt><dd class="mono">H1</dd>
+              </dl>
+
+              <hr class="section-divider">
+              <div class="card-header"><h3 class="card-title">Tags</h3></div>
+              <div class="badge-row">
+                <span class="badge cat">Breakout</span>
+                <span class="badge cat">London session</span>
+              </div>
+
+              <hr class="section-divider">
+              <div class="card-header"><h3 class="card-title">Emotions</h3></div>
+              <div class="cat-group">
+                <div class="cat-label">Emotional State</div>
+                <div class="badge-row">
+                  <span class="badge good">Confident</span>
+                  <span class="badge warn">FOMO</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: ACTIVITIES + execution detail -->
+          <div class="activities-col">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Activities</h3></div>
+              <!-- Risk inputs that drove R, read-only -->
+              <dl class="dl" style="margin-bottom:16px">
+                <dt>Direction</dt>      <dd><span class="badge long">Long</span></dd>
+                <dt>Stop loss</dt>      <dd class="mono">1.07850</dd>
+                <dt>Risk per trade</dt> <dd class="mono">1.0%</dd>
+              </dl>
+
+              <hr class="section-divider">
+
+              <!-- Entries / Exits summary side by side (read-only computed) -->
+              <div class="activities-grid">
+                <div class="exec-column entries-column">
+                  <h4>Entries <span class="type-tag">Buy</span></h4>
+                  <div class="exec-totals" style="border-top:none; margin-top:0">
+                    <span><span class="lbl">Total qty</span> <span class="val">15000</span></span>
+                    <span><span class="lbl">Avg entry</span> <span class="val">1.08100</span></span>
+                  </div>
+                </div>
+                <div class="exec-column exits-column">
+                  <h4>Exits <span class="type-tag">Sell</span></h4>
+                  <div class="exec-totals" style="border-top:none; margin-top:0">
+                    <span><span class="lbl">Total qty</span> <span class="val">15000</span></span>
+                    <span><span class="lbl">Avg exit</span> <span class="val">1.08478</span></span>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="section-divider">
+
+              <!-- Timeline of individual activities (entries teal, exits grape) -->
+              <div class="timeline">
+                <div class="tl-item">
+                  <span class="tl-dot entry"></span>
+                  <div class="tl-row">
+                    <span class="badge long">Buy</span>
+                    <span class="price">1.08120</span>
+                    <span class="qty">×10000</span>
+                    <span class="date">2026-06-08</span>
+                  </div>
+                </div>
+                <div class="tl-item">
+                  <span class="tl-dot entry"></span>
+                  <div class="tl-row">
+                    <span class="badge long">Buy</span>
+                    <span class="price">1.08060</span>
+                    <span class="qty">×5000</span>
+                    <span class="date">2026-06-08</span>
+                  </div>
+                </div>
+                <div class="tl-item">
+                  <span class="tl-dot exit"></span>
+                  <div class="tl-row">
+                    <span class="badge short">Sell</span>
+                    <span class="price">1.08450</span>
+                    <span class="qty">×8000</span>
+                    <span class="date">2026-06-09</span>
+                  </div>
+                </div>
+                <div class="tl-item">
+                  <span class="tl-dot exit"></span>
+                  <div class="tl-row">
+                    <span class="badge short">Sell</span>
+                    <span class="price">1.08510</span>
+                    <span class="qty">×7000</span>
+                    <span class="date">2026-06-09</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Notes</h3></div>
+              <p style="margin:0; white-space:pre-wrap">Clean H1 breakout of London range, scaled in on retest. Took partials at first target, trailed rest.</p>
+            </div>
+
+            <!-- Screenshots gallery grouped by timeframe; click -> lightbox -->
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Screenshots</h3></div>
+              <div class="cat-group"><div class="cat-label">H1</div>
+                <div class="preview-grid">
+                  <div class="preview"><div class="thumb">H1-setup.png</div><div class="meta"><span>Setup</span></div></div>
+                </div>
+              </div>
+              <div class="cat-group"><div class="cat-label">M15</div>
+                <div class="preview-grid">
+                  <div class="preview"><div class="thumb">M15-exit.png</div><div class="meta"><span>Exit</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          DETAIL VIEW — new grouping (Configuration vs Activities), account_type badge shown,
+          entries/exits summarized with computed averages, full activity timeline, screenshots by timeframe.
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
