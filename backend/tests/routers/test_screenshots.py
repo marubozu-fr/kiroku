@@ -234,7 +234,11 @@ def test_delete_trade_cascades_screenshot_records() -> None:
   with TestClient(app) as client:
     trade_id = _create_trade(client)
     filename = _upload(client, trade_id).json()["data"]["filename"]
+    stored_path = SCREENSHOTS_DIR / str(trade_id) / filename
+    assert stored_path.is_file()
 
     assert client.delete(f"/api/trades/{trade_id}").status_code == 200
     # The DB row is gone (FK cascade), so the file is no longer servable.
     assert client.get(f"/api/screenshots/{filename}").status_code == 404
+    # The screenshot file is also removed from disk.
+    assert not stored_path.exists()
