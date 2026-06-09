@@ -32,7 +32,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { formatTradeDuration, formatTimeframeGroup } from '@/components/trade-detail/format'
 import {
   STATUS_COLOR,
-  formatDate,
+  formatLocalDate,
   formatPnl,
   formatR,
   signedColor,
@@ -194,7 +194,7 @@ export function TradeDetailPage() {
             <Group gap="md" align="center" wrap="wrap">
               <Title order={2}>{assetName}</Title>
               <Text size="sm" c="dimmed" ff="monospace">
-                {formatDate(trade.trade_date)}
+                {formatLocalDate(trade.trade_date)}
               </Text>
               <Group gap="xs">
                 {trade.direction && (
@@ -309,7 +309,7 @@ export function TradeDetailPage() {
                       {activity.price.toFixed(4)} &times; {activity.quantity}
                     </Text>
                     <Text size="sm" c="dimmed" ff="monospace">
-                      {formatDate(activity.date)}
+                      {formatLocalDate(activity.date)}
                     </Text>
                   </Group>
                 </Timeline.Item>

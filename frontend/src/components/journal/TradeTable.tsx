@@ -7,7 +7,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { tradesApi } from '@/services/trades'
 import {
   STATUS_COLOR,
-  formatDate,
+  formatLocalDate,
   formatPnl,
   formatR,
   signedColor,
@@ -105,7 +105,7 @@ export function TradeTable({ year, assetName }: TradeTableProps) {
               className={classes.row}
               onClick={() => navigate(`/journal/${trade.id}`)}
             >
-              <Table.Td ff="monospace">{formatDate(trade.trade_date)}</Table.Td>
+              <Table.Td ff="monospace">{formatLocalDate(trade.trade_date)}</Table.Td>
               <Table.Td>{assetName(trade.asset_id)}</Table.Td>
               <Table.Td>
                 {trade.direction ? (
