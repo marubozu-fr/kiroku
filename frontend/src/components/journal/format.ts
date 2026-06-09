@@ -1,3 +1,5 @@
+import dayjs from 'dayjs'
+import i18n from '@/i18n'
 import type { TradeStatus } from '@/types/trade'
 
 /**
@@ -7,7 +9,24 @@ import type { TradeStatus } from '@/types/trade'
  * coloured with semantic tokens: green for gains, red for losses, dimmed for
  * neutral / missing values. Direction and status badges are deliberately kept
  * off green/red — those colours are reserved for P&L and win/loss.
+ *
+ * Numbers and dates render in the active i18n locale so they match the user's
+ * language: decimal/thousands separators via `Intl.NumberFormat`, and
+ * localized date formats via dayjs (its locale is kept in sync in `@/i18n`).
  */
+
+/** Active i18n locale (e.g. `fr`, `en-US`), defaulting to `en`. */
+function activeLocale(): string {
+  return i18n.language || 'en'
+}
+
+/** Locale-aware decimal formatter with a fixed two-digit fraction. */
+function formatDecimal(value: number): string {
+  return new Intl.NumberFormat(activeLocale(), {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
 
 /** Mantine colour token for a signed value, or `undefined` for neutral. */
 export function signedColor(value: number | null): string | undefined {
@@ -22,7 +41,7 @@ export function formatPnl(value: number | null): string {
   if (value === null) {
     return '—'
   }
-  return `${value > 0 ? '+' : ''}${value.toFixed(2)}`
+  return `${value > 0 ? '+' : ''}${formatDecimal(value)}`
 }
 
 /** Format an R multiple with an explicit sign and suffix, e.g. `+1.50R`. */
@@ -30,15 +49,18 @@ export function formatR(value: number | null): string {
   if (value === null) {
     return '—'
   }
-  return `${value > 0 ? '+' : ''}${value.toFixed(2)}R`
+  return `${value > 0 ? '+' : ''}${formatDecimal(value)}R`
 }
 
-/** Show the calendar date portion of an ISO timestamp. */
-export function formatDate(value: string | null): string {
+/**
+ * Show the calendar date of an ISO timestamp in the active locale's format.
+ * Defaults to dayjs `LL` (long date, e.g. `September 4, 1986` / `4 septembre 1986`).
+ */
+export function formatLocalDate(value: string | null, format = 'LL'): string {
   if (!value) {
     return '—'
   }
-  return value.slice(0, 10)
+  return dayjs(value).format(format)
 }
 
 /** Mantine badge colour for a trade status (no green/red — reserved for P&L). */
