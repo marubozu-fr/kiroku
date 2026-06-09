@@ -1,17 +1,18 @@
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, File, Form, UploadFile
 
 from app.models.response import ApiResponse
 from app.models.trade import (
   TradeCreate,
   TradeDirection,
   TradeResponse,
+  TradeScreenshotResponse,
   TradeStatus,
   TradeSummary,
   TradeUpdate,
 )
-from app.services import trade_service
+from app.services import screenshot_service, trade_service
 
 router = APIRouter(prefix="/api/trades", tags=["trades"])
 
@@ -60,3 +61,20 @@ async def update_trade(trade_id: int, payload: TradeUpdate) -> ApiResponse[Trade
 async def delete_trade(trade_id: int) -> ApiResponse[TradeResponse]:
   trade = await trade_service.delete_trade(trade_id)
   return ApiResponse(data=TradeResponse(**trade))
+
+
+@router.post("/{trade_id}/screenshots", status_code=201)
+async def upload_screenshot(
+  trade_id: int,
+  file: UploadFile = File(...),
+  timeframe_unit: Optional[str] = Form(default=None),
+  timeframe_value: Optional[int] = Form(default=None),
+) -> ApiResponse[TradeScreenshotResponse]:
+  screenshot = await screenshot_service.upload_screenshot(trade_id, file, timeframe_unit, timeframe_value)
+  return ApiResponse(data=TradeScreenshotResponse(**screenshot))
+
+
+@router.get("/{trade_id}/screenshots")
+async def list_screenshots(trade_id: int) -> ApiResponse[list[TradeScreenshotResponse]]:
+  screenshots = await screenshot_service.list_screenshots(trade_id)
+  return ApiResponse(data=[TradeScreenshotResponse(**s) for s in screenshots])
