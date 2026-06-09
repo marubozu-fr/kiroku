@@ -61,3 +61,28 @@ export interface TradeDetail extends TradeSummary {
   emotions: Emotion[]
   screenshots: TradeScreenshot[]
 }
+
+/** A single buy/sell activity as sent to the create/update endpoints. */
+export interface TradeActivityInput {
+  type: ActivityType
+  price: number
+  quantity: number
+  date: string
+}
+
+/**
+ * Request body for creating or updating a trade. Mirrors the backend's
+ * `TradeCreate` model; the update endpoint accepts the same shape.
+ */
+export interface TradeInput {
+  asset_id: number
+  stop_loss: number | null
+  notes: string | null
+  missed_opportunity: boolean
+  risk_per_trade: number | null
+  timeframe_unit: string | null
+  timeframe_value: number | null
+  activities: TradeActivityInput[]
+  tag_ids: number[]
+  emotion_ids: number[]
+}

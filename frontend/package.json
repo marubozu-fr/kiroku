@@ -15,10 +15,12 @@
   "dependencies": {
     "@fontsource/jetbrains-mono": "^5.2.8",
     "@mantine/core": "^7.17.0",
+    "@mantine/dates": "^7.17.8",
     "@mantine/form": "^7.17.0",
     "@mantine/hooks": "^7.17.0",
     "@mantine/notifications": "^7.17.0",
     "@tabler/icons-react": "^3.31.0",
+    "dayjs": "^1.11.21",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.0"

@@ -1,5 +1,5 @@
 import { api } from '@/services/api'
-import type { TradeDetail, TradeSummary } from '@/types/trade'
+import type { TradeDetail, TradeInput, TradeSummary } from '@/types/trade'
 
 /**
  * API client for trades. The journal list page reads the years that have
@@ -13,6 +13,10 @@ export const tradesApi = {
     api.get<number[]>('/trades/years', signal),
   get: (id: number, signal?: AbortSignal): Promise<TradeDetail> =>
     api.get<TradeDetail>(`/trades/${id}`, signal),
+  create: (body: TradeInput): Promise<TradeDetail> =>
+    api.post<TradeDetail>('/trades', body),
+  update: (id: number, body: TradeInput): Promise<TradeDetail> =>
+    api.put<TradeDetail>(`/trades/${id}`, body),
   remove: (id: number): Promise<TradeDetail> =>
     api.delete<TradeDetail>(`/trades/${id}`),
 }
