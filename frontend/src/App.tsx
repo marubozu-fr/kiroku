@@ -5,6 +5,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { JournalPage } from '@/pages/JournalPage'
 import { ProjectionsPage } from '@/pages/ProjectionsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { TradeDetailPage } from '@/pages/TradeDetailPage'
 
 export function App() {
   return (
@@ -12,6 +13,7 @@ export function App() {
       <Route element={<AppLayout />}>
         <Route index element={<DashboardPage />} />
         <Route path="journal" element={<JournalPage />} />
+        <Route path="journal/:id" element={<TradeDetailPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="projections" element={<ProjectionsPage />} />
         <Route path="settings" element={<SettingsPage />} />

@@ -1,0 +1,26 @@
+.notes {
+  white-space: pre-wrap;
+}
+
+.thumbnail {
+  cursor: pointer;
+}
+
+.activityRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mantine-spacing-sm);
+}
+
+.activityDot {
+  flex-shrink: 0;
+  margin-top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--mantine-color-default-border);
+}
+
+.activityLine {
+  flex: 1;
+}
