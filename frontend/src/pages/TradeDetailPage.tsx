@@ -179,11 +179,6 @@ export function TradeDetailPage() {
   const isClosed = trade.status === 'Closed'
   const duration = isClosed ? formatTradeDuration(trade.activities) : 'Open'
 
-  const rrRatio: string =
-    trade.risk !== null && trade.reward !== null && trade.risk !== 0
-      ? `1 : ${(trade.reward / trade.risk).toFixed(1)}`
-      : '—'
-
   const lightboxShot =
     lightboxIndex === null ? null : orderedScreenshots[lightboxIndex] ?? null
 
@@ -256,10 +251,10 @@ export function TradeDetailPage() {
           <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
-                Risk / Reward
+                Stop Loss
               </Text>
               <Text size="xl" fw={700} ff="monospace">
-                {rrRatio}
+                {trade.stop_loss !== null ? trade.stop_loss.toFixed(4) : '—'}
               </Text>
             </Stack>
           </Card>

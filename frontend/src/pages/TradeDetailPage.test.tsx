@@ -149,11 +149,12 @@ describe('TradeDetailPage', () => {
     expect(screen.getByText('+1.50R')).toBeInTheDocument()
   })
 
-  it('formats the risk/reward as a 1 : x ratio', async () => {
-    stubApi(makeTrade({ risk: 50, reward: 120 }))
+  it('displays the stop loss metric', async () => {
+    stubApi(makeTrade({ stop_loss: 1.075 }))
     renderDetail()
 
-    expect(await screen.findByText('1 : 2.4')).toBeInTheDocument()
+    await screen.findByText('EUR/USD')
+    expect(screen.getByText('Stop Loss').parentElement).toHaveTextContent('1.0750')
   })
 
   it('shows "Open" for the duration when the trade is not closed', async () => {
