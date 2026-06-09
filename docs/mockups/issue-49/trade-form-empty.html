@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!--
+  Issue #49 — Trade creation form, EMPTY state.
+  Route: /journal/new. Maps to TradeCreate. Reuse same form component for edit.
+
+  Mantine mapping (see README.md for the full table):
+    .two-col            -> Grid / SimpleGrid cols={{ base:1, sm:2 }}
+    .card               -> Card padding="md" radius="md"
+    Direction segmented -> SegmentedControl (required)
+    Account type        -> SegmentedControl (Test|Demo|Live, default Live)
+    .input (Select)     -> Select / NumberInput / TextInput / Textarea
+    .activities-grid    -> two Stacks (entries-column / exits-column) in a Grid
+    .dropzone           -> @mantine/dropzone Dropzone
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiroku — Add trade (empty)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css">
+</head>
+<body>
+  <div class="shell">
+    <!-- Navbar -> Mantine AppShell.Navbar (canonical, not redesigned) -->
+    <nav class="navbar">
+      <div class="brand">記録 <span class="sub">Kiroku</span></div>
+      <a class="navlink"><span class="ic">▣</span> Dashboard</a>
+      <a class="navlink active"><span class="ic">▤</span> Journal</a>
+      <a class="navlink"><span class="ic">▥</span> Analytics</a>
+      <a class="navlink"><span class="ic">▦</span> Projections</a>
+      <a class="navlink"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <!-- Page header row: Group justify="space-between" -->
+        <div class="page-header">
+          <h1 class="page-title">Add trade</h1>
+          <div class="right">
+            <button class="btn default">Cancel</button>
+            <button class="btn filled">Save trade</button>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <!-- ============ LEFT: CONFIGURATION column ============ -->
+          <div class="config-col">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Configuration</h3></div>
+
+              <!-- Asset: Select grouped by category, searchable, required -->
+              <div class="field">
+                <label>Asset <span class="asterisk">*</span></label>
+                <select class="input"><option>Select an asset…</option></select>
+              </div>
+
+              <!-- CHANGE 2: Account type — SegmentedControl, default Live -->
+              <div class="field">
+                <label>Account type <span class="asterisk">*</span></label>
+                <div class="segmented">
+                  <div class="seg">Test</div>
+                  <div class="seg">Demo</div>
+                  <div class="seg active">Live</div>
+                </div>
+                <div class="hint">Default: Live. API enum: test | demo | live.</div>
+              </div>
+
+              <!-- Entry timeframe: Select unit + NumberInput value -->
+              <div class="field">
+                <label>Entry timeframe</label>
+                <div class="row-2">
+                  <select class="input"><option>Unit (M/H/D/W)</option></select>
+                  <input class="input mono" placeholder="15">
+                </div>
+                <div class="hint">e.g. M + 15 → "M15"</div>
+              </div>
+
+              <!-- Tags: MultiSelect -->
+              <div class="field">
+                <label>Tags</label>
+                <select class="input"><option>Add tags…</option></select>
+              </div>
+
+              <!-- Emotions: MultiSelect grouped by category, severity dot -->
+              <div class="field">
+                <label>Emotions</label>
+                <select class="input"><option>Add emotions…</option></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ RIGHT: ACTIVITIES column ============ -->
+          <div class="activities-col">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Activities</h3></div>
+
+              <!-- CHANGE 1: Direction — required SegmentedControl above entries/exits.
+                   Determines entry/exit activity types (Long: Buy=entry, Sell=exit). -->
+              <div class="field">
+                <label>Direction <span class="asterisk">*</span></label>
+                <div class="segmented">
+                  <div class="seg">Long</div>
+                  <div class="seg">Short</div>
+                </div>
+                <div class="hint">Required. Sets entry/exit types automatically.</div>
+              </div>
+
+              <!-- CHANGE 4: Stop loss + Risk per trade live with activities (R calc) -->
+              <div class="row-2">
+                <div class="field">
+                  <label>Stop loss</label>
+                  <input class="input mono" placeholder="0.00">
+                </div>
+                <div class="field">
+                  <label>Risk per trade %</label>
+                  <input class="input mono" placeholder="1.0">
+                </div>
+              </div>
+
+              <hr class="section-divider">
+
+              <!-- CHANGE 3: Entries / Exits as two side-by-side sub-sections.
+                   Exits disabled until ≥1 entry exists. -->
+              <div class="activities-grid">
+                <!-- entries-column -->
+                <div class="exec-column entries-column">
+                  <h4>Entries <span class="type-tag">— pick direction</span></h4>
+                  <div class="exec-row">
+                    <span class="colhead">Date</span>
+                    <span class="colhead">Qty</span>
+                    <span class="colhead">Price</span>
+                    <span></span>
+                  </div>
+                  <div class="exec-row">
+                    <input class="input" placeholder="Date">
+                    <input class="input mono" placeholder="Qty">
+                    <input class="input mono" placeholder="Price">
+                    <button class="icon-btn danger" disabled title="Remove (≥1 required)">🗑</button>
+                  </div>
+                  <button class="btn light sm" style="margin-top:6px">+ Add entry</button>
+                  <div class="exec-totals">
+                    <span><span class="lbl">Total qty</span> <span class="val neutral">—</span></span>
+                    <span><span class="lbl">Avg price</span> <span class="val neutral">—</span></span>
+                  </div>
+                </div>
+
+                <!-- exits-column (disabled in empty state) -->
+                <div class="exec-column exits-column disabled">
+                  <h4>Exits <span class="type-tag">— locked</span></h4>
+                  <div class="exec-row">
+                    <span class="colhead">Date</span>
+                    <span class="colhead">Qty</span>
+                    <span class="colhead">Price</span>
+                    <span></span>
+                  </div>
+                  <div class="exec-row">
+                    <input class="input disabled" placeholder="Date" disabled>
+                    <input class="input mono disabled" placeholder="Qty" disabled>
+                    <input class="input mono disabled" placeholder="Price" disabled>
+                    <button class="icon-btn" disabled>🗑</button>
+                  </div>
+                  <div class="hint" style="margin-top:6px">Add at least one entry to unlock exits.</div>
+                  <div class="exec-totals">
+                    <span><span class="lbl">Total qty</span> <span class="val neutral">—</span></span>
+                    <span><span class="lbl">Avg price</span> <span class="val neutral">—</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notes + Missed opportunity (kept as-is) -->
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Notes</h3></div>
+              <div class="field">
+                <textarea class="input" placeholder="Trade rationale, observations… (≤2000 chars)"></textarea>
+              </div>
+              <label style="display:flex; gap:8px; align-items:center; cursor:pointer">
+                <input type="checkbox"> Missed opportunity
+              </label>
+            </div>
+
+            <!-- CHANGE 5: Screenshots — Dropzone, empty state (no previews yet) -->
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Screenshots</h3></div>
+              <div class="dropzone">
+                <div class="big">🖼</div>
+                <div>Drag images here or click to browse</div>
+                <div class="hint">Staged client-side, uploaded after the trade is created.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          EMPTY STATE — no direction chosen, exits locked, no screenshots staged.
+          Submit is enabled but client validation requires: asset, direction, ≥1 entry.
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<!--
+  Issue #49 — Trade creation form, POPULATED state.
+  Direction = Long (Buy=entry, Sell=exit). Two entries + two exits with
+  LIVE computed total quantity + average price. Two screenshots staged.
+  Same component mapping as trade-form-empty.html (see README.md).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kiroku — Add trade (populated)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css">
+</head>
+<body>
+  <div class="shell">
+    <nav class="navbar">
+      <div class="brand">記録 <span class="sub">Kiroku</span></div>
+      <a class="navlink"><span class="ic">▣</span> Dashboard</a>
+      <a class="navlink active"><span class="ic">▤</span> Journal</a>
+      <a class="navlink"><span class="ic">▥</span> Analytics</a>
+      <a class="navlink"><span class="ic">▦</span> Projections</a>
+      <a class="navlink"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <div class="page-header">
+          <h1 class="page-title">Add trade</h1>
+          <div class="right">
+            <button class="btn default">Cancel</button>
+            <button class="btn filled">Save trade</button>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <!-- LEFT: CONFIGURATION -->
+          <div class="config-col">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Configuration</h3></div>
+
+              <div class="field">
+                <label>Asset <span class="asterisk">*</span></label>
+                <select class="input"><option selected>EUR/USD</option></select>
+              </div>
+
+              <div class="field">
+                <label>Account type <span class="asterisk">*</span></label>
+                <div class="segmented">
+                  <div class="seg">Test</div>
+                  <div class="seg">Demo</div>
+                  <div class="seg active">Live</div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Entry timeframe</label>
+                <div class="row-2">
+                  <select class="input"><option selected>H</option></select>
+                  <input class="input mono" value="1">
+                </div>
+                <div class="hint">→ "H1"</div>
+              </div>
+
+              <div class="field">
+                <label>Tags</label>
+                <div class="badge-row" style="margin-bottom:6px">
+                  <span class="badge cat">Breakout ✕</span>
+                  <span class="badge cat">London session ✕</span>
+                </div>
+                <select class="input"><option>Add more tags…</option></select>
+              </div>
+
+              <div class="field">
+                <label>Emotions</label>
+                <div class="badge-row" style="margin-bottom:6px">
+                  <span class="badge good">Confident ✕</span>
+                  <span class="badge warn">FOMO ✕</span>
+                </div>
+                <select class="input"><option>Add more emotions…</option></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: ACTIVITIES -->
+          <div class="activities-col">
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Activities</h3></div>
+
+              <!-- Direction = Long selected (teal accent, non-semantic) -->
+              <div class="field">
+                <label>Direction <span class="asterisk">*</span></label>
+                <div class="segmented">
+                  <div class="seg active long">Long</div>
+                  <div class="seg">Short</div>
+                </div>
+                <div class="hint">Long → entries are <strong>Buy</strong>, exits are <strong>Sell</strong>.</div>
+              </div>
+
+              <div class="row-2">
+                <div class="field">
+                  <label>Stop loss</label>
+                  <input class="input mono" value="1.07850">
+                </div>
+                <div class="field">
+                  <label>Risk per trade %</label>
+                  <input class="input mono" value="1.0">
+                </div>
+              </div>
+
+              <hr class="section-divider">
+
+              <div class="activities-grid">
+                <!-- entries-column — type auto = Buy -->
+                <div class="exec-column entries-column">
+                  <h4>Entries <span class="type-tag">Buy</span></h4>
+                  <div class="exec-row">
+                    <span class="colhead">Date</span><span class="colhead">Qty</span>
+                    <span class="colhead">Price</span><span></span>
+                  </div>
+                  <div class="exec-row">
+                    <input class="input" value="2026-06-08">
+                    <input class="input mono" value="10000">
+                    <input class="input mono" value="1.08120">
+                    <button class="icon-btn danger">🗑</button>
+                  </div>
+                  <div class="exec-row">
+                    <input class="input" value="2026-06-08">
+                    <input class="input mono" value="5000">
+                    <input class="input mono" value="1.08060">
+                    <button class="icon-btn danger">🗑</button>
+                  </div>
+                  <button class="btn light sm" style="margin-top:6px">+ Add entry</button>
+                  <!-- LIVE computed: total qty = 15000, avg = weighted price -->
+                  <div class="exec-totals">
+                    <span><span class="lbl">Total qty</span> <span class="val">15000</span></span>
+                    <span><span class="lbl">Avg price</span> <span class="val">1.08100</span></span>
+                  </div>
+                </div>
+
+                <!-- exits-column — unlocked, type auto = Sell -->
+                <div class="exec-column exits-column">
+                  <h4>Exits <span class="type-tag">Sell</span></h4>
+                  <div class="exec-row">
+                    <span class="colhead">Date</span><span class="colhead">Qty</span>
+                    <span class="colhead">Price</span><span></span>
+                  </div>
+                  <div class="exec-row">
+                    <input class="input" value="2026-06-09">
+                    <input class="input mono" value="8000">
+                    <input class="input mono" value="1.08450">
+                    <button class="icon-btn danger">🗑</button>
+                  </div>
+                  <div class="exec-row">
+                    <input class="input" value="2026-06-09">
+                    <input class="input mono" value="7000">
+                    <input class="input mono" value="1.08510">
+                    <button class="icon-btn danger">🗑</button>
+                  </div>
+                  <button class="btn light sm" style="margin-top:6px">+ Add exit</button>
+                  <!-- Exit total qty (15000) cannot exceed entry total qty (15000) -->
+                  <div class="exec-totals">
+                    <span><span class="lbl">Total qty</span> <span class="val">15000</span></span>
+                    <span><span class="lbl">Avg price</span> <span class="val">1.08478</span></span>
+                  </div>
+                </div>
+              </div>
+              <div class="hint" style="margin-top:8px">
+                Exit qty cannot exceed entry total (15000). Remaining: <span class="mono">0</span> → trade fully closed.
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Notes</h3></div>
+              <div class="field">
+                <textarea class="input">Clean H1 breakout of London range, scaled in on retest. Took partials at first target, trailed rest.</textarea>
+              </div>
+              <label style="display:flex; gap:8px; align-items:center; cursor:pointer">
+                <input type="checkbox"> Missed opportunity
+              </label>
+            </div>
+
+            <!-- Screenshots — two File objects staged, previews via URL.createObjectURL() -->
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Screenshots</h3></div>
+              <div class="dropzone">
+                <div class="big">🖼</div>
+                <div>Drag images here or click to browse</div>
+                <div class="hint">2 staged — uploaded on save via POST /api/trades/{id}/screenshots.</div>
+              </div>
+              <div class="preview-grid">
+                <div class="preview">
+                  <button class="del" title="Remove from staging">✕</button>
+                  <div class="thumb">H1-setup.png</div>
+                  <div class="meta"><span>H1 setup</span><span class="mono">182 KB</span></div>
+                </div>
+                <div class="preview">
+                  <button class="del" title="Remove from staging">✕</button>
+                  <div class="thumb">M15-exit.png</div>
+                  <div class="meta"><span>M15 exit</span><span class="mono">204 KB</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          POPULATED STATE — Long, 2 entries (avg 1.08100) + 2 exits (avg 1.08478),
+          live totals balanced, 2 screenshots staged client-side (not yet uploaded).
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
