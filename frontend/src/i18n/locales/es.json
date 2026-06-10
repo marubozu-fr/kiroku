@@ -203,6 +203,7 @@
       "exit": "Exit",
       "prev_screenshot": "Captura anterior",
       "next_screenshot": "Captura siguiente",
+      "view_screenshot": "Ver captura",
       "notify": {
         "deleted": "Trade eliminado",
         "delete_error": "No se pudo eliminar el trade"
