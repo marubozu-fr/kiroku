@@ -33,6 +33,7 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import { formatTradeDuration, formatTimeframeGroup } from '@/components/trade-detail/format'
 import {
+  DIRECTION_COLOR,
   STATUS_COLOR,
   formatLocalDate,
   formatPnl,
@@ -44,7 +45,7 @@ import { assetsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
 import { EMOTION_CATEGORIES } from '@/types/referenceData'
 import type { EmotionSeverity } from '@/types/referenceData'
-import type { AccountType, TradeDirection, TradeScreenshot } from '@/types/trade'
+import type { AccountType, TradeScreenshot } from '@/types/trade'
 import classes from './TradeDetailPage.module.css'
 
 // Severity colours per docs/DESIGN_SYSTEM.md — not re-exported from EmotionsTab.
@@ -52,12 +53,6 @@ const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
   Good: 'green',
   Warning: 'orange',
   Bad: 'red',
-}
-
-// Direction uses teal/grape (non-semantic) — green/red are reserved for P&L.
-const DIRECTION_COLOR: Record<TradeDirection, string> = {
-  Long: 'teal',
-  Short: 'grape',
 }
 
 // Account-type badge colours — non-semantic, never green/red.

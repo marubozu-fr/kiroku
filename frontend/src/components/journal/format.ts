@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import i18n from '@/i18n'
-import type { TradeStatus } from '@/types/trade'
+import type { TradeDirection, TradeStatus } from '@/types/trade'
 
 /**
  * Formatting helpers for the journal table.
@@ -79,6 +79,12 @@ export function formatLocalDate(value: string | null, format = 'LL'): string {
     return '—'
   }
   return dayjs(value).format(format)
+}
+
+/** Mantine badge colour for a trade direction (no green/red — reserved for P&L). */
+export const DIRECTION_COLOR: Record<TradeDirection, string> = {
+  Long: 'teal',
+  Short: 'grape',
 }
 
 /** Mantine badge colour for a trade status (no green/red — reserved for P&L). */
