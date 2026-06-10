@@ -1,0 +1,173 @@
+/* ── Calendar grid ──────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.weekdayHeader {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--mantine-spacing-xs);
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.weekdayLabel {
+  text-align: center;
+  padding-block: var(--mantine-spacing-xs);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--mantine-spacing-xs);
+}
+
+/* ── Day cell ─────────────────────────────────────────────────────────── */
+
+.cell {
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.cellOutside {
+  opacity: 0.4;
+}
+
+.cellToday {
+  border-color: var(--mantine-color-blue-6) !important;
+}
+
+.dayNumber {
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+/* ── Trade event pill ─────────────────────────────────────────────────── */
+
+.event {
+  display: block;
+  width: 100%;
+  padding: 1px 4px;
+  border-radius: 2px;
+  border-left: 3px solid transparent;
+  background: var(--mantine-color-dark-6);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+.event:hover {
+  background: var(--mantine-color-dark-5);
+}
+
+.eventProfit {
+  border-left-color: var(--mantine-color-green-6);
+  color: var(--mantine-color-green-6);
+}
+
+.eventLoss {
+  border-left-color: var(--mantine-color-red-6);
+  color: var(--mantine-color-red-6);
+}
+
+.eventNeutral {
+  border-left-color: var(--mantine-color-dimmed);
+  color: var(--mantine-color-dimmed);
+}
+
+/* ── Review bands ─────────────────────────────────────────────────────── */
+
+.weeklyReview {
+  margin-top: 2px;
+  padding: 2px 4px;
+  border: 1px dashed transparent;
+  border-radius: 2px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.monthlyReview {
+  margin-top: 2px;
+  padding: 2px 4px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.reviewProfit {
+  border-color: var(--mantine-color-green-6);
+  color: var(--mantine-color-green-6);
+}
+
+.reviewLoss {
+  border-color: var(--mantine-color-red-6);
+  color: var(--mantine-color-red-6);
+}
+
+.reviewNeutral {
+  border-color: var(--mantine-color-dimmed);
+  color: var(--mantine-color-dimmed);
+}
+
+/* ── Overflow indicator ───────────────────────────────────────────────── */
+
+.moreText {
+  padding-left: 4px;
+  cursor: default;
+}
+
+/* ── Agenda (mobile) ──────────────────────────────────────────────────── */
+
+.agendaDay {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--mantine-color-dark-5);
+}
+
+.agendaEvent {
+  display: block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border-left: 3px solid transparent;
+  background: var(--mantine-color-dark-6);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-sm);
+  text-decoration: none;
+  line-height: 1.5;
+}
+
+.agendaEvent:hover {
+  background: var(--mantine-color-dark-5);
+}
+
+.agendaReview {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.5;
+}
