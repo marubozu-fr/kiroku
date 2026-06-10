@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS trade_screenshots (
   filename TEXT NOT NULL,
   timeframe_unit TEXT,
   timeframe_value INTEGER,
+  label TEXT,
   created_at TEXT
 );
 

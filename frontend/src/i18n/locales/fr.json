@@ -325,6 +325,9 @@
         "hint": "JPG, PNG ou WebP, jusqu’à 5 Mo chacune. Envoyées lors de l’enregistrement.",
         "existing": "Enregistrée",
         "remove": "Supprimer la capture",
+        "label_label": "Libellé (facultatif)",
+        "label_placeholder": "ex. Confirmation du setup",
+        "timeframe_required": "Ajoutez un timeframe à chaque capture",
         "invalid_file": "Certains fichiers ont été ignorés : seuls JPG, PNG et WebP jusqu’à 5 Mo sont autorisés.",
         "upload_error": "Le trade a été enregistré mais certaines captures n’ont pas pu être envoyées."
       }

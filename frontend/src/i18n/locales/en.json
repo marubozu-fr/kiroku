@@ -325,6 +325,9 @@
         "hint": "JPG, PNG or WebP, up to 5 MB each. Uploaded when you save.",
         "existing": "Saved",
         "remove": "Remove screenshot",
+        "label_label": "Label (optional)",
+        "label_placeholder": "e.g. Setup confirmation",
+        "timeframe_required": "Add a timeframe to each screenshot",
         "invalid_file": "Some files were skipped: only JPG, PNG and WebP up to 5 MB are allowed.",
         "upload_error": "The trade was saved but some screenshots could not be uploaded."
       }

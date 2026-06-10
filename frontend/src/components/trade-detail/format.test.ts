@@ -99,15 +99,21 @@ describe('formatTimeframeGroup', () => {
     expect(formatTimeframeGroup(1, 'd')).toBe('1d')
   })
 
-  it('returns Untagged when both value and unit are null', () => {
-    expect(formatTimeframeGroup(null, null)).toBe('Untagged')
+  it('formats a weekly timeframe', () => {
+    expect(formatTimeframeGroup(1, 'w')).toBe('1w')
   })
 
-  it('returns Untagged when value is null and unit is provided', () => {
-    expect(formatTimeframeGroup(null, 'm')).toBe('Untagged')
+  // Timeframe is required since issue #56; the — fallback only guards legacy
+  // rows and never reads as "Untagged".
+  it('returns — when both value and unit are null', () => {
+    expect(formatTimeframeGroup(null, null)).toBe('—')
   })
 
-  it('returns Untagged when unit is null and value is provided', () => {
-    expect(formatTimeframeGroup(15, null)).toBe('Untagged')
+  it('returns — when value is null and unit is provided', () => {
+    expect(formatTimeframeGroup(null, 'm')).toBe('—')
+  })
+
+  it('returns — when unit is null and value is provided', () => {
+    expect(formatTimeframeGroup(15, null)).toBe('—')
   })
 })

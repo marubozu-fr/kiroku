@@ -325,6 +325,9 @@
         "hint": "JPG, PNG ou WebP, até 5 MB cada. Enviadas ao guardar.",
         "existing": "Guardada",
         "remove": "Remover captura",
+        "label_label": "Rótulo (opcional)",
+        "label_placeholder": "ex. Confirmação do setup",
+        "timeframe_required": "Adicione um timeframe a cada captura",
         "invalid_file": "Alguns ficheiros foram ignorados: apenas JPG, PNG e WebP até 5 MB são permitidos.",
         "upload_error": "O trade foi guardado mas algumas capturas não puderam ser enviadas."
       }

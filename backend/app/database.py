@@ -62,6 +62,20 @@ async def apply_migrations() -> None:
         "ALTER TABLE trades ADD COLUMN account_type TEXT NOT NULL DEFAULT 'live'"
       )
 
+    # label (issue #56): optional free-text annotation per screenshot (e.g.
+    # "Setup confirmation", "Entry point"). Nullable, so existing rows need no
+    # back-fill. Timeframe stays nullable in the schema for older rows; new
+    # uploads require it at the API layer. Guarded by a table-presence check so
+    # it is a no-op on databases that predate trade_screenshots.
+    cursor = await connection.execute(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'trade_screenshots'"
+    )
+    if await cursor.fetchone() is not None:
+      cursor = await connection.execute("PRAGMA table_info(trade_screenshots)")
+      screenshot_columns = {row[1] for row in await cursor.fetchall()}
+      if "label" not in screenshot_columns:
+        await connection.execute("ALTER TABLE trade_screenshots ADD COLUMN label TEXT")
+
     await connection.commit()
 
 

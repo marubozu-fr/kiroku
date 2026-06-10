@@ -479,16 +479,22 @@ export function TradeDetailPage() {
                   </Text>
                   <SimpleGrid cols={{ base: 2, sm: 4 }}>
                     {shots.map((shot) => (
-                      <Image
-                        key={shot.id}
-                        src={`/api/screenshots/${shot.filename}`}
-                        height={120}
-                        radius="sm"
-                        fit="contain"
-                        className={classes.thumbnail}
-                        onClick={() => setLightboxIndex(orderedScreenshots.indexOf(shot))}
-                        alt={shot.filename}
-                      />
+                      <Stack key={shot.id} gap={4}>
+                        <Image
+                          src={`/api/screenshots/${shot.filename}`}
+                          height={120}
+                          radius="sm"
+                          fit="contain"
+                          className={classes.thumbnail}
+                          onClick={() => setLightboxIndex(orderedScreenshots.indexOf(shot))}
+                          alt={shot.label ?? shot.filename}
+                        />
+                        {shot.label && (
+                          <Text size="xs" c="dimmed" ta="center" lineClamp={2}>
+                            {shot.label}
+                          </Text>
+                        )}
+                      </Stack>
                     ))}
                   </SimpleGrid>
                 </Stack>

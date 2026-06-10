@@ -25,6 +25,11 @@ EXTENSION_CONTENT_TYPES: dict[str, str] = {
 }
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
+# Timeframe units accepted on upload: (m)inutes, (h)ours, (d)ays, (w)eeks.
+# Mirrors the trade-level timeframe units used on the frontend.
+TIMEFRAME_UNITS: frozenset[str] = frozenset({"m", "h", "d", "w"})
+MAX_LABEL_LENGTH = 200
+
 
 class ScreenshotNotFoundError(NotFoundError):
   """Raised when a screenshot id or filename does not exist."""
@@ -58,16 +63,30 @@ def _safe_filename(filename: str) -> str:
 async def upload_screenshot(
   trade_id: int,
   file: UploadFile,
-  timeframe_unit: Optional[str],
-  timeframe_value: Optional[int],
+  timeframe_unit: str,
+  timeframe_value: int,
+  label: Optional[str] = None,
 ) -> dict[str, Any]:
   """Validate and persist an uploaded screenshot for a trade.
 
   The file is stored under data/screenshots/{trade_id}/ with a generated,
-  collision-free name. Returns the created screenshot record.
+  collision-free name. A timeframe (unit + value) is required so screenshots
+  can be grouped in the trade view; `label` is an optional free-text caption.
+  Returns the created screenshot record.
   """
   if await trade_repository.get_trade_by_id(trade_id) is None:
     raise ScreenshotTradeNotFoundError(f"Trade {trade_id} not found")
+
+  if timeframe_unit not in TIMEFRAME_UNITS:
+    raise ValidationError("Timeframe unit must be one of: m, h, d, w")
+  if timeframe_value <= 0:
+    raise ValidationError("Timeframe value must be a positive integer")
+
+  clean_label = label.strip() if label is not None else None
+  if clean_label == "":
+    clean_label = None
+  if clean_label is not None and len(clean_label) > MAX_LABEL_LENGTH:
+    raise ValidationError(f"Label must be at most {MAX_LABEL_LENGTH} characters")
 
   extension = CONTENT_TYPE_EXTENSIONS.get(file.content_type or "")
   if extension is None:
@@ -88,7 +107,7 @@ async def upload_screenshot(
 
   now = _now()
   screenshot_id = await trade_repository.insert_screenshot(
-    trade_id, filename, timeframe_unit, timeframe_value, now
+    trade_id, filename, timeframe_unit, timeframe_value, clean_label, now
   )
   created = await trade_repository.get_screenshot_by_id(screenshot_id)
   assert created is not None

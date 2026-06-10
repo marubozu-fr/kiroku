@@ -54,7 +54,15 @@ export interface TradeScreenshot {
   filename: string
   timeframe_unit: string | null
   timeframe_value: number | null
+  label: string | null
   created_at: string | null
+}
+
+/** Metadata sent alongside the file when uploading a screenshot. */
+export interface ScreenshotUploadInput {
+  timeframe_unit: string
+  timeframe_value: number
+  label: string | null
 }
 
 export interface TradeDetail extends TradeSummary {

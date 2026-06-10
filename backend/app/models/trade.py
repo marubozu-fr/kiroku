@@ -61,6 +61,7 @@ class TradeScreenshotResponse(BaseModel):
   filename: str
   timeframe_unit: Optional[str] = None
   timeframe_value: Optional[int] = None
+  label: Optional[str] = None
   created_at: Optional[str] = None
 
 
