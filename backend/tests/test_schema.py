@@ -121,6 +121,46 @@ def test_migration_adds_account_type_and_backfills_live(
   assert backfilled == "live"
 
 
+def test_migration_adds_screenshot_label(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  # A legacy trade_screenshots table created before the label column (issue #56)
+  # must gain it on migration, leaving existing rows with a NULL label.
+  db_path = tmp_path / "kiroku.db"
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+
+  connection = sqlite3.connect(db_path)
+  # A current trades table (with account_type) so the unrelated trades
+  # migrations are no-ops and only the screenshot label step is exercised.
+  connection.execute(
+    "CREATE TABLE trades (id INTEGER PRIMARY KEY, status TEXT NOT NULL, "
+    "account_type TEXT NOT NULL DEFAULT 'live')"
+  )
+  connection.execute(
+    "CREATE TABLE trade_screenshots ("
+    "id INTEGER PRIMARY KEY, trade_id INTEGER, filename TEXT, "
+    "timeframe_unit TEXT, timeframe_value INTEGER, created_at TEXT)"
+  )
+  connection.execute(
+    "INSERT INTO trade_screenshots (id, trade_id, filename) VALUES (1, 1, 'a.png')"
+  )
+  connection.commit()
+  connection.close()
+
+  asyncio.run(apply_migrations())
+  # Idempotent: a second run must not raise on the now-current table.
+  asyncio.run(apply_migrations())
+
+  connection = sqlite3.connect(db_path)
+  columns = {
+    row[1] for row in connection.execute("PRAGMA table_info(trade_screenshots)").fetchall()
+  }
+  label = connection.execute("SELECT label FROM trade_screenshots WHERE id = 1").fetchone()[0]
+  connection.close()
+  assert "label" in columns
+  assert label is None
+
+
 def test_migration_account_type_is_idempotent(
   tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

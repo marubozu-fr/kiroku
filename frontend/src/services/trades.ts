@@ -1,5 +1,11 @@
 import { api } from '@/services/api'
-import type { TradeDetail, TradeInput, TradeScreenshot, TradeSummary } from '@/types/trade'
+import type {
+  ScreenshotUploadInput,
+  TradeDetail,
+  TradeInput,
+  TradeScreenshot,
+  TradeSummary,
+} from '@/types/trade'
 
 /**
  * API client for trades. The journal list page reads the years that have
@@ -19,9 +25,18 @@ export const tradesApi = {
     api.put<TradeDetail>(`/trades/${id}`, body),
   remove: (id: number): Promise<TradeDetail> =>
     api.delete<TradeDetail>(`/trades/${id}`),
-  uploadScreenshot: (tradeId: number, file: File): Promise<TradeScreenshot> => {
+  uploadScreenshot: (
+    tradeId: number,
+    file: File,
+    meta: ScreenshotUploadInput,
+  ): Promise<TradeScreenshot> => {
     const body = new FormData()
     body.append('file', file)
+    body.append('timeframe_unit', meta.timeframe_unit)
+    body.append('timeframe_value', String(meta.timeframe_value))
+    if (meta.label !== null) {
+      body.append('label', meta.label)
+    }
     return api.postForm<TradeScreenshot>(`/trades/${tradeId}/screenshots`, body)
   },
   removeScreenshot: (screenshotId: number): Promise<TradeScreenshot> =>

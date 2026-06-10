@@ -4,7 +4,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   IconAlertTriangle,
   IconArrowLeft,
-  IconPhoto,
   IconPlus,
   IconTrash,
   IconUpload,
@@ -33,6 +32,7 @@ import {
   Stack,
   Text,
   Textarea,
+  TextInput,
   Title,
 } from '@mantine/core'
 import { DateTimePicker } from '@mantine/dates'
@@ -101,6 +101,19 @@ interface TradeFormValues {
   missed_opportunity: boolean
 }
 
+/**
+ * A screenshot staged client-side before upload. Each carries its own object
+ * URL (created once on staging, revoked on removal/unmount) plus the required
+ * timeframe and optional label entered in the form.
+ */
+interface StagedScreenshot {
+  file: File
+  url: string
+  timeframe_unit: string | null
+  timeframe_value: number | string
+  label: string
+}
+
 function emptyRow(): ExecutionRow {
   return { date: dayjs().toISOString(), price: '', quantity: '' }
 }
@@ -143,12 +156,14 @@ export function TradeFormPage() {
   const [assetModalOpen, setAssetModalOpen] = useState(false)
   const [tagModalOpen, setTagModalOpen] = useState(false)
   const [emotionModalOpen, setEmotionModalOpen] = useState(false)
-  // Screenshots staged client-side as File objects; uploaded after the trade
-  // is saved. On edit, existing screenshots are shown and may be marked for
-  // deletion (applied on submit).
-  const [stagedFiles, setStagedFiles] = useState<File[]>([])
+  // Screenshots staged client-side with their timeframe + label; uploaded
+  // after the trade is saved. On edit, existing screenshots are shown and may
+  // be marked for deletion (applied on submit) — their metadata is read-only.
+  const [staged, setStaged] = useState<StagedScreenshot[]>([])
   const [existingScreenshots, setExistingScreenshots] = useState<TradeScreenshot[]>([])
   const [removedScreenshotIds, setRemovedScreenshotIds] = useState<number[]>([])
+  // Surface per-screenshot timeframe errors only after a submit attempt.
+  const [showScreenshotErrors, setShowScreenshotErrors] = useState(false)
   // Prefill the form from the loaded trade exactly once (edit mode). A ref
   // avoids re-triggering the effect and keeps user edits from being clobbered.
   const prefilled = useRef(false)
@@ -213,16 +228,17 @@ export function TradeFormPage() {
   const exitTotals = executionTotals(form.values.exits)
   const exitExceedsEntry = exitTotals.quantity > entryTotals.quantity
 
-  // --- Screenshot previews via object URLs; revoked on change / unmount ---
-  const previews = useMemo(
-    () => stagedFiles.map((file) => ({ file, url: URL.createObjectURL(file) })),
-    [stagedFiles],
-  )
+  // --- Screenshot object URLs: created on staging, revoked on removal. A ref
+  // mirrors the staged list so the unmount cleanup revokes whatever remains. ---
+  const stagedRef = useRef<StagedScreenshot[]>([])
+  useEffect(() => {
+    stagedRef.current = staged
+  }, [staged])
   useEffect(
     () => () => {
-      previews.forEach((preview) => URL.revokeObjectURL(preview.url))
+      stagedRef.current.forEach((shot) => URL.revokeObjectURL(shot.url))
     },
-    [previews],
+    [],
   )
 
   // --- Reference data, shaped for the selectors ---
@@ -311,12 +327,31 @@ export function TradeFormPage() {
       notifyError(t('trade.form.screenshots.invalid_file'))
     }
     if (valid.length > 0) {
-      setStagedFiles((current) => [...current, ...valid])
+      setStaged((current) => [
+        ...current,
+        ...valid.map((file) => ({
+          file,
+          url: URL.createObjectURL(file),
+          timeframe_unit: null,
+          timeframe_value: '',
+          label: '',
+        })),
+      ])
     }
   }
 
   const removeStagedFile = (index: number) => {
-    setStagedFiles((current) => current.filter((_, i) => i !== index))
+    setStaged((current) => {
+      const target = current[index]
+      if (target) {
+        URL.revokeObjectURL(target.url)
+      }
+      return current.filter((_, i) => i !== index)
+    })
+  }
+
+  const updateStaged = (index: number, patch: Partial<StagedScreenshot>) => {
+    setStaged((current) => current.map((shot, i) => (i === index ? { ...shot, ...patch } : shot)))
   }
 
   const removeExistingScreenshot = (screenshotId: number) => {
@@ -347,6 +382,17 @@ export function TradeFormPage() {
     if (exitExceedsEntry) {
       const message = t('trade.form.validation.exit_exceeds_entry')
       setSubmitError(message)
+      return
+    }
+    // Every staged screenshot needs a valid timeframe before it can be uploaded.
+    const screenshotsInvalid = staged.some(
+      (shot) => !shot.timeframe_unit || !isPositiveNumber(shot.timeframe_value),
+    )
+    if (screenshotsInvalid) {
+      setShowScreenshotErrors(true)
+      const message = t('trade.form.screenshots.timeframe_required')
+      setSubmitError(message)
+      notifyError(message)
       return
     }
     setSubmitError(null)
@@ -391,8 +437,12 @@ export function TradeFormPage() {
         for (const screenshotId of removedScreenshotIds) {
           await tradesApi.removeScreenshot(screenshotId)
         }
-        for (const file of stagedFiles) {
-          await tradesApi.uploadScreenshot(saved.id, file)
+        for (const shot of staged) {
+          await tradesApi.uploadScreenshot(saved.id, shot.file, {
+            timeframe_unit: shot.timeframe_unit as string,
+            timeframe_value: Number(shot.timeframe_value),
+            label: shot.label.trim() === '' ? null : shot.label.trim(),
+          })
         }
       } catch {
         notifyError(t('trade.form.screenshots.upload_error'))
@@ -892,7 +942,7 @@ export function TradeFormPage() {
                     {t('trade.form.screenshots.hint')}
                   </Text>
 
-                  {(existingScreenshots.length > 0 || previews.length > 0) && (
+                  {existingScreenshots.length > 0 && (
                     <SimpleGrid cols={{ base: 2, sm: 3 }}>
                       {existingScreenshots.map((shot) => (
                         <Card key={shot.id} padding={4} radius="sm" className={classes.preview}>
@@ -902,11 +952,18 @@ export function TradeFormPage() {
                             radius="sm"
                             fit="contain"
                             className={classes.previewImage}
-                            alt={shot.filename}
+                            alt={shot.label ?? shot.filename}
                           />
-                          <Badge size="xs" variant="light" mt={4}>
-                            {t('trade.form.screenshots.existing')}
-                          </Badge>
+                          {shot.timeframe_value !== null && shot.timeframe_unit !== null && (
+                            <Badge size="xs" variant="light" mt={4}>
+                              {`${shot.timeframe_value}${shot.timeframe_unit}`}
+                            </Badge>
+                          )}
+                          {shot.label && (
+                            <Text size="xs" c="dimmed" mt={2} lineClamp={2}>
+                              {shot.label}
+                            </Text>
+                          )}
                           <ActionIcon
                             variant="filled"
                             color="red"
@@ -920,36 +977,84 @@ export function TradeFormPage() {
                           </ActionIcon>
                         </Card>
                       ))}
-                      {previews.map((preview, index) => (
-                        <Card key={preview.url} padding={4} radius="sm" className={classes.preview}>
-                          <Image
-                            src={preview.url}
-                            height={100}
-                            radius="sm"
-                            fit="contain"
-                            className={classes.previewImage}
-                            alt={preview.file.name}
-                          />
-                          <Group gap={4} mt={4} wrap="nowrap">
-                            <IconPhoto size={14} />
-                            <Text size="xs" truncate flex={1}>
-                              {preview.file.name}
-                            </Text>
+                    </SimpleGrid>
+                  )}
+
+                  {staged.length > 0 && (
+                    <Stack gap="sm">
+                      {staged.map((shot, index) => (
+                        <Card key={shot.url} padding="sm" radius="sm" withBorder>
+                          <Group align="flex-start" wrap="nowrap" gap="sm">
+                            <Image
+                              src={shot.url}
+                              w={120}
+                              h={90}
+                              radius="sm"
+                              fit="contain"
+                              className={classes.previewImage}
+                              alt={shot.file.name}
+                            />
+                            <Stack gap="xs" flex={1}>
+                              <Grid gutter="xs">
+                                <Grid.Col span={6}>
+                                  <Select
+                                    aria-label={t('trade.form.fields.timeframe_unit_label')}
+                                    placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
+                                    data={TIMEFRAME_UNITS.map((unit) => ({
+                                      value: unit.value,
+                                      label: t(`trade.form.timeframe_units.${unit.value}`),
+                                    }))}
+                                    value={shot.timeframe_unit}
+                                    onChange={(value) =>
+                                      updateStaged(index, { timeframe_unit: value })
+                                    }
+                                    error={
+                                      showScreenshotErrors && !shot.timeframe_unit
+                                        ? t('trade.form.validation.timeframe_unit_required')
+                                        : null
+                                    }
+                                  />
+                                </Grid.Col>
+                                <Grid.Col span={6}>
+                                  <NumberInput
+                                    aria-label={t('trade.form.fields.timeframe_value_label')}
+                                    placeholder={t('trade.form.fields.timeframe_value_placeholder')}
+                                    min={1}
+                                    allowDecimal={false}
+                                    value={shot.timeframe_value}
+                                    onChange={(value) =>
+                                      updateStaged(index, { timeframe_value: value })
+                                    }
+                                    error={
+                                      showScreenshotErrors && !isPositiveNumber(shot.timeframe_value)
+                                        ? t('trade.form.validation.timeframe_value_required')
+                                        : null
+                                    }
+                                  />
+                                </Grid.Col>
+                              </Grid>
+                              <TextInput
+                                aria-label={t('trade.form.screenshots.label_label')}
+                                placeholder={t('trade.form.screenshots.label_placeholder')}
+                                value={shot.label}
+                                onChange={(event) =>
+                                  updateStaged(index, { label: event.currentTarget.value })
+                                }
+                              />
+                            </Stack>
+                            <ActionIcon
+                              variant="subtle"
+                              color="red"
+                              size="sm"
+                              aria-label={t('trade.form.screenshots.remove')}
+                              onClick={() => removeStagedFile(index)}
+                            >
+                              <IconX size={14} />
+                            </ActionIcon>
                           </Group>
-                          <ActionIcon
-                            variant="filled"
-                            color="red"
-                            size="sm"
-                            radius="xl"
-                            className={classes.removeButton}
-                            aria-label={t('trade.form.screenshots.remove')}
-                            onClick={() => removeStagedFile(index)}
-                          >
-                            <IconX size={14} />
-                          </ActionIcon>
                         </Card>
                       ))}
-                    </SimpleGrid>
+                    </Stack>
                   )}
                 </Stack>
               </Card>

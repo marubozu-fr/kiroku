@@ -325,6 +325,9 @@
         "hint": "JPG, PNG o WebP, fino a 5 MB ciascuno. Caricati al salvataggio.",
         "existing": "Salvato",
         "remove": "Rimuovi screenshot",
+        "label_label": "Etichetta (facoltativa)",
+        "label_placeholder": "es. Conferma del setup",
+        "timeframe_required": "Aggiungi un timeframe a ogni screenshot",
         "invalid_file": "Alcuni file sono stati ignorati: sono ammessi solo JPG, PNG e WebP fino a 5 MB.",
         "upload_error": "Il trade è stato salvato ma alcuni screenshot non sono stati caricati."
       }

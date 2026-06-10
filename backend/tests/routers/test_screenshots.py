@@ -45,10 +45,12 @@ def _upload(
   content_type: str = "image/png",
   data: dict | None = None,
 ):
+  # Timeframe is required on every upload (issue #56), so default to a valid
+  # one. Tests that exercise timeframe validation pass their own `data`.
   return client.post(
     f"/api/trades/{trade_id}/screenshots",
     files={"file": (filename, content, content_type)},
-    data=data or {},
+    data=data if data is not None else {"timeframe_unit": "m", "timeframe_value": "15"},
   )
 
 
@@ -63,7 +65,7 @@ def test_upload_screenshot_happy_path() -> None:
     response = _upload(
       client,
       trade_id,
-      data={"timeframe_unit": "Minute", "timeframe_value": "15"},
+      data={"timeframe_unit": "h", "timeframe_value": "4", "label": "Setup confirmation"},
     )
 
   assert response.status_code == 201, response.text
@@ -72,8 +74,9 @@ def test_upload_screenshot_happy_path() -> None:
   data = body["data"]
   assert data["id"] > 0
   assert data["trade_id"] == trade_id
-  assert data["timeframe_unit"] == "Minute"
-  assert data["timeframe_value"] == 15
+  assert data["timeframe_unit"] == "h"
+  assert data["timeframe_value"] == 4
+  assert data["label"] == "Setup confirmation"
   assert data["created_at"] is not None
   # Stored filename is generated, ends in the content-type extension, and
   # carries no path components.
@@ -81,15 +84,64 @@ def test_upload_screenshot_happy_path() -> None:
   assert "/" not in data["filename"] and ".." not in data["filename"]
 
 
-def test_upload_without_timeframe() -> None:
+def test_upload_without_label_stores_null() -> None:
   with TestClient(app) as client:
     trade_id = _create_trade(client)
-    response = _upload(client, trade_id)
+    response = _upload(client, trade_id, data={"timeframe_unit": "d", "timeframe_value": "1"})
 
   assert response.status_code == 201, response.text
   data = response.json()["data"]
-  assert data["timeframe_unit"] is None
-  assert data["timeframe_value"] is None
+  assert data["timeframe_unit"] == "d"
+  assert data["timeframe_value"] == 1
+  assert data["label"] is None
+
+
+def test_upload_blank_label_normalized_to_null() -> None:
+  with TestClient(app) as client:
+    trade_id = _create_trade(client)
+    response = _upload(
+      client,
+      trade_id,
+      data={"timeframe_unit": "m", "timeframe_value": "5", "label": "   "},
+    )
+
+  assert response.status_code == 201, response.text
+  assert response.json()["data"]["label"] is None
+
+
+def test_upload_requires_timeframe() -> None:
+  with TestClient(app) as client:
+    trade_id = _create_trade(client)
+    # No timeframe fields at all -> FastAPI rejects the required form fields.
+    response = _upload(client, trade_id, data={})
+
+  assert response.status_code == 422, response.text
+
+
+def test_upload_rejects_unknown_timeframe_unit() -> None:
+  with TestClient(app) as client:
+    trade_id = _create_trade(client)
+    response = _upload(
+      client,
+      trade_id,
+      data={"timeframe_unit": "Minute", "timeframe_value": "15"},
+    )
+
+  assert response.status_code == 400, response.text
+  assert "unit" in response.json()["error"].lower()
+
+
+def test_upload_rejects_non_positive_timeframe_value() -> None:
+  with TestClient(app) as client:
+    trade_id = _create_trade(client)
+    response = _upload(
+      client,
+      trade_id,
+      data={"timeframe_unit": "m", "timeframe_value": "0"},
+    )
+
+  assert response.status_code == 400, response.text
+  assert "value" in response.json()["error"].lower()
 
 
 def test_upload_accepts_jpeg_and_webp() -> None:
@@ -107,15 +159,23 @@ def test_upload_accepts_jpeg_and_webp() -> None:
 def test_upload_appears_in_trade_detail_and_list() -> None:
   with TestClient(app) as client:
     trade_id = _create_trade(client)
-    _upload(client, trade_id)
+    _upload(
+      client,
+      trade_id,
+      data={"timeframe_unit": "h", "timeframe_value": "1", "label": "Entry point"},
+    )
 
     list_resp = client.get(f"/api/trades/{trade_id}/screenshots")
     detail_resp = client.get(f"/api/trades/{trade_id}")
 
   assert list_resp.status_code == 200
   assert len(list_resp.json()["data"]) == 1
+  assert list_resp.json()["data"][0]["label"] == "Entry point"
   assert detail_resp.status_code == 200
-  assert len(detail_resp.json()["data"]["screenshots"]) == 1
+  screenshots = detail_resp.json()["data"]["screenshots"]
+  assert len(screenshots) == 1
+  assert screenshots[0]["timeframe_unit"] == "h"
+  assert screenshots[0]["label"] == "Entry point"
 
 
 def test_upload_to_missing_trade_returns_404() -> None:

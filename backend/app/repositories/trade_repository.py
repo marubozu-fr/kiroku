@@ -196,20 +196,23 @@ async def get_screenshots(trade_id: int) -> list[dict[str, Any]]:
 async def insert_screenshot(
   trade_id: int,
   filename: str,
-  timeframe_unit: Optional[str],
-  timeframe_value: Optional[int],
+  timeframe_unit: str,
+  timeframe_value: int,
+  label: Optional[str],
   now: str,
 ) -> int:
   """Insert a single screenshot record and return its generated id."""
   query = """
-    INSERT INTO trade_screenshots (trade_id, filename, timeframe_unit, timeframe_value, created_at)
-    VALUES (:trade_id, :filename, :timeframe_unit, :timeframe_value, :created_at)
+    INSERT INTO trade_screenshots
+      (trade_id, filename, timeframe_unit, timeframe_value, label, created_at)
+    VALUES (:trade_id, :filename, :timeframe_unit, :timeframe_value, :label, :created_at)
   """
   values = {
     "trade_id": trade_id,
     "filename": filename,
     "timeframe_unit": timeframe_unit,
     "timeframe_value": timeframe_value,
+    "label": label,
     "created_at": now,
   }
   return await database.execute(query, values)

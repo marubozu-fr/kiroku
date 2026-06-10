@@ -325,6 +325,9 @@
         "hint": "JPG, PNG oder WebP, je bis zu 5 MB. Werden beim Speichern hochgeladen.",
         "existing": "Gespeichert",
         "remove": "Screenshot entfernen",
+        "label_label": "Bezeichnung (optional)",
+        "label_placeholder": "z. B. Setup-Bestätigung",
+        "timeframe_required": "Füge jedem Screenshot einen Timeframe hinzu",
         "invalid_file": "Einige Dateien wurden übersprungen: Nur JPG, PNG und WebP bis 5 MB sind erlaubt.",
         "upload_error": "Der Trade wurde gespeichert, aber einige Screenshots konnten nicht hochgeladen werden."
       }

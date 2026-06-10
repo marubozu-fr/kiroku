@@ -67,10 +67,13 @@ async def delete_trade(trade_id: int) -> ApiResponse[TradeResponse]:
 async def upload_screenshot(
   trade_id: int,
   file: UploadFile = File(...),
-  timeframe_unit: Optional[str] = Form(default=None),
-  timeframe_value: Optional[int] = Form(default=None),
+  timeframe_unit: str = Form(...),
+  timeframe_value: int = Form(...),
+  label: Optional[str] = Form(default=None),
 ) -> ApiResponse[TradeScreenshotResponse]:
-  screenshot = await screenshot_service.upload_screenshot(trade_id, file, timeframe_unit, timeframe_value)
+  screenshot = await screenshot_service.upload_screenshot(
+    trade_id, file, timeframe_unit, timeframe_value, label
+  )
   return ApiResponse(data=TradeScreenshotResponse(**screenshot))
 
 

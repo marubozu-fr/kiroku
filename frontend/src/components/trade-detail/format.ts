@@ -43,15 +43,16 @@ export function formatTradeDuration(activities: TradeActivity[]): string {
 }
 
 /**
- * Build a display label for a screenshot timeframe.
- * Returns `"Untagged"` when both value and unit are null.
+ * Build a display label for a screenshot timeframe (e.g. `"15m"`, `"1h"`).
+ * Timeframe is required on every screenshot since issue #56; the `—` fallback
+ * only guards legacy rows created before it was enforced.
  */
 export function formatTimeframeGroup(
   value: number | null,
   unit: string | null,
 ): string {
   if (value === null || unit === null) {
-    return 'Untagged'
+    return '—'
   }
   return `${value}${unit}`
 }
