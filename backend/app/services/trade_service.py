@@ -134,6 +134,48 @@ async def _assemble_detail(trade_id: int) -> dict[str, Any]:
   return trade
 
 
+async def calculate_year_statistics(year: int) -> dict[str, Any]:
+  """Compute aggregated statistics for all trades in the given year."""
+  trades = await trade_repository.list_trades(year=year)
+  total_trades = len(trades)
+
+  perfs = [t["performance_r"] for t in trades if t.get("performance_r") is not None]
+  n = len(perfs)
+
+  winning_trades = sum(1 for r in perfs if r > EPS)
+  losing_trades = sum(1 for r in perfs if r < -EPS)
+  breakeven_trades = sum(1 for r in perfs if abs(r) <= EPS)
+
+  total_pnl = round(sum(perfs), 2) if perfs else 0.0
+  avg_pnl = round(sum(perfs) / n, 2) if n > 0 else 0.0
+  win_rate = round(winning_trades / n * 100, 2) if n > 0 else 0.0
+
+  winning_rs = [r for r in perfs if r > EPS]
+  losing_rs = [r for r in perfs if r < -EPS]
+  avg_win = sum(winning_rs) / len(winning_rs) if winning_rs else 0.0
+  avg_loss = sum(abs(r) for r in losing_rs) / len(losing_rs) if losing_rs else 0.0
+
+  win_rate_frac = winning_trades / n if n > 0 else 0.0
+  loss_rate_frac = losing_trades / n if n > 0 else 0.0
+  expectancy = round((win_rate_frac * avg_win) - (loss_rate_frac * avg_loss), 2)
+
+  total_profits = sum(winning_rs)
+  total_losses = sum(abs(r) for r in losing_rs)
+  profit_factor = round(total_profits / total_losses, 2) if total_losses > EPS else round(total_profits, 2)
+
+  return {
+    "total_trades": total_trades,
+    "winning_trades": winning_trades,
+    "losing_trades": losing_trades,
+    "breakeven_trades": breakeven_trades,
+    "total_pnl": total_pnl,
+    "avg_pnl": avg_pnl,
+    "win_rate": win_rate,
+    "expectancy": expectancy,
+    "profit_factor": profit_factor,
+  }
+
+
 async def list_trades(
   year: Optional[int] = None,
   asset_id: Optional[int] = None,
