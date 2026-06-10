@@ -61,6 +61,16 @@
         "activity_desc": "Tus últimos trades de un vistazo"
       },
       "cta": "Añadir mi primer trade"
+    },
+    "charts": {
+      "title": "Rendimiento",
+      "tab_month": "Mes a mes",
+      "tab_equity": "Equity Curve",
+      "empty": "Sin datos para este período",
+      "tooltip": {
+        "trades_one": "{{count}} trade",
+        "trades_other": "{{count}} trades"
+      }
     }
   },
   "analytics": {

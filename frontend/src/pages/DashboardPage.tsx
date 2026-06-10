@@ -12,6 +12,7 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { DashboardCharts } from '@/components/dashboard/DashboardCharts'
 import { DashboardEmptyState } from '@/components/dashboard/DashboardEmptyState'
 import { KpiCards, type DisplayMode } from '@/components/dashboard/KpiCards'
 import { useFetch } from '@/hooks/useFetch'
@@ -138,6 +139,15 @@ export function DashboardPage() {
 
       {/* KPI cards */}
       {hasData && <KpiCards stats={data.stats} displayMode={displayMode} />}
+
+      {/* Charts */}
+      {hasData && (
+        <DashboardCharts
+          monthly={data.monthly}
+          equity={data.equity}
+          displayMode={displayMode}
+        />
+      )}
     </Stack>
   )
 }
