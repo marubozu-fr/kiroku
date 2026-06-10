@@ -28,6 +28,12 @@ def clean_database() -> None:
   connection.execute("DELETE FROM assets")
   connection.execute("DELETE FROM tags")
   connection.execute("DELETE FROM emotions")
+  # Reset the singleton preferences row to its seeded default so each test
+  # starts from a known state (the re-run schema only re-seeds a missing row).
+  connection.execute("DELETE FROM user_preferences")
+  connection.execute(
+    "INSERT INTO user_preferences (id, risk_per_trade_default) VALUES (1, 1.0)"
+  )
   connection.commit()
   connection.close()
   yield

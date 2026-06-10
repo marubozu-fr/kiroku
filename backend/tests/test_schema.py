@@ -16,6 +16,7 @@ EXPECTED_TABLES = {
   "trade_tags",
   "trade_emotions",
   "trade_screenshots",
+  "user_preferences",
 }
 
 # Child tables whose foreign key to the parent must cascade on delete.
@@ -66,6 +67,16 @@ def test_foreign_keys_cascade_on_delete(child: str, parent: str) -> None:
   # Column 2 is the referenced table, column 6 is the ON DELETE action.
   cascading = [fk for fk in foreign_keys if fk[2] == parent and fk[6] == "CASCADE"]
   assert cascading, f"{child} must cascade-delete from {parent}"
+
+
+def test_schema_seeds_single_preferences_row() -> None:
+  connection = _load_schema()
+  # Re-run the schema: INSERT OR IGNORE must not duplicate the seeded row.
+  connection.executescript(SCHEMA_PATH.read_text())
+  rows = connection.execute(
+    "SELECT id, risk_per_trade_default FROM user_preferences"
+  ).fetchall()
+  assert rows == [(1, 1.0)]
 
 
 def test_schema_is_idempotent() -> None:
