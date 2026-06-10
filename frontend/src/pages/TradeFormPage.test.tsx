@@ -406,9 +406,10 @@ describe('TradeFormPage — edit mode', () => {
 /**
  * Stateful fetch stub: POSTs to /assets, /tags, /emotions append to the
  * in-memory lists and echo the created record, so a subsequent reload reflects
- * the new entity (mirrors how inline creation refreshes the selectors).
+ * the new entity (mirrors how inline creation refreshes the selectors). An
+ * optional `trade` is returned for the trade GET to drive edit-mode prefill.
  */
-function stubStatefulApi() {
+function stubStatefulApi(trade: TradeDetail | null = null) {
   const assetList = [...assets]
   const tagList = [...tags]
   const emotionMap: Record<string, Emotion[]> = {
@@ -474,7 +475,7 @@ function stubStatefulApi() {
       }
       return jsonResponse(emotionMap)
     }
-    if (method === 'GET' && input.startsWith('/api/trades/')) return jsonResponse(null)
+    if (method === 'GET' && input.startsWith('/api/trades/')) return jsonResponse(trade)
 
     throw new Error(`Unexpected fetch: ${method} ${input}`)
   })
@@ -573,5 +574,30 @@ describe('TradeFormPage — inline reference-data creation', () => {
     expect(screen.getByRole('button', { name: 'Add asset' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add tag' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add emotion' })).toBeInTheDocument()
+  })
+
+  it('adds an inline tag in edit mode without dropping the prefilled selection', async () => {
+    // The edit stub prefills tag_ids with the existing trade's "Breakout" tag.
+    stubStatefulApi(makeTrade())
+    renderEdit()
+    await screen.findByText('Edit trade')
+
+    // Helper: the selected pill for `name` is the text node not inside an option.
+    const selectedPill = (name: string) =>
+      screen.queryAllByText(name).find((el) => !el.closest('[role="option"]'))
+
+    // The prefilled tag is already selected as a pill.
+    await waitFor(() => expect(selectedPill('Breakout')).toBeDefined())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add tag' }))
+    const dialog = within(await screen.findByRole('dialog'))
+    fireEvent.change(dialog.getByLabelText('Name', { exact: false }), { target: { value: 'Pullback' } })
+    fireEvent.click(dialog.getByRole('button', { name: 'Create' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    // The new tag is added AND the previously selected tag survives the spread.
+    await waitFor(() => expect(selectedPill('Pullback')).toBeDefined())
+    expect(selectedPill('Breakout')).toBeDefined()
   })
 })
