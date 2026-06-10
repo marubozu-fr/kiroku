@@ -74,6 +74,56 @@ async def list_trades(
   return [dict(row) for row in rows]
 
 
+async def list_with_asset(
+  account_type: Optional[str] = None,
+  start_date: Optional[str] = None,
+) -> list[dict[str, Any]]:
+  """Return trades joined with their asset name/currency, ordered by trade_date ASC.
+
+  `account_type` filters on the trade's account_type column (None = no filter).
+  `start_date` keeps only trades with `trade_date >= start_date` (None = no filter);
+  ISO 8601 dates compare correctly as plain strings.
+  """
+  query = (
+    "SELECT t.*, a.name AS asset_name, a.currency AS asset_currency "
+    "FROM trades t LEFT JOIN assets a ON a.id = t.asset_id WHERE 1=1"
+  )
+  values: dict[str, Any] = {}
+  if account_type is not None:
+    query += " AND t.account_type = :account_type"
+    values["account_type"] = account_type
+  if start_date is not None:
+    query += " AND t.trade_date >= :start_date"
+    values["start_date"] = start_date
+  query += " ORDER BY t.trade_date ASC"
+  rows = await database.fetch_all(query, values)
+  return [dict(row) for row in rows]
+
+
+async def list_recent_with_asset(
+  account_type: Optional[str] = None,
+  limit: int = 10,
+) -> list[dict[str, Any]]:
+  """Return the most recent resolved trades joined with their asset name/currency.
+
+  Excludes missed-opportunity rows and open trades (no result yet), ordered by
+  trade_date DESC and capped at `limit`. Not filtered by period.
+  """
+  query = (
+    "SELECT t.*, a.name AS asset_name, a.currency AS asset_currency "
+    "FROM trades t LEFT JOIN assets a ON a.id = t.asset_id "
+    "WHERE t.missed_opportunity = 0 AND t.status IN ('Closed', 'Partial', 'Breakeven')"
+  )
+  values: dict[str, Any] = {}
+  if account_type is not None:
+    query += " AND t.account_type = :account_type"
+    values["account_type"] = account_type
+  query += " ORDER BY t.trade_date DESC LIMIT :limit"
+  values["limit"] = limit
+  rows = await database.fetch_all(query, values)
+  return [dict(row) for row in rows]
+
+
 async def distinct_years() -> list[int]:
   """Return distinct years present in trade_date, descending."""
   rows = await database.fetch_all(
