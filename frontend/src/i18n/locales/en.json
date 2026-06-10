@@ -57,6 +57,28 @@
         "status": "Status",
         "pnl": "P&L"
       }
+    },
+    "view": {
+      "calendar": "Calendar",
+      "list": "List"
+    },
+    "stats": {
+      "total_trades": "Total Trades",
+      "total_pnl": "Total P&L",
+      "win_rate": "Win Rate",
+      "avg_pnl": "Avg P&L"
+    },
+    "calendar": {
+      "weekly_review": "WEEKLY REVIEW",
+      "monthly_review": "MONTHLY REVIEW",
+      "more": "+{{count}} more",
+      "prev_month": "Previous month",
+      "next_month": "Next month"
+    },
+    "empty": {
+      "title": "No trades for {{year}}",
+      "subtitle": "Log your first trade to start filling your journal.",
+      "cta": "Log your first trade"
     }
   },
   "settings": {

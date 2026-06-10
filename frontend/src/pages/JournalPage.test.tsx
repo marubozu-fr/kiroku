@@ -24,7 +24,7 @@ function trade(overrides: Partial<TradeSummary> = {}): TradeSummary {
     performance_r: 1.5,
     timeframe_unit: null,
     timeframe_value: null,
-    trade_date: '2026-03-04',
+    trade_date: '2026-03-04T08:00:00.000Z',
     created_at: null,
     updated_at: null,
     ...overrides,
@@ -81,14 +81,48 @@ afterEach(() => {
 })
 
 describe('JournalPage', () => {
-  it('loads and displays trades for the most recent year', async () => {
+  it('loads and displays trades in calendar view by default', async () => {
     stubApi({
-      years: [2025, 2026],
+      years: [2026],
       assets: [asset],
-      trades: (year) => (year === 2026 ? [trade()] : []),
+      trades: () => [trade()],
     })
 
     renderJournal()
+
+    // Calendar default: the trade event shows "HH:mm ASSET: R".
+    // Both desktop grid and mobile agenda render the same event, so use findAllByText.
+    const events = await screen.findAllByText(/EUR\/USD/)
+    expect(events.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('shows stat cards when trades are loaded', async () => {
+    stubApi({
+      years: [2026],
+      assets: [asset],
+      trades: () => [trade()],
+    })
+
+    renderJournal()
+
+    expect(await screen.findByText('Total Trades')).toBeInTheDocument()
+    expect(screen.getByText('Win Rate')).toBeInTheDocument()
+  })
+
+  it('shows the list view with full trade row after switching to list', async () => {
+    stubApi({
+      years: [2026],
+      assets: [asset],
+      trades: () => [trade()],
+    })
+
+    renderJournal()
+
+    // Wait for data to load.
+    await screen.findByText('Total Trades')
+
+    // Switch to list view.
+    fireEvent.click(screen.getByRole('radio', { name: 'List' }))
 
     expect(await screen.findByText('EUR/USD')).toBeInTheDocument()
     expect(screen.getByText('Long')).toBeInTheDocument()
@@ -109,7 +143,7 @@ describe('JournalPage', () => {
       years: [2025, 2026],
       assets: [asset],
       trades: (year) =>
-        year === 2025 ? [trade({ id: 9, asset_id: 1, trade_date: '2025-07-01' })] : [],
+        year === 2025 ? [trade({ id: 9, asset_id: 1, trade_date: '2025-07-01T08:00:00.000Z' })] : [],
     })
 
     renderJournal()
@@ -121,13 +155,30 @@ describe('JournalPage', () => {
     fireEvent.click(screen.getByRole('textbox', { name: 'Year' }))
     fireEvent.click(await screen.findByText('2025'))
 
-    expect(await screen.findByText('EUR/USD')).toBeInTheDocument()
+    // After switching to 2025, stats appear.
+    expect(await screen.findByText('Total Trades')).toBeInTheDocument()
   })
 
-  it('navigates to the trade detail page on row click', async () => {
+  it('navigates to the trade detail page on calendar event click', async () => {
     stubApi({ years: [2026], assets: [asset], trades: () => [trade()] })
 
     renderJournal()
+
+    // Both desktop and mobile render the same link; click the first one.
+    const eventLinks = await screen.findAllByRole('link', { name: /EUR\/USD/ })
+    fireEvent.click(eventLinks[0])
+
+    expect(await screen.findByText('Trade detail')).toBeInTheDocument()
+  })
+
+  it('navigates to trade detail on list row click', async () => {
+    stubApi({ years: [2026], assets: [asset], trades: () => [trade()] })
+
+    renderJournal()
+
+    // Switch to list view.
+    await screen.findByText('Total Trades')
+    fireEvent.click(screen.getByRole('radio', { name: 'List' }))
 
     fireEvent.click(await screen.findByText('EUR/USD'))
 

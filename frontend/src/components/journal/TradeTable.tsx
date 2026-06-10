@@ -1,10 +1,8 @@
-import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { Alert, Badge, Button, Center, Skeleton, Stack, Table, Text } from '@mantine/core'
-import { useFetch } from '@/hooks/useFetch'
-import { tradesApi } from '@/services/trades'
+import type { TradeSummary } from '@/types/trade'
 import {
   DIRECTION_COLOR,
   STATUS_COLOR,
@@ -15,24 +13,28 @@ import {
 import classes from './TradeTable.module.css'
 
 interface TradeTableProps {
-  /** Calendar year to load trades for. */
-  year: number
+  /** Trades to render. Provided by the parent page (no fetch here). */
+  trades: TradeSummary[]
+  /** Whether the data is currently loading (shows skeletons). */
+  loading: boolean
+  /** Error message, if any. */
+  error: string | null
+  /** Callback to retry the failed fetch. */
+  reload: () => void
   /** Resolves an `asset_id` to its display name. */
   assetName: (assetId: number | null) => string
+  /** The selected year, used in the empty-state message. */
+  year: number
 }
 
 /**
- * Trade journal table for a single year. Owns its data fetch so it can be
- * remounted (via `key={year}`) to reload when the selected year changes.
+ * Trade journal table. Purely presentational — data is provided via props.
  *
  * Click a row to open the trade detail page.
  */
-export function TradeTable({ year, assetName }: TradeTableProps) {
+export function TradeTable({ trades, loading, error, reload, assetName, year }: TradeTableProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { data, loading, error, reload } = useFetch(
-    useCallback((signal: AbortSignal) => tradesApi.list(year, signal), [year]),
-  )
 
   if (loading) {
     return (
@@ -60,8 +62,6 @@ export function TradeTable({ year, assetName }: TradeTableProps) {
       </Alert>
     )
   }
-
-  const trades = data ?? []
 
   if (trades.length === 0) {
     return (
