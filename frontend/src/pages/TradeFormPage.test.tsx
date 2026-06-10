@@ -1,5 +1,5 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { TradeFormPage } from '@/pages/TradeFormPage'
 import type { Asset, Emotion, Tag } from '@/types/referenceData'
@@ -396,5 +396,208 @@ describe('TradeFormPage — edit mode', () => {
     renderEdit(99)
 
     expect(await screen.findByText('Trade not found')).toBeInTheDocument()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Inline reference-data creation (#55)
+// ---------------------------------------------------------------------------
+
+/**
+ * Stateful fetch stub: POSTs to /assets, /tags, /emotions append to the
+ * in-memory lists and echo the created record, so a subsequent reload reflects
+ * the new entity (mirrors how inline creation refreshes the selectors). An
+ * optional `trade` is returned for the trade GET to drive edit-mode prefill.
+ */
+function stubStatefulApi(trade: TradeDetail | null = null) {
+  const assetList = [...assets]
+  const tagList = [...tags]
+  const emotionMap: Record<string, Emotion[]> = {
+    'Emotional State': [...emotionsGrouped['Emotional State']],
+  }
+  let nextId = 100
+
+  const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
+    const method = init?.method ?? 'GET'
+    const body = init?.body ? JSON.parse(init.body as string) : null
+
+    if (input.startsWith('/api/assets')) {
+      if (method === 'POST') {
+        const created: Asset = {
+          id: nextId++,
+          name: body.name,
+          category: body.category,
+          currency: body.currency,
+          is_active: true,
+          created_at: null,
+          updated_at: null,
+        }
+        assetList.push(created)
+        return jsonResponse(created)
+      }
+      // Return a fresh copy so each reload yields a new reference (the real API
+      // serializes JSON; reusing the mutated array would defeat React's diff).
+      return jsonResponse([...assetList])
+    }
+    if (input.startsWith('/api/tags')) {
+      if (method === 'POST') {
+        const created: Tag = {
+          id: nextId++,
+          name: body.name,
+          description: body.description,
+          is_active: true,
+          created_at: null,
+          updated_at: null,
+        }
+        tagList.push(created)
+        return jsonResponse(created)
+      }
+      return jsonResponse([...tagList])
+    }
+    if (input.startsWith('/api/emotions/grouped')) {
+      return jsonResponse(
+        Object.fromEntries(Object.entries(emotionMap).map(([key, list]) => [key, [...list]])),
+      )
+    }
+    if (input.startsWith('/api/emotions')) {
+      if (method === 'POST') {
+        const created: Emotion = {
+          id: nextId++,
+          name: body.name,
+          description: body.description,
+          severity: body.severity,
+          category: body.category,
+          created_at: null,
+          updated_at: null,
+        }
+        ;(emotionMap[body.category] ??= []).push(created)
+        return jsonResponse(created)
+      }
+      return jsonResponse(emotionMap)
+    }
+    if (method === 'GET' && input.startsWith('/api/trades/')) return jsonResponse(trade)
+
+    throw new Error(`Unexpected fetch: ${method} ${input}`)
+  })
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
+
+describe('TradeFormPage — inline reference-data creation', () => {
+  it('creates an asset inline and auto-selects it', async () => {
+    stubStatefulApi()
+    renderNew()
+    await screen.findByText('New trade')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add asset' }))
+    const dialog = within(await screen.findByRole('dialog'))
+
+    fireEvent.change(dialog.getByLabelText('Name', { exact: false }), { target: { value: 'GBP/USD' } })
+    fireEvent.click(dialog.getByPlaceholderText('Pick a category'))
+    fireEvent.click(await screen.findByRole('option', { name: 'Forex' }))
+    fireEvent.click(dialog.getByRole('button', { name: 'Create' }))
+
+    // The new asset is loaded into the selector and selected as the value.
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('Pick an asset')).toHaveValue('GBP/USD'),
+    )
+  })
+
+  it('creates a tag inline and adds it to the selection', async () => {
+    stubStatefulApi()
+    renderNew()
+    await screen.findByText('New trade')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add tag' }))
+    const dialog = within(await screen.findByRole('dialog'))
+
+    fireEvent.change(dialog.getByLabelText('Name', { exact: false }), { target: { value: 'Pullback' } })
+    fireEvent.click(dialog.getByRole('button', { name: 'Create' }))
+
+    // The modal closes and the new tag is selected as a pill in the multi-select
+    // (distinct from the now-mounted dropdown option of the same name).
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    const tagPill = (await screen.findAllByText('Pullback')).find(
+      (el) => !el.closest('[role="option"]'),
+    )
+    expect(tagPill).toBeDefined()
+  })
+
+  it('creates an emotion inline and adds it to the selection', async () => {
+    stubStatefulApi()
+    renderNew()
+    await screen.findByText('New trade')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add emotion' }))
+    const dialog = within(await screen.findByRole('dialog'))
+
+    fireEvent.change(dialog.getByLabelText('Name', { exact: false }), { target: { value: 'Revenge' } })
+    fireEvent.click(dialog.getByPlaceholderText('Pick a category'))
+    fireEvent.click(await screen.findByRole('option', { name: 'Mental Triggers' }))
+    fireEvent.click(dialog.getByPlaceholderText('Pick a severity'))
+    fireEvent.click(await screen.findByRole('option', { name: 'Bad' }))
+    fireEvent.click(dialog.getByRole('button', { name: 'Create' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    const emotionPill = (await screen.findAllByText('Revenge')).find(
+      (el) => !el.closest('[role="option"]'),
+    )
+    expect(emotionPill).toBeDefined()
+  })
+
+  it('dismissing the asset modal makes no change and sends no request', async () => {
+    const fetchMock = stubStatefulApi()
+    renderNew()
+    await screen.findByText('New trade')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add asset' }))
+    await screen.findByRole('heading', { name: 'Add asset' })
+
+    const dialog = screen.getByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: 'Add asset' })).not.toBeInTheDocument()
+    })
+    const assetPosts = fetchMock.mock.calls.filter(
+      ([input, init]: [string, RequestInit?]) =>
+        (init?.method ?? 'GET') === 'POST' && input.startsWith('/api/assets'),
+    )
+    expect(assetPosts).toHaveLength(0)
+  })
+
+  it('exposes the add buttons in edit mode as well', async () => {
+    stubStatefulApi()
+    renderEdit()
+    await screen.findByText('Edit trade')
+
+    expect(screen.getByRole('button', { name: 'Add asset' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add tag' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add emotion' })).toBeInTheDocument()
+  })
+
+  it('adds an inline tag in edit mode without dropping the prefilled selection', async () => {
+    // The edit stub prefills tag_ids with the existing trade's "Breakout" tag.
+    stubStatefulApi(makeTrade())
+    renderEdit()
+    await screen.findByText('Edit trade')
+
+    // Helper: the selected pill for `name` is the text node not inside an option.
+    const selectedPill = (name: string) =>
+      screen.queryAllByText(name).find((el) => !el.closest('[role="option"]'))
+
+    // The prefilled tag is already selected as a pill.
+    await waitFor(() => expect(selectedPill('Breakout')).toBeDefined())
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add tag' }))
+    const dialog = within(await screen.findByRole('dialog'))
+    fireEvent.change(dialog.getByLabelText('Name', { exact: false }), { target: { value: 'Pullback' } })
+    fireEvent.click(dialog.getByRole('button', { name: 'Create' }))
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+
+    // The new tag is added AND the previously selected tag survives the spread.
+    await waitFor(() => expect(selectedPill('Pullback')).toBeDefined())
+    expect(selectedPill('Breakout')).toBeDefined()
   })
 })

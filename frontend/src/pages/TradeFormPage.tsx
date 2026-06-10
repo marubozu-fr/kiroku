@@ -38,7 +38,10 @@ import {
 import { DateTimePicker } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import dayjs from 'dayjs'
+import { AssetModal } from '@/components/settings/AssetModal'
+import { EmotionModal } from '@/components/settings/EmotionModal'
 import { notifyError, notifySuccess } from '@/components/settings/notify'
+import { TagModal } from '@/components/settings/TagModal'
 import {
   executionTotals,
   isPositiveNumber,
@@ -49,7 +52,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { assetsApi, emotionsApi, tagsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
 import { ASSET_CATEGORIES, EMOTION_CATEGORIES } from '@/types/referenceData'
-import type { Emotion, EmotionSeverity } from '@/types/referenceData'
+import type { Asset, Emotion, EmotionSeverity, Tag } from '@/types/referenceData'
 import type {
   AccountType,
   ActivityType,
@@ -135,6 +138,11 @@ export function TradeFormPage() {
 
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  // Inline creation modals for reference data, opened from the "+" buttons
+  // beside each selector. They reuse the Settings creation modals (#55).
+  const [assetModalOpen, setAssetModalOpen] = useState(false)
+  const [tagModalOpen, setTagModalOpen] = useState(false)
+  const [emotionModalOpen, setEmotionModalOpen] = useState(false)
   // Screenshots staged client-side as File objects; uploaded after the trade
   // is saved. On edit, existing screenshots are shown and may be marked for
   // deletion (applied on submit).
@@ -314,6 +322,25 @@ export function TradeFormPage() {
   const removeExistingScreenshot = (screenshotId: number) => {
     setExistingScreenshots((current) => current.filter((shot) => shot.id !== screenshotId))
     setRemovedScreenshotIds((current) => [...current, screenshotId])
+  }
+
+  // --- Inline reference-data creation: refresh the list and select the result ---
+  const handleAssetCreated = (asset: Asset) => {
+    setAssetModalOpen(false)
+    assets.reload()
+    form.setFieldValue('asset_id', String(asset.id))
+  }
+
+  const handleTagCreated = (tag: Tag) => {
+    setTagModalOpen(false)
+    tags.reload()
+    form.setFieldValue('tag_ids', [...form.values.tag_ids, String(tag.id)])
+  }
+
+  const handleEmotionCreated = (emotion: Emotion) => {
+    setEmotionModalOpen(false)
+    emotions.reload()
+    form.setFieldValue('emotion_ids', [...form.values.emotion_ids, String(emotion.id)])
   }
 
   const handleSubmit = form.onSubmit(async (values) => {
@@ -571,19 +598,31 @@ export function TradeFormPage() {
                 {t('trade.form.sections.configuration')}
               </Title>
               <Stack gap="md">
-                <Select
-                  label={t('trade.form.fields.asset_label')}
-                  placeholder={
-                    assetOptions.length === 0
-                      ? t('trade.form.fields.asset_placeholder_empty')
-                      : t('trade.form.fields.asset_placeholder')
-                  }
-                  withAsterisk
-                  searchable
-                  data={assetOptions}
-                  disabled={assetOptions.length === 0}
-                  {...form.getInputProps('asset_id')}
-                />
+                <Group gap="xs" align="flex-end" wrap="nowrap">
+                  <Select
+                    flex={1}
+                    label={t('trade.form.fields.asset_label')}
+                    placeholder={
+                      assetOptions.length === 0
+                        ? t('trade.form.fields.asset_placeholder_empty')
+                        : t('trade.form.fields.asset_placeholder')
+                    }
+                    withAsterisk
+                    searchable
+                    data={assetOptions}
+                    disabled={assetOptions.length === 0}
+                    {...form.getInputProps('asset_id')}
+                  />
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="lg"
+                    aria-label={t('trade.form.fields.asset_add_aria')}
+                    onClick={() => setAssetModalOpen(true)}
+                  >
+                    <IconPlus size={16} />
+                  </ActionIcon>
+                </Group>
                 <Input.Wrapper label={t('trade.form.fields.account_type_label')} withAsterisk>
                   <SegmentedControl
                     fullWidth
@@ -619,45 +658,69 @@ export function TradeFormPage() {
                     </Grid.Col>
                   </Grid>
                 </Input.Wrapper>
-                <MultiSelect
-                  label={t('trade.form.fields.tags_label')}
-                  placeholder={
-                    tagOptions.length === 0
-                      ? t('trade.form.fields.tags_placeholder_empty')
-                      : t('trade.form.fields.tags_placeholder')
-                  }
-                  searchable
-                  clearable
-                  data={tagOptions}
-                  disabled={tagOptions.length === 0}
-                  {...form.getInputProps('tag_ids')}
-                />
-                <MultiSelect
-                  label={t('trade.form.fields.emotions_label')}
-                  placeholder={
-                    emotionOptions.length === 0
-                      ? t('trade.form.fields.emotions_placeholder_empty')
-                      : t('trade.form.fields.emotions_placeholder')
-                  }
-                  searchable
-                  clearable
-                  data={emotionOptions}
-                  disabled={emotionOptions.length === 0}
-                  renderOption={({ option }) => {
-                    const emotion = emotionById.get(option.value)
-                    return (
-                      <Group gap="xs" wrap="nowrap">
-                        {emotion && (
-                          <Badge size="xs" variant="light" color={SEVERITY_COLOR[emotion.severity]}>
-                            {emotion.severity}
-                          </Badge>
-                        )}
-                        <span>{option.label}</span>
-                      </Group>
-                    )
-                  }}
-                  {...form.getInputProps('emotion_ids')}
-                />
+                <Group gap="xs" align="flex-end" wrap="nowrap">
+                  <MultiSelect
+                    flex={1}
+                    label={t('trade.form.fields.tags_label')}
+                    placeholder={
+                      tagOptions.length === 0
+                        ? t('trade.form.fields.tags_placeholder_empty')
+                        : t('trade.form.fields.tags_placeholder')
+                    }
+                    searchable
+                    clearable
+                    data={tagOptions}
+                    disabled={tagOptions.length === 0}
+                    {...form.getInputProps('tag_ids')}
+                  />
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="lg"
+                    aria-label={t('trade.form.fields.tags_add_aria')}
+                    onClick={() => setTagModalOpen(true)}
+                  >
+                    <IconPlus size={16} />
+                  </ActionIcon>
+                </Group>
+                <Group gap="xs" align="flex-end" wrap="nowrap">
+                  <MultiSelect
+                    flex={1}
+                    label={t('trade.form.fields.emotions_label')}
+                    placeholder={
+                      emotionOptions.length === 0
+                        ? t('trade.form.fields.emotions_placeholder_empty')
+                        : t('trade.form.fields.emotions_placeholder')
+                    }
+                    searchable
+                    clearable
+                    data={emotionOptions}
+                    disabled={emotionOptions.length === 0}
+                    renderOption={({ option }) => {
+                      const emotion = emotionById.get(option.value)
+                      return (
+                        <Group gap="xs" wrap="nowrap">
+                          {emotion && (
+                            <Badge size="xs" variant="light" color={SEVERITY_COLOR[emotion.severity]}>
+                              {emotion.severity}
+                            </Badge>
+                          )}
+                          <span>{option.label}</span>
+                        </Group>
+                      )
+                    }}
+                    {...form.getInputProps('emotion_ids')}
+                  />
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="lg"
+                    aria-label={t('trade.form.fields.emotions_add_aria')}
+                    onClick={() => setEmotionModalOpen(true)}
+                  >
+                    <IconPlus size={16} />
+                  </ActionIcon>
+                </Group>
               </Stack>
             </Card>
           </Grid.Col>
@@ -894,6 +957,25 @@ export function TradeFormPage() {
           </Grid.Col>
         </Grid>
       </Stack>
+
+      <AssetModal
+        opened={assetModalOpen}
+        asset={null}
+        onClose={() => setAssetModalOpen(false)}
+        onSaved={handleAssetCreated}
+      />
+      <TagModal
+        opened={tagModalOpen}
+        tag={null}
+        onClose={() => setTagModalOpen(false)}
+        onSaved={handleTagCreated}
+      />
+      <EmotionModal
+        opened={emotionModalOpen}
+        emotion={null}
+        onClose={() => setEmotionModalOpen(false)}
+        onSaved={handleEmotionCreated}
+      />
     </form>
   )
 }

@@ -15,7 +15,8 @@ interface EmotionModalProps {
   /** The emotion being edited, or `null` to create a new one. */
   emotion: Emotion | null
   onClose: () => void
-  onSaved: () => void
+  /** Called with the created/updated emotion after a successful save. */
+  onSaved: (saved: Emotion) => void
 }
 
 interface EmotionFormValues {
@@ -66,14 +67,15 @@ export function EmotionModal({ opened, emotion, onClose, onSaved }: EmotionModal
     }
     setSubmitting(true)
     try {
+      let saved: Emotion
       if (emotion) {
-        await emotionsApi.update(emotion.id, payload)
+        saved = await emotionsApi.update(emotion.id, payload)
         notifySuccess(t('settings.emotions.notify.updated', { name: payload.name }))
       } else {
-        await emotionsApi.create(payload)
+        saved = await emotionsApi.create(payload)
         notifySuccess(t('settings.emotions.notify.created', { name: payload.name }))
       }
-      onSaved()
+      onSaved(saved)
     } catch (cause) {
       notifyError(cause instanceof Error ? cause.message : t('settings.emotions.notify.save_error'))
     } finally {
@@ -87,6 +89,7 @@ export function EmotionModal({ opened, emotion, onClose, onSaved }: EmotionModal
       onClose={onClose}
       title={emotion ? t('settings.emotions.modal.edit_title') : t('settings.emotions.modal.add_title')}
       centered
+      closeOnClickOutside={false}
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
