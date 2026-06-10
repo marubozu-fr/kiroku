@@ -18,7 +18,6 @@ WRITABLE_COLUMNS = (
   "risk",
   "reward",
   "performance_r",
-  "realized_pnl",
   "timeframe_unit",
   "timeframe_value",
   "trade_date",

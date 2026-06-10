@@ -94,9 +94,9 @@ def test_apply_schema_creates_database_file(
 def test_migration_adds_account_type_and_backfills_live(
   tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-  # A database created before account_type existed (issue #48). The legacy
-  # trades table already has realized_pnl, so that migration is a no-op and
-  # only the account_type back-fill runs.
+  # A legacy database created before these migrations existed: it still carries
+  # the dropped realized_pnl column (issue #54) and lacks account_type (#48).
+  # Migrations must drop the former and back-fill the latter.
   db_path = tmp_path / "kiroku.db"
   monkeypatch.setattr(database, "DB_PATH", db_path)
 
@@ -115,8 +115,9 @@ def test_migration_adds_account_type_and_backfills_live(
   backfilled = connection.execute("SELECT account_type FROM trades WHERE id = 1").fetchone()[0]
   connection.close()
 
+  # realized_pnl is dropped; account_type is added and back-fills to 'live'.
+  assert "realized_pnl" not in columns
   assert "account_type" in columns
-  # Existing rows back-fill to the 'live' default.
   assert backfilled == "live"
 
 

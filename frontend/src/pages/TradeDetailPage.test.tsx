@@ -36,7 +36,6 @@ function makeTrade(overrides: Partial<TradeDetail> = {}): TradeDetail {
     risk: null,
     reward: null,
     performance_r: 1.5,
-    realized_pnl: 125,
     timeframe_unit: null,
     timeframe_value: null,
     trade_date: '2026-03-04',
@@ -134,8 +133,8 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('TradeDetailPage', () => {
-  it('renders the populated trade with asset name, badges, P&L and R', async () => {
-    stubApi(makeTrade({ realized_pnl: 125, performance_r: 1.5, asset_id: 1 }))
+  it('renders the populated trade with asset name, badges and P&L', async () => {
+    stubApi(makeTrade({ performance_r: 1.5, risk_per_trade: 2, asset_id: 1 }))
     renderDetail()
 
     // Asset name resolved from assets list
@@ -145,9 +144,8 @@ describe('TradeDetailPage', () => {
     expect(screen.getByText('Long')).toBeInTheDocument()
     expect(screen.getByText('Closed')).toBeInTheDocument()
 
-    // Key metrics
-    expect(screen.getByText('+125.00')).toBeInTheDocument()
-    expect(screen.getByText('+1.50R')).toBeInTheDocument()
+    // P&L shown as the R multiple with the equivalent percentage
+    expect(screen.getByText('+1.50R (+3.00%)')).toBeInTheDocument()
   })
 
   it('displays the stop loss metric', async () => {

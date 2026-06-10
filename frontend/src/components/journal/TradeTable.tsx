@@ -9,7 +9,6 @@ import {
   STATUS_COLOR,
   formatLocalDate,
   formatPnl,
-  formatR,
   signedColor,
 } from './format'
 import classes from './TradeTable.module.css'
@@ -93,9 +92,6 @@ export function TradeTable({ year, assetName }: TradeTableProps) {
             <Table.Th tt="uppercase" fz="xs" c="dimmed" ta="right">
               {t('journal.table.header.pnl')}
             </Table.Th>
-            <Table.Th tt="uppercase" fz="xs" c="dimmed" ta="right">
-              {t('journal.table.header.r')}
-            </Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -124,11 +120,8 @@ export function TradeTable({ year, assetName }: TradeTableProps) {
                   {trade.status}
                 </Badge>
               </Table.Td>
-              <Table.Td ff="monospace" ta="right" c={signedColor(trade.realized_pnl)}>
-                {formatPnl(trade.realized_pnl)}
-              </Table.Td>
               <Table.Td ff="monospace" ta="right" c={signedColor(trade.performance_r)}>
-                {formatR(trade.performance_r)}
+                {formatPnl(trade.performance_r, trade.risk_per_trade)}
               </Table.Td>
             </Table.Tr>
           ))}

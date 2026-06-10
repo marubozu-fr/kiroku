@@ -7,7 +7,7 @@ import i18n from '@/i18n'
 import 'dayjs/locale/fr'
 import 'dayjs/locale/de'
 
-import { formatLocalDate, formatPnl, formatR } from './format'
+import { formatLocalDate, formatPercent, formatPnl, formatR } from './format'
 
 afterEach(async () => {
   await i18n.changeLanguage('en')
@@ -15,25 +15,33 @@ afterEach(async () => {
 })
 
 describe('formatPnl', () => {
-  it('returns an em dash for null', () => {
-    expect(formatPnl(null)).toBe('—')
+  it('returns an em dash when there is no R value', () => {
+    expect(formatPnl(null, 2)).toBe('—')
   })
 
+  it('shows the R multiple alone when risk-per-trade is unknown', () => {
+    expect(formatPnl(2.5, null)).toBe('+2.50R')
+  })
+
+  it('appends the percentage (performance_r × risk_per_trade) in parentheses', () => {
+    expect(formatPnl(2.5, 2)).toBe('+2.50R (+5.00%)')
+    expect(formatPnl(-1, 2)).toBe('-1.00R (-2.00%)')
+  })
+
+  it('keeps both parts locale-aware', async () => {
+    await i18n.changeLanguage('de')
+    expect(formatPnl(2.5, 2)).toBe('+2,50R (+5,00%)')
+  })
+})
+
+describe('formatPercent', () => {
   it('prefixes a plus sign on gains, none on zero', () => {
-    expect(formatPnl(125)).toBe('+125.00')
-    expect(formatPnl(0)).toBe('0.00')
+    expect(formatPercent(5)).toBe('+5.00%')
+    expect(formatPercent(0)).toBe('0.00%')
   })
 
   it('keeps the minus sign on losses', () => {
-    expect(formatPnl(-42.5)).toBe('-42.50')
-  })
-
-  it('groups thousands using the active locale', async () => {
-    await i18n.changeLanguage('en')
-    expect(formatPnl(1234.56)).toBe('+1,234.56')
-
-    await i18n.changeLanguage('de')
-    expect(formatPnl(1234.56)).toBe('+1.234,56')
+    expect(formatPercent(-2.5)).toBe('-2.50%')
   })
 })
 

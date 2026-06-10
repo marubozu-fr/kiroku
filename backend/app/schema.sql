@@ -50,7 +50,6 @@ CREATE TABLE IF NOT EXISTS trades (
   risk REAL,
   reward REAL,
   performance_r REAL,
-  realized_pnl REAL,
   timeframe_unit TEXT,
   timeframe_value INTEGER,
   trade_date TEXT,

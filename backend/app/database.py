@@ -45,27 +45,13 @@ async def apply_migrations() -> None:
     cursor = await connection.execute("PRAGMA table_info(trades)")
     columns = {row[1] for row in await cursor.fetchall()}
 
-    # realized_pnl (issue #26): monetary P&L on the exited portion of a trade.
-    # Back-fill = stored reward (per-unit, direction-adjusted) × total exit
-    # quantity. Exits are Sell for a Long, Buy for a Short. reward is NULL for
-    # open trades and missed opportunities are excluded, so both stay NULL.
-    if "realized_pnl" not in columns:
-      await connection.execute("ALTER TABLE trades ADD COLUMN realized_pnl REAL")
-      await connection.execute(
-        """
-        UPDATE trades
-        SET realized_pnl = ROUND(
-          reward * (
-            SELECT COALESCE(SUM(ta.quantity), 0)
-            FROM trade_activities ta
-            WHERE ta.trade_id = trades.id
-              AND ta.type = CASE WHEN trades.direction = 'Long' THEN 'Sell' ELSE 'Buy' END
-          ),
-          5
-        )
-        WHERE reward IS NOT NULL AND missed_opportunity = 0
-        """
-      )
+    # realized_pnl (issue #54): drop the stored monetary P&L column. It was
+    # computed as reward × exit quantity (price units × raw qty), which is
+    # meaningless for forex (1.0 lot = 100,000 units) and misleading for indices
+    # without broker account data. P&L is now expressed only in R-multiples
+    # (performance_r) and as a percentage (performance_r × risk_per_trade).
+    if "realized_pnl" in columns:
+      await connection.execute("ALTER TABLE trades DROP COLUMN realized_pnl")
 
     # account_type (issue #48): single account-type enum (test/demo/live)
     # replacing the never-implemented multi-select `types` array. Existing rows
