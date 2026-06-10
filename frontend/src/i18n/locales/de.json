@@ -71,6 +71,17 @@
         "trades_one": "{{count}} Trade",
         "trades_other": "{{count}} Trades"
       }
+    },
+    "activity": {
+      "title": "Letzte Aktivität",
+      "header": {
+        "asset": "Instrument",
+        "direction": "Richtung",
+        "date": "Datum",
+        "pnl": "P&L"
+      },
+      "empty": "Keine aktuellen Trades",
+      "view_all": "Alle Trades anzeigen →"
     }
   },
   "analytics": {

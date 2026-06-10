@@ -15,6 +15,7 @@ import {
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts'
 import { DashboardEmptyState } from '@/components/dashboard/DashboardEmptyState'
 import { KpiCards, type DisplayMode } from '@/components/dashboard/KpiCards'
+import { RecentActivity } from '@/components/dashboard/RecentActivity'
 import { useFetch } from '@/hooks/useFetch'
 import { fetchDashboard } from '@/services/dashboardService'
 
@@ -147,6 +148,11 @@ export function DashboardPage() {
           equity={data.equity}
           displayMode={displayMode}
         />
+      )}
+
+      {/* Recent Activity */}
+      {hasData && (
+        <RecentActivity trades={data.recent_trades} displayMode={displayMode} />
       )}
     </Stack>
   )
