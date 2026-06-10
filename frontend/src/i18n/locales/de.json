@@ -33,7 +33,35 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "empty": "Noch keine Daten — beginne, indem du einen Trade erfasst."
+    "load_error": "Dashboard konnte nicht geladen werden",
+    "controls": {
+      "display_mode": "Anzeigemodus",
+      "period": "Zeitraum",
+      "period_ytd": "YTD",
+      "period_1y": "1Y",
+      "period_5y": "5Y",
+      "period_all": "ALL"
+    },
+    "kpi": {
+      "total_trades": "Trades gesamt",
+      "win_rate": "Win Rate",
+      "avg_r": "Durchschn. R",
+      "profit_factor": "Profit Factor",
+      "best_worst": "Bestes / Schlechtestes"
+    },
+    "empty": {
+      "title": "Willkommen in deinem Dashboard",
+      "description": "Dein Dashboard erwacht mit deinem ersten Trade zum Leben.",
+      "features": {
+        "stats_label": "Wichtige Statistiken",
+        "stats_desc": "Win rate, Avg R, profit factor",
+        "charts_label": "Performance-Charts",
+        "charts_desc": "Monat für Monat & Equity-Kurve",
+        "activity_label": "Letzte Aktivität",
+        "activity_desc": "Deine letzten Trades auf einen Blick"
+      },
+      "cta": "Meinen ersten Trade hinzufügen"
+    }
   },
   "analytics": {
     "title": "Analytics",

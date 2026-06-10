@@ -33,7 +33,35 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "empty": "No data yet — start by logging a trade."
+    "load_error": "Could not load dashboard",
+    "controls": {
+      "display_mode": "Display mode",
+      "period": "Period",
+      "period_ytd": "YTD",
+      "period_1y": "1Y",
+      "period_5y": "5Y",
+      "period_all": "ALL"
+    },
+    "kpi": {
+      "total_trades": "Total Trades",
+      "win_rate": "Win Rate",
+      "avg_r": "Avg R",
+      "profit_factor": "Profit Factor",
+      "best_worst": "Best / Worst"
+    },
+    "empty": {
+      "title": "Welcome to your dashboard",
+      "description": "Your dashboard will come to life with your first trade.",
+      "features": {
+        "stats_label": "Key statistics",
+        "stats_desc": "Win rate, Avg R, profit factor",
+        "charts_label": "Performance charts",
+        "charts_desc": "Month by month & equity curve",
+        "activity_label": "Recent activity",
+        "activity_desc": "Your latest trades at a glance"
+      },
+      "cta": "Add my first trade"
+    }
   },
   "analytics": {
     "title": "Analytics",

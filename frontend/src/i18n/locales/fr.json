@@ -33,7 +33,35 @@
   },
   "dashboard": {
     "title": "Tableau de bord",
-    "empty": "Aucune donnée pour l'instant — commencez par enregistrer un trade."
+    "load_error": "Impossible de charger le tableau de bord",
+    "controls": {
+      "display_mode": "Mode d'affichage",
+      "period": "Période",
+      "period_ytd": "YTD",
+      "period_1y": "1Y",
+      "period_5y": "5Y",
+      "period_all": "ALL"
+    },
+    "kpi": {
+      "total_trades": "Total trades",
+      "win_rate": "Win Rate",
+      "avg_r": "R moyen",
+      "profit_factor": "Profit Factor",
+      "best_worst": "Meilleur / Pire"
+    },
+    "empty": {
+      "title": "Bienvenue sur votre tableau de bord",
+      "description": "Votre tableau de bord prendra vie avec votre premier trade.",
+      "features": {
+        "stats_label": "Statistiques clés",
+        "stats_desc": "Win rate, Avg R, profit factor",
+        "charts_label": "Graphiques de performance",
+        "charts_desc": "Mois par mois et courbe d'équité",
+        "activity_label": "Activité récente",
+        "activity_desc": "Vos derniers trades en un coup d'œil"
+      },
+      "cta": "Ajouter mon premier trade"
+    }
   },
   "analytics": {
     "title": "Analyses",
