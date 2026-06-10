@@ -18,7 +18,7 @@ import {
   buildCalendarCells,
   defaultDisplayMonth,
   groupByDate,
-  lastTradingDayOfMonth,
+  lastVisibleDayOfMonth,
   monthlyReviewSum,
   weeklyReviewSums,
 } from './calendar'
@@ -125,15 +125,11 @@ export function TradeCalendar({ trades, assetName }: TradeCalendarProps) {
     [trades, displayMonth],
   )
   const lastTradingDay = useMemo(
-    () => lastTradingDayOfMonth(trades, displayMonth),
-    [trades, displayMonth],
+    () => lastVisibleDayOfMonth(displayMonth),
+    [displayMonth],
   )
 
   const todayStr = dayjs().format('YYYY-MM-DD')
-  const hasTradesThisMonth = lastTradingDay !== null
-
-  // Compute the monthly sum only if there are trades in this month.
-  const monthSumToShow = hasTradesThisMonth ? monthSum : null
 
   function prevMonth() {
     setDisplayMonth((m) => m.subtract(1, 'month'))
@@ -193,11 +189,7 @@ export function TradeCalendar({ trades, assetName }: TradeCalendarProps) {
                     ? weekSumForFriday
                     : undefined
                 }
-                monthlySum={
-                  isLastTradingDay && monthSumToShow !== null
-                    ? monthSumToShow
-                    : undefined
-                }
+                monthlySum={isLastTradingDay ? monthSum : undefined}
                 weeklyReviewLabel={t('journal.calendar.weekly_review')}
                 monthlyReviewLabel={t('journal.calendar.monthly_review')}
               />
@@ -220,7 +212,7 @@ export function TradeCalendar({ trades, assetName }: TradeCalendarProps) {
           byDate={byDate}
           displayMonth={displayMonth}
           weeklySums={weeklySums}
-          monthSum={hasTradesThisMonth ? monthSum : null}
+          monthSum={monthSum}
           lastTradingDay={lastTradingDay}
           assetName={assetName}
           weeklyReviewLabel={t('journal.calendar.weekly_review')}

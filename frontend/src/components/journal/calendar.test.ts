@@ -6,7 +6,7 @@ import {
   computeStats,
   defaultDisplayMonth,
   groupByDate,
-  lastTradingDayOfMonth,
+  lastVisibleDayOfMonth,
   monthlyReviewSum,
   weeklyReviewSums,
 } from './calendar'
@@ -211,43 +211,25 @@ describe('monthlyReviewSum', () => {
   })
 })
 
-describe('lastTradingDayOfMonth', () => {
-  it('returns the last weekday date with a trade', () => {
-    const month = dayjs('2026-06-01')
-    const trades = [
-      trade({ id: 1, trade_date: '2026-06-10T08:00:00.000Z' }),
-      trade({ id: 2, trade_date: '2026-06-25T08:00:00.000Z' }), // Thursday
-    ]
-    expect(lastTradingDayOfMonth(trades, month)).toBe('2026-06-25')
+describe('lastVisibleDayOfMonth', () => {
+  it('returns the last day when the month ends on a Friday', () => {
+    // 2026-01-31 is a Saturday; use 2025-10 which ends Fri 2025-10-31.
+    expect(lastVisibleDayOfMonth(dayjs('2025-10-01'))).toBe('2025-10-31')
   })
 
-  it('returns null when no trades fall in the month', () => {
-    const month = dayjs('2026-06-01')
-    const trades = [trade({ id: 1, trade_date: '2026-07-01T08:00:00.000Z' })]
-    expect(lastTradingDayOfMonth(trades, month)).toBeNull()
+  it('returns the preceding Friday when the month ends on a Saturday', () => {
+    // 2026-01-31 is a Saturday → preceding Friday 2026-01-30.
+    expect(lastVisibleDayOfMonth(dayjs('2026-01-01'))).toBe('2026-01-30')
   })
 
-  it('returns null for empty input', () => {
-    expect(lastTradingDayOfMonth([], dayjs('2026-06-01'))).toBeNull()
+  it('returns the preceding Friday when the month ends on a Sunday', () => {
+    // 2026-05-31 is a Sunday → preceding Friday 2026-05-29.
+    expect(lastVisibleDayOfMonth(dayjs('2026-05-01'))).toBe('2026-05-29')
   })
 
-  it('skips trades with null trade_date', () => {
-    const month = dayjs('2026-06-01')
-    const trades = [
-      trade({ id: 1, trade_date: null }),
-      trade({ id: 2, trade_date: '2026-06-15T08:00:00.000Z' }),
-    ]
-    expect(lastTradingDayOfMonth(trades, month)).toBe('2026-06-15')
-  })
-
-  it('ignores weekend trades', () => {
-    const month = dayjs('2026-06-01')
-    // 2026-06-28 is a Sunday.
-    const trades = [
-      trade({ id: 1, trade_date: '2026-06-28T08:00:00.000Z' }),
-      trade({ id: 2, trade_date: '2026-06-26T08:00:00.000Z' }), // Friday
-    ]
-    expect(lastTradingDayOfMonth(trades, month)).toBe('2026-06-26')
+  it('returns the last day when the month ends on a weekday', () => {
+    // 2026-06-30 is a Tuesday.
+    expect(lastVisibleDayOfMonth(dayjs('2026-06-01'))).toBe('2026-06-30')
   })
 })
 

@@ -122,32 +122,16 @@ export function monthlyReviewSum(trades: TradeSummary[], month: Dayjs): number {
 }
 
 /**
- * Identifies the last trading day (Mon–Fri) within a month that has at least
- * one trade. Returns the date string `YYYY-MM-DD`, or null if no trades fall
- * in this month.
+ * Returns the last weekday (Mon–Fri) of the calendar month — the cell where the
+ * monthly review band is shown. Starts from the last day of the month and
+ * rewinds over any trailing weekend. Always returns a date string `YYYY-MM-DD`.
  */
-export function lastTradingDayOfMonth(
-  trades: TradeSummary[],
-  month: Dayjs,
-): string | null {
-  let last: Dayjs | null = null
-  for (const trade of trades) {
-    if (!trade.trade_date) {
-      continue
-    }
-    const d = dayjs(trade.trade_date)
-    if (d.year() !== month.year() || d.month() !== month.month()) {
-      continue
-    }
-    const dow = d.day()
-    if (dow === 0 || dow === 6) {
-      continue // skip weekends
-    }
-    if (last === null || d.isAfter(last, 'day')) {
-      last = d
-    }
+export function lastVisibleDayOfMonth(month: Dayjs): string {
+  let d = month.endOf('month')
+  while (d.day() === 0 || d.day() === 6) {
+    d = d.subtract(1, 'day')
   }
-  return last ? last.format('YYYY-MM-DD') : null
+  return d.format('YYYY-MM-DD')
 }
 
 /** Aggregated statistics computed from a list of trades. */
