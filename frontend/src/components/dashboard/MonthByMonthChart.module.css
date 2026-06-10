@@ -1,9 +1,0 @@
-.tooltip {
-  background: var(--mantine-color-body);
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-sm);
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}

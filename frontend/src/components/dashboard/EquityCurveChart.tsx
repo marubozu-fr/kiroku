@@ -15,7 +15,7 @@ import type { TooltipContentProps } from 'recharts'
 import type { EquityDataPoint } from '@/types/dashboard'
 import { formatLocalDate, formatPercent, formatR } from '@/components/journal/format'
 import type { DisplayMode } from '@/components/dashboard/KpiCards'
-import styles from './EquityCurveChart.module.css'
+import styles from './ChartTooltip.module.css'
 
 interface EquityCurveChartProps {
   data: EquityDataPoint[]

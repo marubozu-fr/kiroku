@@ -14,7 +14,7 @@ import type { TooltipContentProps } from 'recharts'
 import type { MonthlyDataPoint } from '@/types/dashboard'
 import { formatPercent, formatR } from '@/components/journal/format'
 import type { DisplayMode } from '@/components/dashboard/KpiCards'
-import styles from './MonthByMonthChart.module.css'
+import styles from './ChartTooltip.module.css'
 
 interface MonthByMonthChartProps {
   data: MonthlyDataPoint[]
