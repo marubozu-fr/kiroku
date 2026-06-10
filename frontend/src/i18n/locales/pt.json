@@ -33,7 +33,35 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "empty": "Ainda não há dados — comece por registar um trade."
+    "load_error": "Não foi possível carregar o dashboard",
+    "controls": {
+      "display_mode": "Modo de exibição",
+      "period": "Período",
+      "period_ytd": "YTD",
+      "period_1y": "1Y",
+      "period_5y": "5Y",
+      "period_all": "ALL"
+    },
+    "kpi": {
+      "total_trades": "Total trades",
+      "win_rate": "Win Rate",
+      "avg_r": "R médio",
+      "profit_factor": "Profit Factor",
+      "best_worst": "Melhor / Pior"
+    },
+    "empty": {
+      "title": "Bem-vindo ao seu dashboard",
+      "description": "O seu dashboard ganhará vida com o seu primeiro trade.",
+      "features": {
+        "stats_label": "Estatísticas-chave",
+        "stats_desc": "Win rate, Avg R, profit factor",
+        "charts_label": "Gráficos de desempenho",
+        "charts_desc": "Mês a mês e curva de equity",
+        "activity_label": "Atividade recente",
+        "activity_desc": "Os seus últimos trades num relance"
+      },
+      "cta": "Adicionar o meu primeiro trade"
+    }
   },
   "analytics": {
     "title": "Analytics",
