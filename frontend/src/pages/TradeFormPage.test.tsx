@@ -111,20 +111,29 @@ function makeTrade(overrides: Partial<TradeDetail> = {}): TradeDetail {
 interface StubOptions {
   trade?: TradeDetail
   saveError?: string
+  defaultRisk?: number
 }
 
 /**
  * Route a mocked fetch by path and method. Reference-data GETs always resolve;
  * the trade GET resolves only when a trade is provided; POST/PUT echo back a
  * trade (or fail with `saveError`); screenshot POSTs echo a screenshot record.
+ * The preferences GET returns the stored default risk; its PATCH echoes back
+ * the patched value.
  */
-function stubApi({ trade, saveError }: StubOptions = {}) {
+function stubApi({ trade, saveError, defaultRisk = 1 }: StubOptions = {}) {
   const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET'
 
     if (input.startsWith('/api/assets')) return jsonResponse(assets)
     if (input.startsWith('/api/tags')) return jsonResponse(tags)
     if (input.startsWith('/api/emotions/grouped')) return jsonResponse(emotionsGrouped)
+    if (input.startsWith('/api/preferences')) {
+      if (method === 'PATCH') {
+        return jsonResponse(JSON.parse(init?.body as string))
+      }
+      return jsonResponse({ risk_per_trade_default: defaultRisk })
+    }
 
     if (method === 'POST' && input.includes('/screenshots')) {
       return jsonResponse({ id: 99 })
@@ -381,11 +390,24 @@ describe('TradeFormPage — edit mode', () => {
     expect(await screen.findByText('Trade detail')).toBeInTheDocument()
   })
 
+  it('keeps the trade own risk value, not the stored default (#62)', async () => {
+    // The trade carries risk_per_trade 1.5; the stored default is 2.
+    stubApi({ trade: makeTrade({ risk_per_trade: 1.5 }), defaultRisk: 2 })
+    renderEdit()
+
+    await screen.findByText('Edit trade')
+    // The prefilled value survives — it is not overridden by the default.
+    expect(await screen.findByDisplayValue('1.5%')).toBeInTheDocument()
+  })
+
   it('shows a not-found alert when the trade does not exist', async () => {
     const notFoundFetch = vi.fn(async (input: string) => {
       if (input.startsWith('/api/assets')) return jsonResponse(assets)
       if (input.startsWith('/api/tags')) return jsonResponse(tags)
       if (input.startsWith('/api/emotions/grouped')) return jsonResponse(emotionsGrouped)
+      if (input.startsWith('/api/preferences')) {
+        return jsonResponse({ risk_per_trade_default: 1 })
+      }
       if (input.startsWith('/api/trades/')) {
         return jsonResponse(null, { ok: false, status: 404, error: 'Trade 99 not found' })
       }
@@ -475,6 +497,9 @@ function stubStatefulApi(trade: TradeDetail | null = null) {
       }
       return jsonResponse(emotionMap)
     }
+    if (input.startsWith('/api/preferences')) {
+      return jsonResponse({ risk_per_trade_default: 1 })
+    }
     if (method === 'GET' && input.startsWith('/api/trades/')) return jsonResponse(trade)
 
     throw new Error(`Unexpected fetch: ${method} ${input}`)
@@ -482,6 +507,72 @@ function stubStatefulApi(trade: TradeDetail | null = null) {
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
 }
+
+// ---------------------------------------------------------------------------
+// Default risk per trade — prefill & "Save as default" (#62)
+// ---------------------------------------------------------------------------
+
+describe('TradeFormPage — default risk per trade (#62)', () => {
+  it('prefills the risk field from the stored default on create', async () => {
+    stubApi({ defaultRisk: 2 })
+    renderNew()
+
+    await screen.findByText('New trade')
+    // The field is populated with the stored default (2%).
+    expect(await screen.findByDisplayValue('2%')).toBeInTheDocument()
+    // Matching the default shows the "Default" label, not the save link.
+    expect(screen.getByText('Default')).toBeInTheDocument()
+    expect(screen.queryByText('Save as default')).not.toBeInTheDocument()
+  })
+
+  it('saves a new default via PATCH and confirms with "Saved!"', async () => {
+    const fetchMock = stubApi({ defaultRisk: 1 })
+    renderNew()
+
+    await screen.findByText('New trade')
+    // Wait for the prefill (1%) so the comparison baseline is in place.
+    await screen.findByDisplayValue('1%')
+
+    const riskInput = screen.getByLabelText('Risk per trade (%)')
+    fireEvent.change(riskInput, { target: { value: '2' } })
+
+    // The value now differs from the stored default → the link appears.
+    const link = await screen.findByText('Save as default')
+    fireEvent.click(link)
+
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(
+        ([input, init]: [string, RequestInit?]) =>
+          (init?.method ?? 'GET') === 'PATCH' && input.startsWith('/api/preferences'),
+      )
+      expect(call).toBeDefined()
+      expect(JSON.parse(call![1]?.body as string)).toEqual({ risk_per_trade_default: 2 })
+    })
+
+    // Confirmation is shown; the link is gone now the value matches the default.
+    expect(await screen.findByText('Saved!')).toBeInTheDocument()
+    expect(screen.queryByText('Save as default')).not.toBeInTheDocument()
+  })
+
+  it('does not save when the risk value is invalid', async () => {
+    const fetchMock = stubApi({ defaultRisk: 1 })
+    renderNew()
+
+    await screen.findByText('New trade')
+    await screen.findByDisplayValue('1%')
+
+    const riskInput = screen.getByLabelText('Risk per trade (%)')
+    fireEvent.change(riskInput, { target: { value: '0' } })
+
+    // Zero is out of range → no link, so no PATCH can be triggered.
+    expect(screen.queryByText('Save as default')).not.toBeInTheDocument()
+    const patchCalls = fetchMock.mock.calls.filter(
+      ([input, init]: [string, RequestInit?]) =>
+        (init?.method ?? 'GET') === 'PATCH' && input.startsWith('/api/preferences'),
+    )
+    expect(patchCalls).toHaveLength(0)
+  })
+})
 
 describe('TradeFormPage — inline reference-data creation', () => {
   it('creates an asset inline and auto-selects it', async () => {

@@ -49,6 +49,7 @@ import {
 } from '@/components/trade-form/execution'
 import type { ExecutionRow } from '@/components/trade-form/execution'
 import { useFetch } from '@/hooks/useFetch'
+import { preferencesApi } from '@/services/preferences'
 import { assetsApi, emotionsApi, tagsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
 import { ASSET_CATEGORIES, EMOTION_CATEGORIES } from '@/types/referenceData'
@@ -141,6 +142,7 @@ export function TradeFormPage() {
   const assets = useFetch(assetsApi.list)
   const tags = useFetch(tagsApi.list)
   const emotions = useFetch(emotionsApi.grouped)
+  const preferences = useFetch(preferencesApi.get)
   const tradeFetch = useFetch(
     useCallback(
       (signal: AbortSignal) =>
@@ -167,6 +169,15 @@ export function TradeFormPage() {
   // Prefill the form from the loaded trade exactly once (edit mode). A ref
   // avoids re-triggering the effect and keeps user edits from being clobbered.
   const prefilled = useRef(false)
+  // Stored default risk per trade (issue #62), used to prefill the field on
+  // create and to drive the inline "Save as default" affordance. Updated
+  // locally after a successful save so later comparisons use the new default.
+  const [defaultRisk, setDefaultRisk] = useState<number | null>(null)
+  // Show "Saved ✓" briefly after persisting a new default, then revert.
+  const [riskSaved, setRiskSaved] = useState(false)
+  // Record the stored default exactly once, when preferences first load.
+  const defaultRiskInit = useRef(false)
+  const riskSavedTimer = useRef<number | null>(null)
 
   const form = useForm<TradeFormValues>({
     initialValues: {
@@ -227,6 +238,37 @@ export function TradeFormPage() {
   const entryTotals = executionTotals(form.values.entries)
   const exitTotals = executionTotals(form.values.exits)
   const exitExceedsEntry = exitTotals.quantity > entryTotals.quantity
+
+  // --- Risk "Save as default" affordance (issue #62) ---
+  const riskNumber = Number(form.values.risk_per_trade)
+  const riskIsValid =
+    form.values.risk_per_trade !== '' &&
+    Number.isFinite(riskNumber) &&
+    riskNumber > 0 &&
+    riskNumber <= 100
+  const riskMatchesDefault = defaultRisk !== null && riskIsValid && riskNumber === defaultRisk
+  const riskDiffersFromDefault = defaultRisk !== null && riskIsValid && riskNumber !== defaultRisk
+
+  const handleSaveDefaultRisk = async () => {
+    if (!riskDiffersFromDefault) {
+      return
+    }
+    try {
+      const updated = await preferencesApi.update({ risk_per_trade_default: riskNumber })
+      setDefaultRisk(updated.risk_per_trade_default)
+      setRiskSaved(true)
+      if (riskSavedTimer.current !== null) {
+        window.clearTimeout(riskSavedTimer.current)
+      }
+      riskSavedTimer.current = window.setTimeout(() => setRiskSaved(false), 2000)
+    } catch (cause) {
+      // Non-destructive: leave the field and the "Save as default" link in
+      // place so the user can retry. Surface the failure like other API errors.
+      const message =
+        cause instanceof Error ? cause.message : t('trade.form.notify.save_error')
+      notifyError(message)
+    }
+  }
 
   // --- Screenshot object URLs: created on staging, revoked on removal. A ref
   // mirrors the staged list so the unmount cleanup revokes whatever remains. ---
@@ -319,6 +361,31 @@ export function TradeFormPage() {
     prefilled.current = true
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, tradeFetch.data])
+
+  // --- Stored default risk: record it, and prefill the field on create ---
+  // In edit mode the trade carries its own risk_per_trade, so the field is
+  // never overridden — only the stored default reference is recorded.
+  useEffect(() => {
+    if (defaultRiskInit.current || !preferences.data) {
+      return
+    }
+    defaultRiskInit.current = true
+    setDefaultRisk(preferences.data.risk_per_trade_default)
+    if (!isEdit) {
+      form.setFieldValue('risk_per_trade', preferences.data.risk_per_trade_default)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, preferences.data])
+
+  // Clear the "Saved ✓" timer on unmount.
+  useEffect(
+    () => () => {
+      if (riskSavedTimer.current !== null) {
+        window.clearTimeout(riskSavedTimer.current)
+      }
+    },
+    [],
+  )
 
   // --- Screenshot staging handlers ---
   const handleAddFiles = (files: File[]) => {
@@ -812,8 +879,33 @@ export function TradeFormPage() {
                       />
                     </Grid.Col>
                     <Grid.Col span={{ base: 12, sm: 6 }}>
+                      {/* Custom label row so the inline "Save as default" link
+                          (an interactive control) sits beside the label without
+                          being nested inside the input's <label> element. The
+                          input keeps a clean accessible name via aria-label. */}
+                      <Group gap="xs" justify="space-between" wrap="nowrap" mb={2}>
+                        <Input.Label>{t('trade.form.fields.risk_label')}</Input.Label>
+                        {riskSaved ? (
+                          <Text component="span" size="xs" c="green">
+                            {t('trade.form.fields.risk_default_saved')}
+                          </Text>
+                        ) : riskMatchesDefault ? (
+                          <Text component="span" size="xs" c="dimmed">
+                            {t('trade.form.fields.risk_default_label')}
+                          </Text>
+                        ) : riskDiffersFromDefault ? (
+                          <Anchor
+                            component="button"
+                            type="button"
+                            size="xs"
+                            onClick={handleSaveDefaultRisk}
+                          >
+                            {t('trade.form.fields.risk_save_as_default')}
+                          </Anchor>
+                        ) : null}
+                      </Group>
                       <NumberInput
-                        label={t('trade.form.fields.risk_label')}
+                        aria-label={t('trade.form.fields.risk_label')}
                         placeholder={t('trade.form.fields.risk_placeholder')}
                         min={0}
                         max={100}

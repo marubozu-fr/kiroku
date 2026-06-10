@@ -100,3 +100,16 @@ CREATE TABLE IF NOT EXISTS trade_screenshots (
 );
 
 CREATE INDEX IF NOT EXISTS idx_trade_screenshots_trade_id ON trade_screenshots(trade_id);
+
+-- Application-level business defaults that feed forms or logic (e.g. the trade
+-- form's default risk per trade). Visual preferences (theme, language) stay in
+-- the frontend's localStorage. CHECK (id = 1) enforces a single row for this
+-- single-user app; future preferences are added as columns. The INSERT OR
+-- IGNORE seeds the row so the API always has one to read; it is a no-op once
+-- the row exists, so this stays idempotent across startups.
+CREATE TABLE IF NOT EXISTS user_preferences (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  risk_per_trade_default REAL NOT NULL DEFAULT 1.0
+);
+
+INSERT OR IGNORE INTO user_preferences (id, risk_per_trade_default) VALUES (1, 1.0);

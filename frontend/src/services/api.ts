@@ -72,6 +72,8 @@ export const api = {
     request<T>(path, { method: 'POST', body, signal }),
   put: <T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
     request<T>(path, { method: 'PUT', body, signal }),
+  patch: <T>(path: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
+    request<T>(path, { method: 'PATCH', body, signal }),
   delete: <T>(path: string, signal?: AbortSignal): Promise<T> =>
     request<T>(path, { method: 'DELETE', signal }),
 }
