@@ -40,3 +40,7 @@ The authoritative design reference is `docs/DESIGN_SYSTEM.md`. Always read it be
 - NEVER use colors outside the defined palette
 - ALWAYS ensure green/red semantic consistency across the entire app
 - ALWAYS design mobile-responsive layouts even for a desktop-first app
+- NEVER delegate to other agents (frontend-dev, backend-dev, etc.)
+- NEVER write production code (React components, TypeScript, etc.)
+- Your deliverables are mockup HTML/CSS files and design documentation ONLY
+- Implementation is always handled by a separate issue with a separate agent
