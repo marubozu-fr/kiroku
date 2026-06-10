@@ -6,6 +6,7 @@ import { Alert, Badge, Button, Center, Skeleton, Stack, Table, Text } from '@man
 import { useFetch } from '@/hooks/useFetch'
 import { tradesApi } from '@/services/trades'
 import {
+  DIRECTION_COLOR,
   STATUS_COLOR,
   formatLocalDate,
   formatPnl,
@@ -107,7 +108,7 @@ export function TradeTable({ year, assetName }: TradeTableProps) {
                 {trade.direction ? (
                   <Badge
                     variant="light"
-                    color={trade.direction === 'Long' ? 'blue' : 'grape'}
+                    color={DIRECTION_COLOR[trade.direction]}
                   >
                     {trade.direction}
                   </Badge>

@@ -38,6 +38,7 @@ import {
 import { DateTimePicker } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import dayjs from 'dayjs'
+import { DIRECTION_COLOR } from '@/components/journal/format'
 import { AssetModal } from '@/components/settings/AssetModal'
 import { EmotionModal } from '@/components/settings/EmotionModal'
 import { notifyError, notifySuccess } from '@/components/settings/notify'
@@ -69,12 +70,6 @@ const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
   Good: 'green',
   Warning: 'orange',
   Bad: 'red',
-}
-
-// Direction uses teal/grape (non-semantic) — green/red are reserved for P&L.
-const DIRECTION_COLOR: Record<TradeDirection, string> = {
-  Long: 'teal',
-  Short: 'grape',
 }
 
 const ACCOUNT_TYPES: readonly AccountType[] = ['test', 'demo', 'live']
