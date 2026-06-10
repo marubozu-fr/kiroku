@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Journal · Calendar</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #65 — Journal calendar view (DEFAULT view).
+    AppShell + Navbar (Journal active) | year selector | 4 stat cards |
+    Calendar/List SegmentedControl | monthly Mon-Fri grid for June 2026.
+    Trade events link to /trades/:id (see href comments). All financial
+    numbers monospace; green/red reserved for P&L/R only.
+  -->
+  <div class="shell">
+
+    <!-- AppShell.Navbar -->
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink active" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <!-- Page header: Title left, Year Select + New Trade right -->
+        <div class="page-header">
+          <h1 class="page-title">Journal</h1>
+          <div class="right">
+            <!-- Mantine Select — years with trades; defaults to 2026 -->
+            <div class="field">
+              <select class="input" aria-label="Year">
+                <option selected>2026</option>
+                <option>2025</option>
+                <option>2024</option>
+              </select>
+            </div>
+            <!-- Primary action — Mantine Button variant=filled -->
+            <a class="btn filled" href="#">+ New Trade</a>
+          </div>
+        </div>
+
+        <!-- 4 stat cards — SimpleGrid cols={{ base: 2, sm: 4 }} (2026) -->
+        <div class="metrics">
+          <div class="metric">
+            <div class="lbl">Total Trades</div>
+            <div class="val">47</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Total P&amp;L</div>
+            <div class="val profit">+38.50R</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Win Rate</div>
+            <div class="val">63%</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Avg. P&amp;L</div>
+            <div class="val profit">+0.82R</div>
+          </div>
+        </div>
+
+        <!-- Calendar / List toggle — SegmentedControl (Calendar active) -->
+        <div class="view-toolbar">
+          <div class="segmented full">
+            <span class="seg active">Calendar</span>
+            <span class="seg">List</span>
+          </div>
+        </div>
+
+        <!-- Calendar card -->
+        <div class="card">
+          <div class="calendar">
+
+            <!-- Month nav: prev / label / next -->
+            <div class="cal-nav">
+              <button class="icon-btn" aria-label="Previous month">‹</button>
+              <div class="month-label">June 2026</div>
+              <button class="icon-btn" aria-label="Next month">›</button>
+            </div>
+
+            <!-- Desktop grid (Mon-Fri only) -->
+            <div class="cal-weekdays">
+              <div class="wd">Mon</div>
+              <div class="wd">Tue</div>
+              <div class="wd">Wed</div>
+              <div class="wd">Thu</div>
+              <div class="wd">Fri</div>
+            </div>
+
+            <div class="cal-grid">
+
+              <!-- Week 1: Jun 1-5 -->
+              <div class="cal-day">
+                <span class="daynum">1</span>
+                <a class="event win" href="/trades/101">10:00 EUR/USD: +5.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">2</span>
+                <a class="event loss" href="/trades/102">09:15 GBP/USD: -1.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">3</span>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">4</span>
+                <a class="event win" href="/trades/104">11:30 GOLD: +2.50R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">5</span>
+                <a class="event win" href="/trades/105">08:00 US100: +1.50R</a>
+                <a class="event loss" href="/trades/106">13:45 BTC/USD: -1.00R</a>
+                <span class="event-more">+1 more</span>
+                <!-- 3rd trade: 16:00 EUR/USD: 0.00R (breakeven) hidden behind "+1 more" -->
+                <!-- Weekly review = sum of week trades (5.00-1.00+2.50+1.50-1.00+0.00) -->
+                <span class="review weekly win">Weekly Review: +7.00R</span>
+              </div>
+
+              <!-- Week 2: Jun 8-12 (today = 10) -->
+              <div class="cal-day">
+                <span class="daynum">8</span>
+                <a class="event win" href="/trades/108">10:00 SPX: +3.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">9</span>
+                <a class="event loss" href="/trades/109">14:20 EUR/USD: -2.00R</a>
+              </div>
+              <div class="cal-day today">
+                <span class="daynum">10</span>
+                <a class="event win" href="/trades/110">10:00 GBP/JPY: +4.20R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">11</span>
+                <a class="event be" href="/trades/111">09:30 GOLD: 0.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">12</span>
+                <a class="event win" href="/trades/112">11:00 US30: +1.30R</a>
+                <span class="review weekly win">Weekly Review: +6.50R</span>
+              </div>
+
+              <!-- Week 3: Jun 15-19 (losing week) -->
+              <div class="cal-day">
+                <span class="daynum">15</span>
+                <a class="event loss" href="/trades/115">10:45 EUR/USD: -1.50R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">16</span>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">17</span>
+                <a class="event win" href="/trades/117">12:10 BTC/USD: +2.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">18</span>
+                <a class="event loss" href="/trades/118">15:00 SILVER: -1.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">19</span>
+                <a class="event loss" href="/trades/119">09:50 AUD/USD: -2.30R</a>
+                <span class="review weekly loss">Weekly Review: -2.80R</span>
+              </div>
+
+              <!-- Week 4: Jun 22-26 -->
+              <div class="cal-day">
+                <span class="daynum">22</span>
+                <a class="event win" href="/trades/122">10:00 US100: +6.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">23</span>
+                <a class="event win" href="/trades/123">11:15 EUR/USD: +1.50R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">24</span>
+                <a class="event win" href="/trades/124">13:30 GOLD: +2.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">25</span>
+                <a class="event loss" href="/trades/125">14:00 GBP/USD: -1.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">26</span>
+                <a class="event win" href="/trades/126">10:30 SPX: +3.00R</a>
+                <span class="review weekly win">Weekly Review: +11.50R</span>
+              </div>
+
+              <!-- Week 5: Jun 29-30 + trailing July days (muted) -->
+              <div class="cal-day">
+                <span class="daynum">29</span>
+                <a class="event win" href="/trades/129">10:00 EUR/USD: +5.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">30</span>
+                <a class="event win" href="/trades/130">11:45 GBP/USD: +1.30R</a>
+                <!-- Last trading day of June -> Monthly review (most prominent) -->
+                <span class="review monthly win">Monthly Review: +28.50R</span>
+              </div>
+              <div class="cal-day muted"><span class="daynum">1</span></div>
+              <div class="cal-day muted"><span class="daynum">2</span></div>
+              <div class="cal-day muted"><span class="daynum">3</span></div>
+
+            </div>
+
+            <!-- Mobile agenda (shown < 768px instead of the grid) -->
+            <div class="cal-agenda">
+              <div class="agenda-day">
+                <div class="agenda-date">Mon, Jun 1</div>
+                <a class="event win" href="/trades/101">10:00 EUR/USD: +5.00R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Tue, Jun 2</div>
+                <a class="event loss" href="/trades/102">09:15 GBP/USD: -1.00R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Thu, Jun 4</div>
+                <a class="event win" href="/trades/104">11:30 GOLD: +2.50R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Fri, Jun 5</div>
+                <a class="event win" href="/trades/105">08:00 US100: +1.50R</a>
+                <a class="event loss" href="/trades/106">13:45 BTC/USD: -1.00R</a>
+                <a class="event be" href="/trades/107">16:00 EUR/USD: 0.00R</a>
+                <span class="review weekly win">Weekly Review: +7.00R</span>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Mon, Jun 8</div>
+                <a class="event win" href="/trades/108">10:00 SPX: +3.00R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Tue, Jun 9</div>
+                <a class="event loss" href="/trades/109">14:20 EUR/USD: -2.00R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date today">Wed, Jun 10 · Today</div>
+                <a class="event win" href="/trades/110">10:00 GBP/JPY: +4.20R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Thu, Jun 11</div>
+                <a class="event be" href="/trades/111">09:30 GOLD: 0.00R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Fri, Jun 12</div>
+                <a class="event win" href="/trades/112">11:00 US30: +1.30R</a>
+                <span class="review weekly win">Weekly Review: +6.50R</span>
+              </div>
+              <!-- (remaining weeks omitted in agenda for brevity in the mockup) -->
+            </div>
+
+          </div>
+        </div>
+
+        <div class="note">
+          Calendar is the default Journal view. Trade events are clickable and
+          navigate to <code>/trades/:id</code> (see each <code>href</code>).
+          Below <code>sm</code> (768px) the Mon–Fri grid is replaced by a
+          vertical agenda list (events grouped by day).
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
