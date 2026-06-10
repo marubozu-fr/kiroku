@@ -11,7 +11,8 @@ interface TagModalProps {
   /** The tag being edited, or `null` to create a new one. */
   tag: Tag | null
   onClose: () => void
-  onSaved: () => void
+  /** Called with the created/updated tag after a successful save. */
+  onSaved: (saved: Tag) => void
 }
 
 interface TagFormValues {
@@ -54,14 +55,15 @@ export function TagModal({ opened, tag, onClose, onSaved }: TagModalProps) {
     }
     setSubmitting(true)
     try {
+      let saved: Tag
       if (tag) {
-        await tagsApi.update(tag.id, payload)
+        saved = await tagsApi.update(tag.id, payload)
         notifySuccess(t('settings.tags.notify.updated', { name: payload.name }))
       } else {
-        await tagsApi.create(payload)
+        saved = await tagsApi.create(payload)
         notifySuccess(t('settings.tags.notify.created', { name: payload.name }))
       }
-      onSaved()
+      onSaved(saved)
     } catch (cause) {
       notifyError(cause instanceof Error ? cause.message : t('settings.tags.notify.save_error'))
     } finally {
@@ -75,6 +77,7 @@ export function TagModal({ opened, tag, onClose, onSaved }: TagModalProps) {
       onClose={onClose}
       title={tag ? t('settings.tags.modal.edit_title') : t('settings.tags.modal.add_title')}
       centered
+      closeOnClickOutside={false}
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">

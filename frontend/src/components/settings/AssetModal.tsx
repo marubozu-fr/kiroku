@@ -12,7 +12,8 @@ interface AssetModalProps {
   /** The asset being edited, or `null` to create a new one. */
   asset: Asset | null
   onClose: () => void
-  onSaved: () => void
+  /** Called with the created/updated asset after a successful save. */
+  onSaved: (saved: Asset) => void
 }
 
 interface AssetFormValues {
@@ -60,14 +61,15 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
     }
     setSubmitting(true)
     try {
+      let saved: Asset
       if (asset) {
-        await assetsApi.update(asset.id, payload)
+        saved = await assetsApi.update(asset.id, payload)
         notifySuccess(t('settings.assets.notify.updated', { name: payload.name }))
       } else {
-        await assetsApi.create(payload)
+        saved = await assetsApi.create(payload)
         notifySuccess(t('settings.assets.notify.created', { name: payload.name }))
       }
-      onSaved()
+      onSaved(saved)
     } catch (cause) {
       notifyError(cause instanceof Error ? cause.message : t('settings.assets.notify.save_error'))
     } finally {
@@ -81,6 +83,7 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
       onClose={onClose}
       title={asset ? t('settings.assets.modal.edit_title') : t('settings.assets.modal.add_title')}
       centered
+      closeOnClickOutside={false}
     >
       <form onSubmit={handleSubmit}>
         <Stack gap="md">
