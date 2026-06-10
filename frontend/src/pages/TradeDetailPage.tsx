@@ -10,6 +10,7 @@ import {
   IconLogout,
   IconPencil,
   IconTrash,
+  IconZoomIn,
 } from '@tabler/icons-react'
 import {
   ActionIcon,
@@ -471,26 +472,38 @@ export function TradeDetailPage() {
               {t('trade.detail.empty.screenshots')}
             </Text>
           ) : (
-            <Stack gap="md">
+            <Stack gap="lg">
               {Array.from(screenshotGroups.entries()).map(([label, shots]) => (
-                <Stack key={label} gap="xs">
-                  <Text size="sm" fw={600} c="dimmed">
-                    {label}
-                  </Text>
-                  <SimpleGrid cols={{ base: 2, sm: 4 }}>
+                <Stack key={label} gap="sm">
+                  <Divider
+                    labelPosition="left"
+                    label={
+                      <Badge variant="light" color="gray" size="sm" radius="sm">
+                        {label}
+                      </Badge>
+                    }
+                  />
+                  <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="sm">
                     {shots.map((shot) => (
-                      <Stack key={shot.id} gap={4}>
-                        <Image
-                          src={`/api/screenshots/${shot.filename}`}
-                          height={120}
-                          radius="sm"
-                          fit="contain"
+                      <Stack key={shot.id} gap={6}>
+                        <button
+                          type="button"
                           className={classes.thumbnail}
                           onClick={() => setLightboxIndex(orderedScreenshots.indexOf(shot))}
-                          alt={shot.label ?? shot.filename}
-                        />
+                          aria-label={t('trade.detail.view_screenshot')}
+                        >
+                          <Image
+                            src={`/api/screenshots/${shot.filename}`}
+                            height={120}
+                            fit="contain"
+                            alt={shot.label ?? shot.filename}
+                          />
+                          <span className={classes.thumbnailOverlay}>
+                            <IconZoomIn size={24} />
+                          </span>
+                        </button>
                         {shot.label && (
-                          <Text size="xs" c="dimmed" ta="center" lineClamp={2}>
+                          <Text size="xs" ta="center" lineClamp={2} className={classes.caption}>
                             {shot.label}
                           </Text>
                         )}

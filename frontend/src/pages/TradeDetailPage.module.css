@@ -3,6 +3,45 @@
 }
 
 .thumbnail {
-  cursor: pointer;
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--mantine-color-dark-4);
+  border-radius: var(--mantine-radius-sm);
   background-color: var(--mantine-color-dark-6);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 150ms ease;
+}
+
+.thumbnail:hover {
+  border-color: var(--mantine-color-blue-5);
+}
+
+.thumbnail:focus-visible {
+  outline: 2px solid var(--mantine-color-blue-5);
+  outline-offset: 2px;
+}
+
+.thumbnailOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mantine-color-white);
+  background-color: color-mix(in srgb, var(--mantine-color-dark-9) 55%, transparent);
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.thumbnail:hover .thumbnailOverlay,
+.thumbnail:focus-visible .thumbnailOverlay {
+  opacity: 1;
+}
+
+.caption {
+  color: var(--mantine-color-dark-1);
 }
