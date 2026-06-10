@@ -16,13 +16,12 @@ function trade(overrides: Partial<TradeSummary> = {}): TradeSummary {
     stop_loss: null,
     notes: null,
     missed_opportunity: false,
-    risk_per_trade: null,
+    risk_per_trade: 2,
     avg_entry_price: null,
     avg_exit_price: null,
     risk: null,
     reward: null,
     performance_r: 1.5,
-    realized_pnl: 125,
     timeframe_unit: null,
     timeframe_value: null,
     trade_date: '2026-03-04',
@@ -94,8 +93,7 @@ describe('JournalPage', () => {
     expect(await screen.findByText('EUR/USD')).toBeInTheDocument()
     expect(screen.getByText('Long')).toBeInTheDocument()
     expect(screen.getByText('Closed')).toBeInTheDocument()
-    expect(screen.getByText('+125.00')).toBeInTheDocument()
-    expect(screen.getByText('+1.50R')).toBeInTheDocument()
+    expect(screen.getByText('+1.50R (+3.00%)')).toBeInTheDocument()
   })
 
   it('shows the empty state when a year has no trades', async () => {

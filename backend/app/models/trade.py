@@ -117,7 +117,6 @@ class TradeSummary(BaseModel):
   risk: Optional[float] = None
   reward: Optional[float] = None
   performance_r: Optional[float] = None
-  realized_pnl: Optional[float] = None
   timeframe_unit: Optional[str] = None
   timeframe_value: Optional[int] = None
   trade_date: Optional[str] = None

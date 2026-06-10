@@ -55,8 +55,7 @@
         "asset": "Asset",
         "direction": "Direzione",
         "status": "Stato",
-        "pnl": "P&L",
-        "r": "R"
+        "pnl": "P&L"
       }
     }
   },
@@ -214,7 +213,6 @@
       },
       "metrics": {
         "pnl": "P&L",
-        "r_value": "Valore R",
         "stop_loss": "Stop Loss",
         "duration": "Durata"
       },

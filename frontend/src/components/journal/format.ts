@@ -36,20 +36,38 @@ export function signedColor(value: number | null): string | undefined {
   return value > 0 ? 'green.6' : 'red.6'
 }
 
-/** Format a P&L value with an explicit sign, e.g. `+125.00` / `-42.50`. */
-export function formatPnl(value: number | null): string {
-  if (value === null) {
-    return '—'
-  }
-  return `${value > 0 ? '+' : ''}${formatDecimal(value)}`
-}
-
 /** Format an R multiple with an explicit sign and suffix, e.g. `+1.50R`. */
 export function formatR(value: number | null): string {
   if (value === null) {
     return '—'
   }
   return `${value > 0 ? '+' : ''}${formatDecimal(value)}R`
+}
+
+/** Format a percentage with an explicit sign and suffix, e.g. `+5.00%`. */
+export function formatPercent(value: number): string {
+  return `${value > 0 ? '+' : ''}${formatDecimal(value)}%`
+}
+
+/**
+ * Format the journal P&L display: the signed R multiple, followed by the
+ * equivalent percentage (`performance_r × risk_per_trade`) in parentheses when
+ * the trade's risk-per-trade is known, e.g. `+2.50R (+5.00%)`. Falls back to
+ * the R multiple alone (`+2.50R`) when risk-per-trade is unset, and to an em
+ * dash when there is no R yet (open trades / missed opportunities).
+ */
+export function formatPnl(
+  performanceR: number | null,
+  riskPerTrade: number | null,
+): string {
+  if (performanceR === null) {
+    return '—'
+  }
+  const r = formatR(performanceR)
+  if (riskPerTrade === null) {
+    return r
+  }
+  return `${r} (${formatPercent(performanceR * riskPerTrade)})`
 }
 
 /**

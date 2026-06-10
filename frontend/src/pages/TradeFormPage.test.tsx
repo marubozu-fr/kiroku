@@ -72,7 +72,6 @@ function makeTrade(overrides: Partial<TradeDetail> = {}): TradeDetail {
     risk: null,
     reward: null,
     performance_r: null,
-    realized_pnl: null,
     timeframe_unit: 'm',
     timeframe_value: 15,
     trade_date: '2026-03-04',

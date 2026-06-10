@@ -29,7 +29,6 @@ export interface TradeSummary {
   risk: number | null
   reward: number | null
   performance_r: number | null
-  realized_pnl: number | null
   timeframe_unit: string | null
   timeframe_value: number | null
   trade_date: string | null

@@ -55,8 +55,7 @@
         "asset": "Actif",
         "direction": "Direction",
         "status": "Statut",
-        "pnl": "P&L",
-        "r": "R"
+        "pnl": "P&L"
       }
     }
   },
@@ -214,7 +213,6 @@
       },
       "metrics": {
         "pnl": "P&L",
-        "r_value": "Valeur R",
         "stop_loss": "Stop Loss",
         "duration": "Durée"
       },

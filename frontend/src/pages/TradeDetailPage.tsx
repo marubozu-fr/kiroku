@@ -35,7 +35,6 @@ import {
   STATUS_COLOR,
   formatLocalDate,
   formatPnl,
-  formatR,
   signedColor,
 } from '@/components/journal/format'
 import { notifyError, notifySuccess } from '@/components/settings/notify'
@@ -253,24 +252,14 @@ export function TradeDetailPage() {
         </Group>
 
         {/* Key metrics */}
-        <SimpleGrid cols={{ base: 2, sm: 4 }}>
+        <SimpleGrid cols={{ base: 2, sm: 3 }}>
           <Card shadow="sm" radius="md" padding="md">
             <Stack gap={2}>
               <Text size="sm" c="dimmed">
                 {t('trade.detail.metrics.pnl')}
               </Text>
-              <Text size="xl" fw={700} ff="monospace" c={signedColor(trade.realized_pnl)}>
-                {formatPnl(trade.realized_pnl)}
-              </Text>
-            </Stack>
-          </Card>
-          <Card shadow="sm" radius="md" padding="md">
-            <Stack gap={2}>
-              <Text size="sm" c="dimmed">
-                {t('trade.detail.metrics.r_value')}
-              </Text>
               <Text size="xl" fw={700} ff="monospace" c={signedColor(trade.performance_r)}>
-                {formatR(trade.performance_r)}
+                {formatPnl(trade.performance_r, trade.risk_per_trade)}
               </Text>
             </Stack>
           </Card>

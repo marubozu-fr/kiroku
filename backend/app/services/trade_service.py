@@ -26,13 +26,12 @@ def _now() -> str:
 def _compute_metrics(
   activities: list[dict[str, Any]],
   stop_loss: Optional[float],
-  missed_opportunity: bool = False,
 ) -> dict[str, Any]:
   """Derive computed trade fields from a list of activity dicts.
 
   Each dict must have keys: type (str), price (float), quantity (float), date (str).
   Returns a dict with: direction, trade_date, avg_entry_price, avg_exit_price,
-  risk, reward, performance_r, realized_pnl, status, and an `is_entry` key for
+  risk, reward, performance_r, status, and an `is_entry` key for
   each activity (activities list is mutated in-place to add is_entry).
   """
   sorted_activities = sorted(activities, key=lambda a: a["date"])
@@ -86,17 +85,6 @@ def _compute_metrics(
   else:
     performance_r = None
 
-  # Realized P&L: monetary result on the exited portion, in the asset's quote
-  # currency. reward is the direction-adjusted price move per unit, so the
-  # monetary result is reward × the exited quantity. None for open trades
-  # (reward is None) and for missed opportunities (never actually taken);
-  # breakeven yields exactly 0.0.
-  realized_pnl: Optional[float]
-  if reward is not None and not missed_opportunity:
-    realized_pnl = round(reward * exit_total_qty, 5)
-  else:
-    realized_pnl = None
-
   # Status derivation.
   if exit_total_qty <= EPS:
     status = "Open"
@@ -115,7 +103,6 @@ def _compute_metrics(
     "risk": risk,
     "reward": reward,
     "performance_r": performance_r,
-    "realized_pnl": realized_pnl,
     "status": status,
   }
 
@@ -172,7 +159,7 @@ async def create_trade(payload: TradeCreate) -> dict[str, Any]:
 
   # Convert activity models to plain dicts so _compute_metrics can mutate them.
   activities = [a.model_dump() for a in payload.activities]
-  metrics = _compute_metrics(activities, payload.stop_loss, payload.missed_opportunity)
+  metrics = _compute_metrics(activities, payload.stop_loss)
 
   trade_fields: dict[str, Any] = {
     "asset_id": payload.asset_id,
@@ -191,7 +178,6 @@ async def create_trade(payload: TradeCreate) -> dict[str, Any]:
     "risk": metrics["risk"],
     "reward": metrics["reward"],
     "performance_r": metrics["performance_r"],
-    "realized_pnl": metrics["realized_pnl"],
   }
 
   now = _now()
@@ -248,18 +234,13 @@ async def update_trade(trade_id: int, payload: TradeUpdate) -> dict[str, Any]:
   else:
     final_stop_loss = existing.get("stop_loss")
 
-  if "missed_opportunity" in updates:
-    final_missed_opportunity = bool(updates["missed_opportunity"])
-  else:
-    final_missed_opportunity = bool(existing.get("missed_opportunity"))
-
-  metrics = _compute_metrics(final_activities, final_stop_loss, final_missed_opportunity)
+  metrics = _compute_metrics(final_activities, final_stop_loss)
 
   # Merge computed fields into the scalar update dict.
   scalar_updates = {**updates}
   computed_keys = (
     "status", "direction", "trade_date", "avg_entry_price", "avg_exit_price",
-    "risk", "reward", "performance_r", "realized_pnl",
+    "risk", "reward", "performance_r",
   )
   for key in computed_keys:
     scalar_updates[key] = metrics[key]
