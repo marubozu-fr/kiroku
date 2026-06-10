@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Dashboard</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #72 — Dashboard (DESKTOP, POPULATED).
+    Header with R/% display toggle (R active) + YTD/1Y/5Y/ALL period selector
+    (YTD active). 5 KPI cards in one row. Charts card with two tabs
+    (Month by Month active = CSS BarChart; Equity Curve = inline-SVG AreaChart
+    preview rendered below so both designs are visible in a static file).
+    Recent Activity table (last 10 trades) + "View all trades" footer link.
+    Maps 1:1 to Mantine + Recharts — see README.
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink active" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <!-- Page header: title left, display-mode + period toggles right -->
+        <div class="page-header">
+          <h1 class="page-title">Dashboard</h1>
+          <div class="right">
+            <!-- Display mode: R vs % (R active by default) -->
+            <div class="segmented" role="group" aria-label="Display mode">
+              <span class="seg active">R</span>
+              <span class="seg">%</span>
+            </div>
+            <!-- Period selector (YTD active by default) -->
+            <div class="segmented" role="group" aria-label="Period">
+              <span class="seg active">YTD</span>
+              <span class="seg">1Y</span>
+              <span class="seg">5Y</span>
+              <span class="seg">ALL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPI cards — 5-up single row (SimpleGrid cols={{ base: 2, sm: 5 }}) -->
+        <div class="metrics kpi-5">
+          <div class="metric">
+            <div class="lbl">Total Trades</div>
+            <div class="val">47</div>
+            <div class="sub">YTD · all closed</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Win Rate</div>
+            <!-- 63.83% ≥ 50% -> profit green -->
+            <div class="val profit">63.83%</div>
+            <div class="sub">30 W · 17 L</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Avg R</div>
+            <!-- +0.82R -> profit green -->
+            <div class="val profit">+0.82R</div>
+            <div class="sub">per trade</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Profit Factor</div>
+            <!-- 2.14 ≥ 1.5 -> green -->
+            <div class="val profit">2.14</div>
+            <div class="sub">gross win / loss</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Best / Worst</div>
+            <div class="split">
+              <span class="best">+6.00R</span>
+              <span class="sep">/</span>
+              <span class="worst">-2.30R</span>
+            </div>
+            <div class="sub">single trade</div>
+          </div>
+        </div>
+
+        <!-- Charts card with tabs (Mantine Tabs) -->
+        <div class="card">
+          <!-- Tabs.List — Month by Month active -->
+          <div class="chart-tabs" role="tablist">
+            <span class="chart-tab active" role="tab" aria-selected="true">📊 Month by Month</span>
+            <span class="chart-tab" role="tab" aria-selected="false">📈 Equity Curve</span>
+          </div>
+
+          <!-- Tab panel 1: Month by Month (Recharts BarChart stand-in) -->
+          <div class="chart-panel" role="tabpanel">
+            <div class="barchart" aria-label="Monthly performance in R">
+              <!-- Y-axis ticks: +7R top, 0 baseline, -7R bottom -->
+              <div class="y-axis">
+                <span class="tick">+7R</span>
+                <span class="tick">0</span>
+                <span class="tick">-7R</span>
+              </div>
+              <div class="plot">
+                <!-- gridlines (border tokens); middle line = zero baseline -->
+                <div class="gridlines">
+                  <div class="gl"></div>
+                  <div class="gl zero"></div>
+                  <div class="gl"></div>
+                </div>
+                <!-- 12 month columns; baseline centred at 0R -->
+                <div class="cols">
+                  <div class="col" title="Jan +4.20R">
+                    <div class="pos"><span class="vlbl up">+4.2</span><span class="bar up" style="height:60.0%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                  <div class="col" title="Feb -1.80R">
+                    <div class="pos"></div>
+                    <div class="neg"><span class="bar down" style="height:25.7%"></span><span class="vlbl down">-1.8</span></div>
+                  </div>
+                  <div class="col" title="Mar +6.50R">
+                    <div class="pos"><span class="vlbl up">+6.5</span><span class="bar up" style="height:92.9%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                  <div class="col" title="Apr +2.10R">
+                    <div class="pos"><span class="vlbl up">+2.1</span><span class="bar up" style="height:30.0%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                  <div class="col" title="May -3.40R">
+                    <div class="pos"></div>
+                    <div class="neg"><span class="bar down" style="height:48.6%"></span><span class="vlbl down">-3.4</span></div>
+                  </div>
+                  <div class="col" title="Jun +7.00R">
+                    <div class="pos"><span class="vlbl up">+7.0</span><span class="bar up" style="height:100%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                  <div class="col" title="Jul +5.40R">
+                    <div class="pos"><span class="vlbl up">+5.4</span><span class="bar up" style="height:77.1%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                  <div class="col" title="Aug +3.80R">
+                    <div class="pos"><span class="vlbl up">+3.8</span><span class="bar up" style="height:54.3%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                  <div class="col" title="Sep +6.20R">
+                    <div class="pos"><span class="vlbl up">+6.2</span><span class="bar up" style="height:88.6%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                  <div class="col" title="Oct +4.50R">
+                    <div class="pos"><span class="vlbl up">+4.5</span><span class="bar up" style="height:64.3%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                  <div class="col" title="Nov +2.20R">
+                    <div class="pos"><span class="vlbl up">+2.2</span><span class="bar up" style="height:31.4%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                  <div class="col" title="Dec +1.80R">
+                    <div class="pos"><span class="vlbl up">+1.8</span><span class="bar up" style="height:25.7%"></span></div>
+                    <div class="neg"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- X-axis month labels -->
+            <div class="barchart-x">
+              <span class="mlbl">Jan</span>
+              <span class="mlbl">Feb</span>
+              <span class="mlbl">Mar</span>
+              <span class="mlbl">Apr</span>
+              <span class="mlbl">May</span>
+              <span class="mlbl">Jun</span>
+              <span class="mlbl">Jul</span>
+              <span class="mlbl">Aug</span>
+              <span class="mlbl">Sep</span>
+              <span class="mlbl">Oct</span>
+              <span class="mlbl">Nov</span>
+              <span class="mlbl">Dec</span>
+            </div>
+          </div>
+
+          <div class="note">
+            Tab 1 is shown active. In the real app this is a Recharts
+            <code>BarChart</code> — green bars for positive months, red for
+            negative, zero baseline, Y-axis in R. Switching to the
+            <strong>Equity Curve</strong> tab swaps the panel for the
+            <code>AreaChart</code> previewed below. Toggling the header
+            <code>R / %</code> control re-renders both charts from the
+            <code>value_r</code> / <code>value_pct</code> fields.
+          </div>
+
+          <!-- Tab panel 2 preview: Equity Curve (Recharts AreaChart stand-in) -->
+          <div class="equity-preview" role="tabpanel" aria-label="Equity curve preview">
+            <div class="card-header">
+              <h3 class="card-title">Equity Curve — cumulative R (tab 2 preview)</h3>
+            </div>
+            <svg class="eq-svg" viewBox="0 0 600 220" preserveAspectRatio="none" role="img"
+                 aria-label="Cumulative R equity curve, ending at +38.50R">
+              <!-- gridlines -->
+              <line class="eq-grid" x1="42" y1="18" x2="590" y2="18" />
+              <line class="eq-grid" x1="42" y1="105" x2="590" y2="105" />
+              <!-- zero baseline (equity stays positive all year) -->
+              <line class="eq-zero" x1="42" y1="192" x2="590" y2="192" />
+              <!-- filled area under the cumulative line -->
+              <path class="eq-area"
+                d="M 42,192.0 L 42.0,173.0 91.8,181.2 141.6,151.8 191.5,142.3 241.3,157.7 291.1,126.0 340.9,101.6 390.7,84.4 440.5,56.4 490.4,36.1 540.2,26.1 590.0,18.0 L 590.0,192.0 Z" />
+              <!-- cumulative line -->
+              <polyline class="eq-line"
+                points="42.0,173.0 91.8,181.2 141.6,151.8 191.5,142.3 241.3,157.7 291.1,126.0 340.9,101.6 390.7,84.4 440.5,56.4 490.4,36.1 540.2,26.1 590.0,18.0" />
+              <!-- axis labels -->
+              <text class="eq-axis-lbl" x="38" y="22" text-anchor="end">+38.5R</text>
+              <text class="eq-axis-lbl" x="38" y="195" text-anchor="end">0R</text>
+              <text class="eq-axis-lbl" x="42" y="212">Jan</text>
+              <text class="eq-axis-lbl" x="590" y="212" text-anchor="end">Dec</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Recent Activity — last 10 trades (dense Table) -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Asset</th>
+                  <th>Direction</th>
+                  <th>Date</th>
+                  <th class="right">P&amp;L (R)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- last 10 closed trades, most recent first -->
+                <tr>
+                  <td class="mono">EUR/USD</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td class="mono">2026-06-09</td>
+                  <td class="num profit">+5.00R</td>
+                </tr>
+                <tr>
+                  <td class="mono">GBP/USD</td>
+                  <td><span class="badge short">Short</span></td>
+                  <td class="mono">2026-06-08</td>
+                  <td class="num profit">+1.30R</td>
+                </tr>
+                <tr>
+                  <td class="mono">US100</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td class="mono">2026-06-05</td>
+                  <td class="num profit">+6.00R</td>
+                </tr>
+                <tr>
+                  <td class="mono">AUD/USD</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td class="mono">2026-06-04</td>
+                  <td class="num loss">-2.30R</td>
+                </tr>
+                <tr>
+                  <td class="mono">SPX</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td class="mono">2026-06-03</td>
+                  <td class="num profit">+3.00R</td>
+                </tr>
+                <tr>
+                  <td class="mono">GBP/JPY</td>
+                  <td><span class="badge short">Short</span></td>
+                  <td class="mono">2026-06-02</td>
+                  <td class="num loss">-1.00R</td>
+                </tr>
+                <tr>
+                  <td class="mono">GOLD</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td class="mono">2026-05-29</td>
+                  <td class="num neutral">0.00R</td>
+                </tr>
+                <tr>
+                  <td class="mono">EUR/USD</td>
+                  <td><span class="badge short">Short</span></td>
+                  <td class="mono">2026-05-28</td>
+                  <td class="num loss">-2.00R</td>
+                </tr>
+                <tr>
+                  <td class="mono">US30</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td class="mono">2026-05-27</td>
+                  <td class="num profit">+2.20R</td>
+                </tr>
+                <tr>
+                  <td class="mono">USD/JPY</td>
+                  <td><span class="badge short">Short</span></td>
+                  <td class="mono">2026-05-26</td>
+                  <td class="num profit">+1.80R</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card-footer">
+            <a class="btn light view-all" href="#">View all trades →</a>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
