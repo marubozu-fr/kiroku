@@ -61,6 +61,16 @@
         "activity_desc": "Os seus últimos trades num relance"
       },
       "cta": "Adicionar o meu primeiro trade"
+    },
+    "charts": {
+      "title": "Desempenho",
+      "tab_month": "Mês a mês",
+      "tab_equity": "Equity Curve",
+      "empty": "Sem dados para este período",
+      "tooltip": {
+        "trades_one": "{{count}} trade",
+        "trades_other": "{{count}} trades"
+      }
     }
   },
   "analytics": {
