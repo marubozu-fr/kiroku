@@ -71,6 +71,17 @@
         "trades_one": "{{count}} trade",
         "trades_other": "{{count}} trades"
       }
+    },
+    "activity": {
+      "title": "Recent Activity",
+      "header": {
+        "asset": "Asset",
+        "direction": "Direction",
+        "date": "Date",
+        "pnl": "P&L"
+      },
+      "empty": "No recent trades",
+      "view_all": "View all trades →"
     }
   },
   "analytics": {
