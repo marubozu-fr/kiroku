@@ -132,3 +132,17 @@ class TradeResponse(TradeSummary):
   tags: list[TagResponse] = Field(default_factory=list)
   emotions: list[EmotionResponse] = Field(default_factory=list)
   screenshots: list[TradeScreenshotResponse] = Field(default_factory=list)
+
+
+class YearStatistics(BaseModel):
+  """Aggregated statistics for all trades in a given year."""
+
+  total_trades: int
+  winning_trades: int
+  losing_trades: int
+  breakeven_trades: int
+  total_pnl: float
+  avg_pnl: float
+  win_rate: float
+  expectancy: float
+  profit_factor: float

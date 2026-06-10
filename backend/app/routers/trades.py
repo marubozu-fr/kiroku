@@ -11,6 +11,7 @@ from app.models.trade import (
   TradeStatus,
   TradeSummary,
   TradeUpdate,
+  YearStatistics,
 )
 from app.services import screenshot_service, trade_service
 
@@ -37,6 +38,12 @@ async def list_trades(
 async def list_years() -> ApiResponse[list[int]]:
   years = await trade_service.list_years()
   return ApiResponse(data=years)
+
+
+@router.get("/statistics/{year}")
+async def get_year_statistics(year: int) -> ApiResponse[YearStatistics]:
+  stats = await trade_service.calculate_year_statistics(year)
+  return ApiResponse(data=YearStatistics(**stats))
 
 
 @router.get("/{trade_id}")
