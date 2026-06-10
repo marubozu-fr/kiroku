@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Dashboard · Empty</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #72 — Dashboard EMPTY state (no trades).
+    Header keeps the title and shows the toggles as INERT (disabled, dimmed)
+    so the layout reads as the same page — there is no data to switch. The
+    body is a single centered .empty-state card with a 3-item feature preview
+    and a CTA to the trade form. See README "Empty-state decision".
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink active" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <h1 class="page-title">Dashboard</h1>
+          <div class="right">
+            <!-- Inert toggles — no data to display yet -->
+            <div class="segmented inert" role="group" aria-label="Display mode" aria-disabled="true">
+              <span class="seg active">R</span>
+              <span class="seg">%</span>
+            </div>
+            <div class="segmented inert" role="group" aria-label="Period" aria-disabled="true">
+              <span class="seg active">YTD</span>
+              <span class="seg">1Y</span>
+              <span class="seg">5Y</span>
+              <span class="seg">ALL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single empty-state card -->
+        <div class="card">
+          <div class="empty-state">
+            <div class="icon">▤</div>
+            <div class="title">Welcome to your dashboard</div>
+            <div class="desc">Your dashboard will come to life with your first trade.</div>
+
+            <!-- Feature preview: what shows up once data exists -->
+            <div class="feature-preview">
+              <div class="feature">
+                <span class="f-ic">📊</span>
+                <span class="f-lbl">Key statistics</span>
+                <span class="f-desc">Win rate, Avg R, profit factor</span>
+              </div>
+              <div class="feature">
+                <span class="f-ic">📈</span>
+                <span class="f-lbl">Performance charts</span>
+                <span class="f-desc">Month by month &amp; equity curve</span>
+              </div>
+              <div class="feature">
+                <span class="f-ic">▦</span>
+                <span class="f-lbl">Recent activity</span>
+                <span class="f-desc">Your latest trades at a glance</span>
+              </div>
+            </div>
+
+            <a class="btn filled" href="#">+ Add my first trade</a>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
