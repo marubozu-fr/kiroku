@@ -1,0 +1,349 @@
+/*
+ * Kiroku — Issue #65 mockup stylesheet (Journal calendar + year statistics).
+ *
+ * Base tokens/components copied verbatim from docs/mockups/issue-49 so the two
+ * mockups look like the same app; calendar-specific styles are ADDED below the
+ * "ISSUE #65 ADDITIONS" banner. This folder is self-contained (no cross-folder
+ * imports).
+ *
+ * These CSS variables mirror Mantine's built-in dark theme. In the real app
+ * these come from Mantine tokens (var(--mantine-color-*)) — never hardcoded.
+ * Engineers translate the classes below 1:1 to Mantine components (see README).
+ *
+ * Semantic colors per docs/DESIGN_SYSTEM.md:
+ *   profit = green.6, loss = red.6, neutral = dimmed, form errors = orange.
+ *   Direction badges use NON-semantic hues (Long=teal, Short=grape) so they
+ *   never collide with P&L green/red.
+ */
+
+:root {
+  /* Mantine dark surface scale (dark.7 body, dark.6 cards, dark.5 inputs/borders) */
+  --body-bg: #1a1b1e;          /* dark.7 */
+  --card-bg: #25262b;          /* dark.6 */
+  --input-bg: #2c2e33;         /* dark.5 */
+  --border: #373a40;           /* dark.4 */
+  --border-strong: #5c5f66;    /* dark.3 */
+
+  /* Text */
+  --text: #c1c2c5;            /* dark.0 */
+  --text-bright: #f1f3f5;     /* near white headings */
+  --dimmed: #909296;          /* Mantine dimmed */
+
+  /* Brand / primary (Mantine blue.6 default primary) */
+  --primary: #228be6;
+  --primary-hover: #1c7ed6;
+
+  /* Semantic — financial only */
+  --profit: #40c057;          /* green.6 */
+  --loss: #fa5252;            /* red.6 */
+  --orange: #fd7e14;          /* form errors / Warning severity */
+
+  /* Non-semantic badge hues */
+  --teal: #12b886;            /* Long direction */
+  --grape: #be4bdb;           /* Short direction */
+  --blue: #228be6;            /* Open status */
+  --yellow: #fab005;          /* Partial status */
+  --gray: #868e96;            /* Closed / Breakeven */
+
+  /* Mantine spacing scale */
+  --sp-xs: 10px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 20px;
+  --sp-xl: 32px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--body-bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---- App shell stand-in (AppShell) ---- */
+.shell { display: flex; min-height: 100vh; }
+
+.navbar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  padding: var(--sp-md) var(--sp-sm);
+}
+.navbar .brand {
+  font-size: 18px; font-weight: 700; color: var(--text-bright);
+  padding: var(--sp-xs) var(--sp-sm); margin-bottom: var(--sp-md);
+}
+.navbar .brand .sub { color: var(--dimmed); font-weight: 400; font-size: 13px; }
+.navlink {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  padding: var(--sp-xs) var(--sp-sm); border-radius: var(--radius-sm);
+  color: var(--text); margin-bottom: 2px; font-size: 14px;
+}
+.navlink.active { background: rgba(34, 139, 230, 0.15); color: #74c0fc; }
+.navlink .ic { width: 20px; text-align: center; opacity: 0.85; }
+
+.main { flex: 1; padding: var(--sp-md); }
+.content { max-width: 1400px; margin: 0 auto; }
+
+/* ---- Page header row (Group justify=space-between) ---- */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-md); margin-bottom: var(--sp-md); flex-wrap: wrap;
+}
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-bright); margin: 0; }
+.page-header .right { display: flex; align-items: center; gap: var(--sp-sm); }
+
+/* ---- Card (Mantine Card padding=md radius=md) ---- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.card:last-child { margin-bottom: 0; }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-sm);
+}
+.card-title { font-size: 15px; font-weight: 600; color: var(--text-bright); margin: 0; }
+
+/* ---- Form field (Select label above) ---- */
+.field { margin-bottom: 0; }
+.field > label {
+  display: block; font-size: 13px; font-weight: 500;
+  margin-bottom: 4px; color: var(--text);
+}
+.input,
+select.input {
+  width: 100%; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text-bright); padding: 7px 10px; font-size: 14px;
+  font-family: var(--sans);
+}
+.input:focus { outline: none; border-color: var(--primary); }
+
+/* ---- SegmentedControl ---- */
+.segmented {
+  display: inline-flex; background: var(--input-bg);
+  border-radius: var(--radius-sm); padding: 3px; gap: 2px;
+}
+.segmented.full { width: 100%; }
+.segmented .seg {
+  flex: 1; text-align: center; padding: 6px 16px; border-radius: 3px;
+  font-size: 14px; font-weight: 500; color: var(--dimmed); cursor: pointer;
+  user-select: none; display: inline-flex; align-items: center;
+  justify-content: center; gap: 6px;
+}
+.segmented .seg.active {
+  background: var(--card-bg); color: var(--text-bright);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* ---- Badges ---- */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  line-height: 1.6; text-transform: none;
+}
+.badge.long   { background: rgba(18,184,134,0.15); color: #38d9a9; }
+.badge.short  { background: rgba(190,75,219,0.15); color: #da77f2; }
+.badge.open   { background: rgba(34,139,230,0.15); color: #74c0fc; }
+.badge.partial{ background: rgba(250,176,5,0.15);  color: #ffd43b; }
+.badge.closed { background: rgba(134,142,150,0.18); color: #adb5bd; }
+.badge.breakeven { background: rgba(134,142,150,0.18); color: #adb5bd; }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-sm); font-size: 14px;
+  font-weight: 500; cursor: pointer; border: 1px solid transparent;
+  font-family: var(--sans); text-decoration: none;
+}
+.btn.filled { background: var(--primary); color: #fff; }
+.btn.filled:hover { background: var(--primary-hover); }
+.btn.default { background: var(--input-bg); color: var(--text-bright); border-color: var(--border); }
+.btn.light { background: rgba(34,139,230,0.15); color: #74c0fc; }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; font-size: 16px;
+}
+.icon-btn:hover { background: var(--input-bg); }
+.icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- Financial number helper (<Money>/<RValue>) ---- */
+.mono { font-family: var(--mono); }
+.num  { font-family: var(--mono); text-align: right; }
+.profit { color: var(--profit); }
+.loss   { color: var(--loss); }
+.neutral{ color: var(--dimmed); }
+
+/* ---- Metric cards (SimpleGrid cols={{ base: 2, sm: 4 }}) ---- */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-md); margin-bottom: var(--sp-md); }
+.metric { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-md); }
+.metric .lbl { font-size: 13px; color: var(--dimmed); margin-bottom: 6px; }
+.metric .val { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--text-bright); }
+.metric .val.profit { color: var(--profit); }
+.metric .val.loss { color: var(--loss); }
+
+.note { font-size: 12px; color: var(--dimmed); margin: var(--sp-md) 0; padding: var(--sp-sm); border-left: 3px solid var(--primary); background: rgba(34,139,230,0.06); }
+
+/* ---- Tables (Mantine Table striped + highlightOnHover, fz=sm) ---- */
+.table-wrap { overflow-x: auto; }
+table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.table thead th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.4px; color: var(--dimmed);
+  padding: var(--sp-xs) var(--sp-sm); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+table.table thead th.right { text-align: right; }
+table.table tbody td {
+  padding: var(--sp-xs) var(--sp-sm); border-bottom: 1px solid var(--border);
+  color: var(--text); white-space: nowrap;
+}
+table.table tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+table.table tbody tr:hover { background: rgba(34,139,230,0.06); cursor: pointer; }
+table.table td.num { font-family: var(--mono); text-align: right; }
+table.table td.mono { font-family: var(--mono); }
+
+/* ==========================================================================
+ * ISSUE #65 ADDITIONS — Journal calendar
+ * ======================================================================== */
+
+/* Toolbar row holding the Calendar/List segmented control */
+.view-toolbar { margin-bottom: var(--sp-md); }
+.view-toolbar .segmented { max-width: 280px; }
+
+/* ---- Calendar shell (rendered inside a Card) ---- */
+.calendar { }
+
+/* Month navigation header (prev / "June 2026" / next) */
+.cal-nav {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-md); margin-bottom: var(--sp-md);
+}
+.cal-nav .month-label {
+  font-size: 18px; font-weight: 700; color: var(--text-bright);
+  min-width: 180px; text-align: center;
+}
+
+/* Weekday header row (MON..FRI) */
+.cal-weekdays {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 6px; margin-bottom: 6px;
+}
+.cal-weekdays .wd {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--dimmed); text-align: center;
+  padding: 4px 0;
+}
+
+/* Calendar grid: 5 trading-day columns, one row per week */
+.cal-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+
+/* Day cell */
+.cal-day {
+  position: relative; min-height: 116px;
+  background: var(--body-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 6px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cal-day.muted { opacity: 0.4; }                 /* day outside current month */
+.cal-day.today { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.cal-day .daynum {
+  font-size: 12px; font-weight: 600; color: var(--dimmed);
+  align-self: flex-end; line-height: 1;
+}
+.cal-day.today .daynum { color: #74c0fc; }
+
+/* Trade event pill (clickable → /trades/:id) */
+.event {
+  display: block; font-family: var(--mono); font-size: 11px;
+  line-height: 1.3; padding: 3px 6px; border-radius: 3px;
+  border-left: 3px solid var(--gray);
+  background: rgba(134,142,150,0.10); color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer; text-decoration: none;
+}
+.event:hover { background: rgba(255,255,255,0.06); }
+.event.win  { border-left-color: var(--profit); background: rgba(64,192,87,0.10); color: #69db7c; }
+.event.loss { border-left-color: var(--loss);   background: rgba(250,82,82,0.10); color: #ff8787; }
+.event.be   { border-left-color: var(--gray);   background: rgba(134,142,150,0.10); color: var(--dimmed); }
+
+/* Overflow indicator ("+N more") */
+.event-more {
+  font-size: 11px; color: var(--dimmed); padding: 1px 6px;
+  cursor: pointer;
+}
+.event-more:hover { color: var(--text-bright); }
+
+/* Review events (weekly = subtle band; monthly = most prominent) */
+.review {
+  display: block; font-family: var(--mono); font-size: 10px;
+  font-weight: 700; letter-spacing: 0.3px; line-height: 1.3;
+  padding: 3px 6px; border-radius: 3px; margin-top: auto;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+.review.weekly {
+  border: 1px dashed var(--border-strong);
+  background: rgba(255,255,255,0.03);
+}
+.review.monthly {
+  border: 1px solid currentColor;
+}
+.review.win  { color: var(--profit); }
+.review.loss { color: var(--loss); }
+.review.be   { color: var(--dimmed); }
+
+/* ---- Empty state (DESIGN_SYSTEM "Empty") ---- */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; gap: var(--sp-sm);
+  padding: var(--sp-xl) var(--sp-md); color: var(--dimmed);
+}
+.empty-state .icon { font-size: 44px; opacity: 0.7; line-height: 1; }
+.empty-state .title { font-size: 18px; font-weight: 600; color: var(--text-bright); }
+.empty-state .desc { font-size: 14px; max-width: 360px; }
+.empty-state .btn { margin-top: var(--sp-xs); }
+
+/* Agenda (mobile) list layout — hidden on desktop, shown < sm */
+.cal-agenda { display: none; }
+.agenda-day { margin-bottom: var(--sp-md); }
+.agenda-day .agenda-date {
+  font-size: 13px; font-weight: 700; color: var(--text-bright);
+  margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.agenda-day .agenda-date.today { color: #74c0fc; }
+.agenda-day .event,
+.agenda-day .review { white-space: normal; margin-bottom: 4px; }
+.agenda-day .review { margin-top: 4px; }
+
+/* ---- Responsive: stack at Mantine `sm` (~768px) ---- */
+@media (max-width: 768px) {
+  .navbar { display: none; }                      /* becomes hamburger drawer */
+  .metrics { grid-template-columns: repeat(2, 1fr); } /* 4-up -> 2x2 */
+  .view-toolbar .segmented { max-width: none; }
+  .segmented.full .seg { padding: 6px 8px; }
+
+  /* Calendar grid is too cramped on phones -> switch to vertical agenda list */
+  .cal-weekdays, .cal-grid { display: none; }
+  .cal-nav .month-label { min-width: 0; }
+  .cal-agenda { display: block; }
+}

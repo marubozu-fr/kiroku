@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Journal · Empty</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #65 — Journal EMPTY state.
+    User selected a year (2023) that has no trades. Header + year selector +
+    Calendar/List toggle remain. Stat cards are hidden in favour of a single
+    centered, helpful empty state (DESIGN_SYSTEM "Empty": icon + message + CTA).
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink active" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <h1 class="page-title">Journal</h1>
+          <div class="right">
+            <!-- 2023 selected — a year without trades -->
+            <div class="field">
+              <select class="input" aria-label="Year">
+                <option>2026</option>
+                <option>2025</option>
+                <option>2024</option>
+                <option selected>2023</option>
+              </select>
+            </div>
+            <a class="btn filled" href="#">+ New Trade</a>
+          </div>
+        </div>
+
+        <!-- Stat cards hidden when the year has no data (no zero-noise). -->
+
+        <div class="view-toolbar">
+          <div class="segmented full">
+            <span class="seg active">Calendar</span>
+            <span class="seg">List</span>
+          </div>
+        </div>
+
+        <!-- Empty state card -->
+        <div class="card">
+          <div class="empty-state">
+            <div class="icon">▦</div>
+            <div class="title">No trades for 2023</div>
+            <div class="desc">
+              You have no trades recorded for this year. Pick another year above,
+              or log your first trade to start building your journal.
+            </div>
+            <a class="btn filled" href="#">+ Log your first trade</a>
+          </div>
+        </div>
+
+        <div class="note">
+          Empty state per <code>docs/DESIGN_SYSTEM.md</code> ("Empty" state):
+          icon + message + suggestion/CTA — never a blank screen. Stat cards are
+          hidden (rather than showing zeros) to avoid implying real data.
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
