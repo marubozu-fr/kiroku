@@ -12,10 +12,7 @@ export function Logo() {
         alt={t('app.logo_alt')}
         className={styles.mark}
       />
-      <div className={styles['text-column']}>
-        <Text size="xs" c="dimmed" lh={1.1}>記録</Text>
-        <Text fw={700} size="sm" lh={1.1}>Kiroku</Text>
-      </div>
+      <Text fw={700} size="lg">Kiroku</Text>
     </Group>
   )
 }
