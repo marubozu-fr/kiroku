@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IconAlertTriangle, IconChartHistogram } from '@tabler/icons-react'
 import {
@@ -12,8 +12,10 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { FilterPanel } from '@/components/analytics/FilterPanel'
 import { StatisticsCards } from '@/components/analytics/StatisticsCards'
 import { useFetch } from '@/hooks/useFetch'
+import { useAnalyticsFilters } from '@/hooks/useAnalyticsFilters'
 import { fetchBreakdowns, fetchStatistics, fetchTrades } from '@/services/analytics'
 import type {
   AnalyticsBreakdownsResponse,
@@ -32,16 +34,17 @@ interface AllAnalyticsData {
  * Analytics page (route `/analytics`).
  *
  * Fetches statistics, breakdowns, and the first page of trades in parallel.
- * The filter panel, charts, and trades table are delivered by future issues —
+ * The charts and trades table are delivered by future issues —
  * they are rendered as labelled placeholder slots.
  */
 export function AnalyticsPage() {
   const { t } = useTranslation()
 
-  const [filters, setFilters] = useState<AnalyticsFilters>({})
+  const { filters, debouncedFilters, setFilter, resetFilters, activeFilterCount } =
+    useAnalyticsFilters()
 
-  // Re-fetch when filters change via the same ref+reload pattern as DashboardPage.
-  const filtersRef = useRef(filters)
+  // Re-fetch when debouncedFilters change via the same ref+reload pattern as DashboardPage.
+  const filtersRef = useRef<AnalyticsFilters>(debouncedFilters)
 
   const result = useFetch<AllAnalyticsData>(
     useCallback(
@@ -56,14 +59,11 @@ export function AnalyticsPage() {
   )
 
   useEffect(() => {
-    filtersRef.current = filters
+    filtersRef.current = debouncedFilters
     result.reload()
-    // reload is stable; filters is the only meaningful trigger.
+    // reload is stable; debouncedFilters is the only meaningful trigger.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters])
-
-  // Suppress unused variable warning for setFilters until the filter panel is built.
-  void setFilters
+  }, [debouncedFilters])
 
   const data = result.data
   const settled = !result.loading && result.error === null && data !== null
@@ -78,12 +78,16 @@ export function AnalyticsPage() {
         <Text c="dimmed">{t('analytics.subtitle')}</Text>
       </Stack>
 
-      {/* Filter panel placeholder */}
-      <Card padding="md" radius="md" withBorder>
-        <Text c="dimmed" size="sm">
-          {t('analytics.placeholder.filters')}
-        </Text>
-      </Card>
+      {/* Filter panel — shown once data has loaded so available_filters is populated */}
+      {data !== null ? (
+        <FilterPanel
+          availableFilters={data.statistics.available_filters}
+          filters={filters}
+          setFilter={setFilter}
+          resetFilters={resetFilters}
+          activeFilterCount={activeFilterCount}
+        />
+      ) : null}
 
       {/* Loading skeletons */}
       {result.loading && (
