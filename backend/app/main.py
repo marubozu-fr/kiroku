@@ -9,6 +9,7 @@ from app.database import close_db, init_db
 from app.errors import DuplicateError, NotFoundError, ValidationError
 from app.models.response import ApiResponse
 from app.routers import (
+  analytics,
   assets,
   dashboard,
   emotions,
@@ -84,6 +85,7 @@ app.include_router(trades.router)
 app.include_router(screenshots.router)
 app.include_router(preferences.router)
 app.include_router(dashboard.router)
+app.include_router(analytics.router)
 
 
 @app.get("/api/health")
