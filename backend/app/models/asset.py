@@ -46,3 +46,9 @@ class AssetResponse(BaseModel):
   is_active: bool
   created_at: Optional[str] = None
   updated_at: Optional[str] = None
+
+
+class AssetTradeCount(BaseModel):
+  """Response schema for an asset's trade reference count."""
+
+  trade_count: int

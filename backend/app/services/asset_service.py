@@ -1,13 +1,18 @@
 from datetime import datetime, timezone
 from typing import Any
 
-from app.errors import DuplicateError, NotFoundError
+from app.database import database
+from app.errors import ConflictError, DuplicateError, NotFoundError
 from app.models.asset import AssetCreate, AssetUpdate
 from app.repositories import asset_repository
 
 
 class AssetNotFoundError(NotFoundError):
   """Raised when an asset id does not exist."""
+
+
+class AssetInUseError(ConflictError):
+  """Raised when an asset cannot be deleted because trades reference it."""
 
 
 class DuplicateAssetError(DuplicateError):
@@ -63,11 +68,23 @@ async def update_asset(asset_id: int, payload: AssetUpdate) -> dict[str, Any]:
   return updated
 
 
-async def delete_asset(asset_id: int) -> dict[str, Any]:
+async def count_trades(asset_id: int) -> int:
   existing = await asset_repository.get_by_id(asset_id)
   if existing is None:
     raise AssetNotFoundError(f"Asset {asset_id} not found")
-  await asset_repository.soft_delete(asset_id, _now())
-  deleted = await asset_repository.get_by_id(asset_id)
-  assert deleted is not None
-  return deleted
+  return await asset_repository.count_trades(asset_id)
+
+
+async def delete_asset(asset_id: int) -> None:
+  existing = await asset_repository.get_by_id(asset_id)
+  if existing is None:
+    raise AssetNotFoundError(f"Asset {asset_id} not found")
+
+  trade_count = await asset_repository.count_trades(asset_id)
+  if trade_count > 0:
+    raise AssetInUseError(
+      f"Asset is associated with {trade_count} trade(s) and cannot be deleted."
+    )
+
+  async with database.transaction():
+    await asset_repository.delete(asset_id)

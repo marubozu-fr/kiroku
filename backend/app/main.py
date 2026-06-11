@@ -6,7 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.database import close_db, init_db
-from app.errors import DuplicateError, NotFoundError, ValidationError
+from app.errors import (
+  ConflictError,
+  DuplicateError,
+  NotFoundError,
+  ValidationError,
+)
 from app.models.response import ApiResponse
 from app.routers import (
   analytics,
@@ -57,6 +62,13 @@ async def not_found_handler(
 @app.exception_handler(DuplicateError)
 async def duplicate_handler(
   request: Request, exc: DuplicateError
+) -> JSONResponse:
+  return _error_response(409, str(exc))
+
+
+@app.exception_handler(ConflictError)
+async def conflict_handler(
+  request: Request, exc: ConflictError
 ) -> JSONResponse:
   return _error_response(409, str(exc))
 
