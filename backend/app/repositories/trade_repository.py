@@ -124,6 +124,33 @@ async def list_recent_with_asset(
   return [dict(row) for row in rows]
 
 
+async def all_trade_tags() -> list[dict[str, Any]]:
+  """Return every (trade_id, tag_id) association across all trades."""
+  rows = await database.fetch_all("SELECT trade_id, tag_id FROM trade_tags")
+  return [dict(row) for row in rows]
+
+
+async def all_trade_emotions() -> list[dict[str, Any]]:
+  """Return every (trade_id, emotion_id) association across all trades."""
+  rows = await database.fetch_all("SELECT trade_id, emotion_id FROM trade_emotions")
+  return [dict(row) for row in rows]
+
+
+async def all_trade_durations() -> list[dict[str, Any]]:
+  """Return per-trade activity count and span in minutes.
+
+  `duration_minutes` is the gap between the earliest and latest activity dates
+  (0 for a single-activity trade). julianday() parses the ISO 8601 date strings;
+  multiplying the day difference by 1440 yields minutes.
+  """
+  rows = await database.fetch_all(
+    "SELECT trade_id, COUNT(*) AS activity_count, "
+    "(julianday(MAX(date)) - julianday(MIN(date))) * 1440 AS duration_minutes "
+    "FROM trade_activities GROUP BY trade_id"
+  )
+  return [dict(row) for row in rows]
+
+
 async def distinct_years() -> list[int]:
   """Return distinct years present in trade_date, descending."""
   rows = await database.fetch_all(
