@@ -54,12 +54,12 @@ pre-framed to phone width with the chart stacked above the stats.
 | Panel header | `Group` + chevron `ActionIcon` + active-count `Badge` | "Filters · N active" |
 | Filter grid | `SimpleGrid cols={{ base: 1, sm: 2, md: 4 }}` | responsive auto-fill |
 | Start Date | `DatePickerInput` | `start_date` — trims the historical sampling window |
-| Assets | `MultiSelect` | `asset_ids` — what-if analysis (empty = all assets) |
+| Assets | `MultiSelect` | `assets` — what-if analysis (empty = all assets) |
 | Goal (R) | `NumberInput ff="monospace"` | `goal_r` — optional annual R target (drives goal line + `goal_probability`) |
 | Reset | `Button variant="subtle"` | clears all params |
 
 Changing any filter re-runs the simulation
-(`GET /api/projections?start_date=&asset_ids=&goal_r=`).
+(`GET /api/projections?start_date=&assets=&goal_r=`).
 
 ### Stats cards (5-up)
 | UI element | Mantine component | Color rule |
@@ -270,7 +270,7 @@ Suggested response shape (for the implementer to confirm against the M5 API):
 }
 ```
 
-Query params: `start_date`, `asset_ids[]`, `goal_r`. `goal_probability` is
+Query params: `start_date`, `assets[]`, `goal_r`. `goal_probability` is
 present only when `goal_r` is set.
 
 ---
