@@ -1,0 +1,59 @@
+.wrapper {
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 600px;
+  table-layout: fixed;
+}
+
+.rowLabel {
+  width: 40px;
+  padding: 2px 6px 2px 0;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
+  text-align: right;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+.colHeader {
+  padding: 2px 1px;
+  font-size: 10px;
+  color: var(--mantine-color-dimmed);
+  text-align: center;
+  font-weight: normal;
+}
+
+.cell {
+  /* --cell-bg is set inline per-cell with the data-derived background color */
+  background-color: var(--cell-bg, var(--mantine-color-default-border));
+  height: 20px;
+  border-radius: 2px;
+  border: 1px solid var(--mantine-color-body);
+  cursor: default;
+  transition: opacity 0.1s ease;
+}
+
+.cell:hover {
+  opacity: 0.8;
+}
+
+.tooltip {
+  background: var(--mantine-color-body);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+}

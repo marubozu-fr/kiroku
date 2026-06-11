@@ -13,9 +13,12 @@ import {
   Title,
 } from '@mantine/core'
 import { AssetBreakdown } from '@/components/analytics/AssetBreakdown'
+import { CumulativeRCurve } from '@/components/analytics/CumulativeRCurve'
 import { FilterPanel } from '@/components/analytics/FilterPanel'
+import { RDistribution } from '@/components/analytics/RDistribution'
 import { StatisticsCards } from '@/components/analytics/StatisticsCards'
 import { TagBreakdown } from '@/components/analytics/TagBreakdown'
+import { TimeHeatmap } from '@/components/analytics/TimeHeatmap'
 import { useFetch } from '@/hooks/useFetch'
 import { useAnalyticsFilters } from '@/hooks/useAnalyticsFilters'
 import { fetchBreakdowns, fetchStatistics, fetchTrades } from '@/services/analytics'
@@ -146,6 +149,17 @@ export function AnalyticsPage() {
         <SimpleGrid cols={{ base: 1, lg: 2 }}>
           <AssetBreakdown data={data.breakdowns.by_asset} />
           <TagBreakdown data={data.breakdowns.by_tag} />
+        </SimpleGrid>
+      )}
+
+      {/* Time heatmap — full width */}
+      {hasData && <TimeHeatmap data={data.breakdowns.by_day_hour} />}
+
+      {/* R-Multiple distribution + Cumulative R-Curve side by side */}
+      {hasData && (
+        <SimpleGrid cols={{ base: 1, lg: 2 }}>
+          <RDistribution data={data.breakdowns.r_distribution} />
+          <CumulativeRCurve data={data.breakdowns.cumulative_r} />
         </SimpleGrid>
       )}
 

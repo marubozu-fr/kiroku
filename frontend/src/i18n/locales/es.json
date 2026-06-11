@@ -19,6 +19,15 @@
     },
     "notifications": {
       "error_title": "Algo ha salido mal"
+    },
+    "days": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb",
+      "sun": "Dom"
     }
   },
   "app": {
@@ -156,6 +165,38 @@
         "win_rate": "Win Rate",
         "avg_pnl": "P&L medio",
         "profit_factor": "Profit Factor"
+      }
+    },
+    "charts": {
+      "heatmap": {
+        "title": "Mapa de calor temporal",
+        "empty": "No hay trades con fecha para este período.",
+        "tooltip": {
+          "trades": "Trades",
+          "win_rate": "Win Rate",
+          "pnl": "Total P&L"
+        }
+      },
+      "r_distribution": {
+        "title": "Distribución R-Multiple",
+        "empty": "No hay trades valorados para este período.",
+        "x_axis": "Rango R-Multiple",
+        "y_axis": "Trades",
+        "tooltip": {
+          "range": "Rango",
+          "trades": "Trades",
+          "percentage": "del total"
+        }
+      },
+      "cumulative_r": {
+        "title": "Curva R Acumulado",
+        "empty": "No hay trades valorados para este período.",
+        "y_axis": "R Acumulado",
+        "tooltip": {
+          "date": "Fecha",
+          "trade_pnl": "P&L del trade",
+          "cumulative": "R Acumulado"
+        }
       }
     }
   },
