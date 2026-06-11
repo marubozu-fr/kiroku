@@ -253,7 +253,9 @@
         "p50": "Projection P50 (median)",
         "p25_p75": "P25–P75",
         "p10_p90": "P10–P90",
-        "goal": "Goal"
+        "goal": "Goal",
+        "comp_p50": "{{label}} P50",
+        "comp_band": "Selected P25–P75"
       },
       "tooltip": {
         "actual": "Actual",
@@ -262,8 +264,26 @@
         "p50": "P50 (median)",
         "p25": "P25",
         "p10": "P10",
-        "goal": "Goal"
+        "goal": "Goal",
+        "comp_p90": "P90",
+        "comp_p75": "P75",
+        "comp_p50": "P50 (median)",
+        "comp_p25": "P25",
+        "comp_p10": "P10"
       }
+    },
+    "goal_card": {
+      "label": "Goal Probability",
+      "sentence": "{{pct}}% chance of reaching {{target}} by Dec"
+    },
+    "comparison": {
+      "toggle": "Show selected-asset overlay",
+      "col_all": "All assets",
+      "col_selected": "Selected assets",
+      "expectancy": "Expectancy",
+      "win_rate": "Win Rate",
+      "median_end": "Median year-end",
+      "note": "What if you traded only {{assets}} for the rest of the year? The fan above shows the projected outcome re-anchored to today's cumulative R."
     },
     "empty": {
       "title": "No trades to project yet",

@@ -253,7 +253,9 @@
         "p50": "Projection P50 (médiane)",
         "p25_p75": "P25–P75",
         "p10_p90": "P10–P90",
-        "goal": "Objectif"
+        "goal": "Objectif",
+        "comp_p50": "{{label}} P50",
+        "comp_band": "Sélection P25–P75"
       },
       "tooltip": {
         "actual": "Réel",
@@ -262,8 +264,26 @@
         "p50": "P50 (médiane)",
         "p25": "P25",
         "p10": "P10",
-        "goal": "Objectif"
+        "goal": "Objectif",
+        "comp_p90": "P90",
+        "comp_p75": "P75",
+        "comp_p50": "P50 (médiane)",
+        "comp_p25": "P25",
+        "comp_p10": "P10"
       }
+    },
+    "goal_card": {
+      "label": "Probabilité d'objectif",
+      "sentence": "{{pct}}% de chances d'atteindre {{target}} en déc."
+    },
+    "comparison": {
+      "toggle": "Afficher la superposition des instruments sélectionnés",
+      "col_all": "Tous les instruments",
+      "col_selected": "Instruments sélectionnés",
+      "expectancy": "Expectancy",
+      "win_rate": "Win Rate",
+      "median_end": "Médiane fin d'année",
+      "note": "Et si vous ne tradiez que {{assets}} pour le reste de l'année ? L'éventail ci-dessus montre la projection recalée sur le R cumulé actuel."
     },
     "empty": {
       "title": "Aucun trade à projeter pour l'instant",

@@ -1,12 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { Card, SimpleGrid, Text } from '@mantine/core'
 import { formatR, signedColor } from '@/components/journal/format'
-import type { GoalResult, ProjectionStats as ProjectionStatsType, RiskResult } from '@/types/projections'
+import type { ProjectionStats as ProjectionStatsType, RiskResult } from '@/types/projections'
 import styles from './ProjectionStats.module.css'
 
 interface ProjectionStatsProps {
   stats: ProjectionStatsType
-  goal: GoalResult | null
   risk: RiskResult
 }
 
@@ -39,7 +38,7 @@ function StatCard({ label, value, sub, valueColor }: StatCardProps) {
   )
 }
 
-export function ProjectionStats({ stats, goal, risk }: ProjectionStatsProps) {
+export function ProjectionStats({ stats, risk }: ProjectionStatsProps) {
   const { t } = useTranslation()
 
   const winRateColor = stats.win_rate >= 50 ? 'green.6' : 'red.6'
@@ -48,7 +47,7 @@ export function ProjectionStats({ stats, goal, risk }: ProjectionStatsProps) {
   const ruinColor = risk.ruin_probability > 0.05 ? 'orange' : undefined
 
   return (
-    <SimpleGrid cols={{ base: 2, sm: 3, lg: 5 }}>
+    <SimpleGrid cols={{ base: 2, sm: 3, lg: 4 }}>
       {/* 1. Expectancy */}
       <StatCard
         label={t('projections.stats.expectancy')}
@@ -75,18 +74,7 @@ export function ProjectionStats({ stats, goal, risk }: ProjectionStatsProps) {
         sub={t('projections.stats.std_deviation_sub')}
       />
 
-      {/* 4. Goal Probability — shown only when a goal is set */}
-      {goal && (
-        <StatCard
-          label={t('projections.stats.goal_probability')}
-          value={`${(goal.probability * 100).toFixed(0)}%`}
-          sub={t('projections.stats.goal_probability_sub', {
-            target: formatR(goal.target_r),
-          })}
-        />
-      )}
-
-      {/* 5. Risk of Ruin */}
+      {/* 4. Risk of Ruin */}
       <StatCard
         label={t('projections.stats.risk_of_ruin')}
         value={`${(risk.ruin_probability * 100).toFixed(1)}%`}

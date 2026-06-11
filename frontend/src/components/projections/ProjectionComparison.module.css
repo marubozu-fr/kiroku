@@ -1,0 +1,38 @@
+.colHeader {
+  letter-spacing: 0.04em;
+}
+
+.statsBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--mantine-spacing-sm);
+}
+
+.rowLabel {
+  flex: 0 0 auto;
+  letter-spacing: 0.04em;
+}
+
+.rowValues {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--mantine-spacing-md);
+  flex: 1 1 auto;
+}
+
+.rowValues > * {
+  text-align: right;
+}
+
+.note {
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding-top: var(--mantine-spacing-xs);
+  font-style: italic;
+}

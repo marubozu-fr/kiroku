@@ -17,10 +17,23 @@ import { formatR, signedColor } from '@/components/journal/format'
 import type { ActualMonth, GoalResult, ProjectedMonth } from '@/types/projections'
 import styles from './ProjectionChart.module.css'
 
+/**
+ * Optional comparison fan — the projected months from a selected-asset
+ * sub-set, already re-anchored so the fan starts at the same "now" point as
+ * the main fan (see offset computation in ProjectionsPage).
+ */
+export interface ComparisonFan {
+  projectedMonths: ProjectedMonth[]
+  /** R offset added to each percentile so the fan originates at mainLastActual. */
+  offset: number
+  label: string
+}
+
 interface ProjectionChartProps {
   actualMonths: ActualMonth[]
   projectedMonths: ProjectedMonth[]
   goal: GoalResult | null
+  comparison?: ComparisonFan
 }
 
 /**
@@ -43,6 +56,14 @@ interface ChartEntry {
   p25?: number
   p75?: number
   p90?: number
+  /** Comparison (selected-asset) re-anchored percentiles */
+  comp_p50?: number
+  comp_p10_p90?: [number, number]
+  comp_p25_p75?: [number, number]
+  comp_p10?: number
+  comp_p25?: number
+  comp_p75?: number
+  comp_p90?: number
   /** True for the last actual month (the "now" point where both series meet) */
   isTransition?: boolean
 }
@@ -50,6 +71,7 @@ interface ChartEntry {
 function buildEntries(
   actualMonths: ActualMonth[],
   projectedMonths: ProjectedMonth[],
+  comparison?: ComparisonFan,
 ): ChartEntry[] {
   const entries: ChartEntry[] = []
 
@@ -115,10 +137,49 @@ function buildEntries(
   }
   void lastActualValue
 
+  // Merge comparison fan data if present.
+  // The offset was computed in ProjectionsPage as (mainLastActual - compLastActual),
+  // so adding it to every comparison percentile re-bases the comparison fan to
+  // originate at the same "now" point as the main fan (TraderPro concept).
+  if (comparison) {
+    for (const cp of comparison.projectedMonths) {
+      const off = comparison.offset
+      const p10 = cp.p10 + off
+      const p25 = cp.p25 + off
+      const p50 = cp.p50 + off
+      const p75 = cp.p75 + off
+      const p90 = cp.p90 + off
+
+      const existing = entries.find((e) => e.month === cp.month)
+      if (existing) {
+        existing.comp_p50 = p50
+        existing.comp_p10_p90 = [p10, p90 - p10]
+        existing.comp_p25_p75 = [p25, p75 - p25]
+        existing.comp_p10 = p10
+        existing.comp_p25 = p25
+        existing.comp_p75 = p75
+        existing.comp_p90 = p90
+      } else {
+        entries.push({
+          month: cp.month,
+          label: cp.label,
+          comp_p50: p50,
+          comp_p10_p90: [p10, p90 - p10],
+          comp_p25_p75: [p25, p75 - p25],
+          comp_p10: p10,
+          comp_p25: p25,
+          comp_p75: p75,
+          comp_p90: p90,
+        })
+      }
+    }
+    entries.sort((a, b) => a.month - b.month)
+  }
+
   return entries
 }
 
-function makeTooltip(goal: GoalResult | null) {
+function makeTooltip(goal: GoalResult | null, comparisonLabel?: string) {
   return function ProjectionTooltip({ active, payload, label }: TooltipContentProps) {
     const { t } = useTranslation()
 
@@ -190,6 +251,56 @@ function makeTooltip(goal: GoalResult | null) {
           </>
         )}
 
+        {/* Comparison percentiles (selected assets, re-anchored) */}
+        {entry.comp_p50 !== undefined && comparisonLabel && (
+          <>
+            <div className={styles.tooltipSeparator} />
+            <Text size="xs" c="violet.4" fw={600} mb={2}>
+              {comparisonLabel}
+            </Text>
+            <div className={styles.tooltipRow}>
+              <Text size="xs" c="dimmed">
+                {t('projections.chart.tooltip.comp_p90')}
+              </Text>
+              <Text size="xs" ff="monospace">
+                {formatR(entry.comp_p90 ?? null)}
+              </Text>
+            </div>
+            <div className={styles.tooltipRow}>
+              <Text size="xs" c="dimmed">
+                {t('projections.chart.tooltip.comp_p75')}
+              </Text>
+              <Text size="xs" ff="monospace">
+                {formatR(entry.comp_p75 ?? null)}
+              </Text>
+            </div>
+            <div className={styles.tooltipRow}>
+              <Text size="xs" c="dimmed" fw={600}>
+                {t('projections.chart.tooltip.comp_p50')}
+              </Text>
+              <Text size="xs" ff="monospace" fw={600} c="violet.4">
+                {formatR(entry.comp_p50)}
+              </Text>
+            </div>
+            <div className={styles.tooltipRow}>
+              <Text size="xs" c="dimmed">
+                {t('projections.chart.tooltip.comp_p25')}
+              </Text>
+              <Text size="xs" ff="monospace">
+                {formatR(entry.comp_p25 ?? null)}
+              </Text>
+            </div>
+            <div className={styles.tooltipRow}>
+              <Text size="xs" c="dimmed">
+                {t('projections.chart.tooltip.comp_p10')}
+              </Text>
+              <Text size="xs" ff="monospace">
+                {formatR(entry.comp_p10 ?? null)}
+              </Text>
+            </div>
+          </>
+        )}
+
         {goal && (
           <div className={styles.tooltipRow}>
             <Text size="xs" c="dimmed">
@@ -205,15 +316,23 @@ function makeTooltip(goal: GoalResult | null) {
   }
 }
 
-export function ProjectionChart({ actualMonths, projectedMonths, goal }: ProjectionChartProps) {
+export function ProjectionChart({
+  actualMonths,
+  projectedMonths,
+  goal,
+  comparison,
+}: ProjectionChartProps) {
   const { t } = useTranslation()
 
   const entries = useMemo(
-    () => buildEntries(actualMonths, projectedMonths),
-    [actualMonths, projectedMonths],
+    () => buildEntries(actualMonths, projectedMonths, comparison),
+    [actualMonths, projectedMonths, comparison],
   )
 
-  const TooltipContent = useMemo(() => makeTooltip(goal), [goal])
+  const TooltipContent = useMemo(
+    () => makeTooltip(goal, comparison?.label),
+    [goal, comparison?.label],
+  )
 
   // Find the transition month label for the "now" reference line
   const transitionLabel = useMemo(() => {
@@ -366,6 +485,51 @@ export function ProjectionChart({ actualMonths, projectedMonths, goal }: Project
             isAnimationActive={false}
             connectNulls
           />
+
+          {/* --- Comparison fan (selected assets, violet/grape) --- */}
+          {comparison && (
+            <>
+              {/* Comp P10–P90 outer band */}
+              <Area
+                type="monotone"
+                dataKey="comp_p10_p90"
+                stroke="none"
+                fill="var(--mantine-color-violet-6)"
+                fillOpacity={0.1}
+                dot={false}
+                isAnimationActive={false}
+                legendType="none"
+                activeDot={false}
+                connectNulls
+              />
+
+              {/* Comp P25–P75 inner band */}
+              <Area
+                type="monotone"
+                dataKey="comp_p25_p75"
+                stroke="none"
+                fill="var(--mantine-color-violet-6)"
+                fillOpacity={0.22}
+                dot={false}
+                isAnimationActive={false}
+                legendType="none"
+                activeDot={false}
+                connectNulls
+              />
+
+              {/* Comp P50 median line */}
+              <Line
+                type="monotone"
+                dataKey="comp_p50"
+                stroke="var(--mantine-color-violet-5)"
+                strokeWidth={2}
+                strokeDasharray="5 3"
+                dot={false}
+                isAnimationActive={false}
+                connectNulls
+              />
+            </>
+          )}
         </ComposedChart>
       </ResponsiveContainer>
 
@@ -402,6 +566,22 @@ export function ProjectionChart({ actualMonths, projectedMonths, goal }: Project
               {t('projections.chart.legend.goal')} {formatR(goal.target_r)}
             </Text>
           </span>
+        )}
+        {comparison && (
+          <>
+            <span className={styles.legendItem}>
+              <span className={styles.legendLineCompP50} />
+              <Text size="xs" c="dimmed">
+                {t('projections.chart.legend.comp_p50', { label: comparison.label })}
+              </Text>
+            </span>
+            <span className={styles.legendItem}>
+              <span className={styles.legendSwatchCompInner} />
+              <Text size="xs" c="dimmed">
+                {t('projections.chart.legend.comp_band')}
+              </Text>
+            </span>
+          </>
         )}
       </Group>
     </Card>

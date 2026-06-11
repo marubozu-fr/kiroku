@@ -253,7 +253,9 @@
         "p50": "Projeção P50 (mediana)",
         "p25_p75": "P25–P75",
         "p10_p90": "P10–P90",
-        "goal": "Meta"
+        "goal": "Meta",
+        "comp_p50": "{{label}} P50",
+        "comp_band": "Seleção P25–P75"
       },
       "tooltip": {
         "actual": "Real",
@@ -262,8 +264,26 @@
         "p50": "P50 (mediana)",
         "p25": "P25",
         "p10": "P10",
-        "goal": "Meta"
+        "goal": "Meta",
+        "comp_p90": "P90",
+        "comp_p75": "P75",
+        "comp_p50": "P50 (mediana)",
+        "comp_p25": "P25",
+        "comp_p10": "P10"
       }
+    },
+    "goal_card": {
+      "label": "Probabilidade de meta",
+      "sentence": "{{pct}}% de hipótese de atingir {{target}} até dez."
+    },
+    "comparison": {
+      "toggle": "Mostrar sobreposição de ativos selecionados",
+      "col_all": "Todos os ativos",
+      "col_selected": "Ativos selecionados",
+      "expectancy": "Expectancy",
+      "win_rate": "Win Rate",
+      "median_end": "Mediana fim de ano",
+      "note": "E se negociasse apenas {{assets}} pelo resto do ano? O leque mostra a projeção reancorada no R acumulado atual."
     },
     "empty": {
       "title": "Ainda não há trades para projetar",
