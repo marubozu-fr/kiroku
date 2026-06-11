@@ -12,7 +12,7 @@ import { jsonResponse, renderWithProviders } from '@/test/utils'
 
 const asset: Asset = {
   id: 1,
-  name: 'EUR/USD',
+  name: 'EUR',
   category: 'Forex',
   currency: 'USD',
   is_active: true,

@@ -202,7 +202,7 @@ function lastSaveBody(fetchMock: ReturnType<typeof stubApi>): TradeDetail & Reco
 /** Fill the minimum required fields for a valid create: direction, entry, stop loss. */
 function fillRequired() {
   fireEvent.click(screen.getByPlaceholderText('Pick an asset'))
-  fireEvent.click(screen.getByText('EUR/USD'))
+  fireEvent.click(screen.getByText('EUR/USD (USD)'))
   fireEvent.click(screen.getByText('Long'))
   fireEvent.change(screen.getByLabelText('Quantity'), { target: { value: '1000' } })
   fireEvent.change(screen.getByLabelText('Price'), { target: { value: '1.08' } })
@@ -349,7 +349,7 @@ describe('TradeFormPage — edit mode', () => {
 
     expect(await screen.findByText('Edit trade')).toBeInTheDocument()
 
-    expect(await screen.findByDisplayValue('EUR/USD')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('EUR/USD (USD)')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Followed the plan.')).toBeInTheDocument()
     expect(screen.getByLabelText('Risk per trade (%)')).toHaveValue('1.5%')
 

@@ -22,6 +22,7 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { formatR, formatLocalDate, signedColor } from '@/components/journal/format'
+import { formatAssetLabel } from '@/utils/format'
 import { formatDuration } from '@/components/analytics/format'
 import { formatTimeframeGroup } from '@/components/trade-detail/format'
 import { useFetch } from '@/hooks/useFetch'
@@ -231,11 +232,7 @@ export function TradesTable({ filters }: TradesTableProps) {
                         </Group>
                       </Table.Td>
                       <Table.Td>
-                        {trade.asset_name
-                          ? trade.asset_currency
-                            ? `${trade.asset_name}/${trade.asset_currency}`
-                            : trade.asset_name
-                          : '—'}
+                        {formatAssetLabel(trade.asset_name, trade.asset_currency)}
                       </Table.Td>
                       <Table.Td ta="center">
                         {trade.direction === 'Long' ? (

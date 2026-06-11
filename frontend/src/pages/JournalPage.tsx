@@ -27,6 +27,7 @@ import { TradeTable } from '@/components/journal/TradeTable'
 import { useFetch } from '@/hooks/useFetch'
 import { assetsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
+import { formatAssetLabel } from '@/utils/format'
 
 type JournalView = 'calendar' | 'list'
 
@@ -86,7 +87,8 @@ export function JournalPage() {
     (assetId: number | null): string => {
       if (assetId === null) return '—'
       const match = (assets.data ?? []).find((asset) => asset.id === assetId)
-      return match?.name ?? '—'
+      if (!match) return '—'
+      return formatAssetLabel(match.name, match.currency)
     },
     [assets.data],
   )

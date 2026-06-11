@@ -53,6 +53,14 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, asset])
 
+  // Non-blocking UX hint: a "/" in the name usually means the user typed a
+  // pair (e.g. "EUR/USD") instead of the base name. Shown in orange (the
+  // theme's error color) but never blocks submission.
+  const nameProps = form.getInputProps('name')
+  const nameSlashHint = form.values.name.includes('/')
+    ? t('settings.assets.form.name_slash_hint')
+    : null
+
   const handleSubmit = form.onSubmit(async (values) => {
     const payload = {
       name: values.name.trim(),
@@ -91,7 +99,8 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
             label={t('settings.assets.form.name_label')}
             placeholder={t('settings.assets.form.name_placeholder')}
             withAsterisk
-            {...form.getInputProps('name')}
+            {...nameProps}
+            error={nameProps.error ?? nameSlashHint}
           />
           <Select
             label={t('settings.assets.form.category_label')}

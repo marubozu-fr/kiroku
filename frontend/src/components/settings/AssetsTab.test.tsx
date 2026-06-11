@@ -68,6 +68,27 @@ describe('AssetsTab', () => {
     expect(within(dialog).getByLabelText(/name/i)).toHaveValue('')
   })
 
+  it('shows a non-blocking hint when the name contains a slash', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse([])))
+
+    renderWithProviders(<AssetsTab />)
+    await screen.findByText(/no assets yet/i)
+
+    fireEvent.click(screen.getByRole('button', { name: /add asset/i }))
+    const dialog = await screen.findByRole('dialog')
+
+    const nameInput = within(dialog).getByLabelText(/name/i)
+    fireEvent.change(nameInput, { target: { value: 'EUR/USD' } })
+
+    expect(await within(dialog).findByText(/use the currency field/i)).toBeInTheDocument()
+
+    // Hint clears once the slash is removed.
+    fireEvent.change(nameInput, { target: { value: 'EUR' } })
+    await waitFor(() =>
+      expect(within(dialog).queryByText(/use the currency field/i)).not.toBeInTheDocument(),
+    )
+  })
+
   it('deactivates an active asset via the toggle', async () => {
     const fetchMock = vi.fn(async (_input: string, init?: RequestInit) => {
       if (init?.method === 'DELETE') {
