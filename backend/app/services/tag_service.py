@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any
 
+from app.database import database
 from app.errors import DuplicateError, NotFoundError
 from app.models.tag import TagCreate, TagUpdate
 from app.repositories import tag_repository
@@ -61,11 +62,16 @@ async def update_tag(tag_id: int, payload: TagUpdate) -> dict[str, Any]:
   return updated
 
 
-async def delete_tag(tag_id: int) -> dict[str, Any]:
+async def count_trades(tag_id: int) -> int:
   existing = await tag_repository.get_by_id(tag_id)
   if existing is None:
     raise TagNotFoundError(f"Tag {tag_id} not found")
-  await tag_repository.soft_delete(tag_id, _now())
-  deleted = await tag_repository.get_by_id(tag_id)
-  assert deleted is not None
-  return deleted
+  return await tag_repository.count_trades(tag_id)
+
+
+async def delete_tag(tag_id: int) -> None:
+  existing = await tag_repository.get_by_id(tag_id)
+  if existing is None:
+    raise TagNotFoundError(f"Tag {tag_id} not found")
+  async with database.transaction():
+    await tag_repository.delete(tag_id)

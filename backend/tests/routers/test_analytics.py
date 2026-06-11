@@ -733,8 +733,8 @@ def test_breakdowns_by_tag_includes_archived_tag() -> None:
     tag_id = _create_tag(client, "OldStrategy")
     _trade(client, asset_id, "2024-01-10", 120.0, tag_ids=[tag_id])  # +2R
 
-    # Soft-delete the tag.
-    resp = client.delete(f"/api/tags/{tag_id}")
+    # Archive the tag (hide it from the selector without removing it).
+    resp = client.put(f"/api/tags/{tag_id}", json={"is_active": False})
     assert resp.status_code == 200, resp.text
 
     data = _breakdowns(client)
