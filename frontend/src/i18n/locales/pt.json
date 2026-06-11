@@ -31,7 +31,8 @@
     }
   },
   "app": {
-    "toggle_color_scheme": "Alternar o esquema de cores"
+    "toggle_color_scheme": "Alternar o esquema de cores",
+    "logo_alt": "Logótipo Kiroku"
   },
   "nav": {
     "dashboard": "Dashboard",

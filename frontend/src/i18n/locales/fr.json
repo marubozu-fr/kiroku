@@ -31,7 +31,8 @@
     }
   },
   "app": {
-    "toggle_color_scheme": "Basculer le thème de couleur"
+    "toggle_color_scheme": "Basculer le thème de couleur",
+    "logo_alt": "Logo Kiroku"
   },
   "nav": {
     "dashboard": "Tableau de bord",
