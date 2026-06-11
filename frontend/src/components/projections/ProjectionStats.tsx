@@ -45,7 +45,7 @@ export function ProjectionStats({ stats, goal, risk }: ProjectionStatsProps) {
   const winRateColor = stats.win_rate >= 50 ? 'green.6' : 'red.6'
 
   // Risk of ruin: orange above 5%, otherwise dimmed (neutral — not a money value)
-  const ruinColor = risk.ruin_probability > 5 ? 'orange' : undefined
+  const ruinColor = risk.ruin_probability > 0.05 ? 'orange' : undefined
 
   return (
     <SimpleGrid cols={{ base: 2, sm: 3, lg: 5 }}>
@@ -89,7 +89,7 @@ export function ProjectionStats({ stats, goal, risk }: ProjectionStatsProps) {
       {/* 5. Risk of Ruin */}
       <StatCard
         label={t('projections.stats.risk_of_ruin')}
-        value={`${risk.ruin_probability.toFixed(1)}%`}
+        value={`${(risk.ruin_probability * 100).toFixed(1)}%`}
         sub={t('projections.stats.risk_of_ruin_sub')}
         valueColor={ruinColor}
       />
