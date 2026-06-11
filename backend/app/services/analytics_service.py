@@ -600,9 +600,25 @@ def _sort_key(sort_by: str):
   )
 
 
-def _trade_item(t: dict[str, Any]) -> dict[str, Any]:
+def _trade_item(
+  t: dict[str, Any],
+  tag_names: dict[int, str],
+  emotion_info: dict[int, dict[str, str]],
+) -> dict[str, Any]:
   """Shape a trade row for the analytics list response."""
   minutes = t.get("duration_minutes")
+  tags = sorted(
+    [{"id": tid, "name": tag_names.get(tid, "")} for tid in t.get("tag_ids", [])],
+    key=lambda x: x["name"],
+  )
+  emotions = sorted(
+    [
+      {"id": eid, "name": emotion_info[eid]["name"], "severity": emotion_info[eid]["severity"]}
+      for eid in t.get("emotion_ids", [])
+      if eid in emotion_info
+    ],
+    key=lambda x: x["name"],
+  )
   return {
     "id": t["id"],
     "asset_id": t.get("asset_id"),
@@ -611,6 +627,8 @@ def _trade_item(t: dict[str, Any]) -> dict[str, Any]:
     "account_type": t["account_type"],
     "status": t["status"],
     "direction": t.get("direction"),
+    "tags": tags,
+    "emotions": emotions,
     "performance_r": t.get("performance_r"),
     "timeframe_unit": t.get("timeframe_unit"),
     "timeframe_value": t.get("timeframe_value"),
@@ -640,8 +658,14 @@ async def get_trades(
   start = (page - 1) * per_page
   items = ordered[start:start + per_page]
 
+  tag_names = {row["id"]: row["name"] for row in await tag_repository.get_all()}
+  emotion_info = {
+    row["id"]: {"name": row["name"], "severity": row["severity"]}
+    for row in await emotion_repository.get_all()
+  }
+
   return {
-    "trades": [_trade_item(t) for t in items],
+    "trades": [_trade_item(t, tag_names, emotion_info) for t in items],
     "pagination": {
       "page": page,
       "per_page": per_page,

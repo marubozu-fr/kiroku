@@ -19,20 +19,19 @@ import { RDistribution } from '@/components/analytics/RDistribution'
 import { StatisticsCards } from '@/components/analytics/StatisticsCards'
 import { TagBreakdown } from '@/components/analytics/TagBreakdown'
 import { TimeHeatmap } from '@/components/analytics/TimeHeatmap'
+import { TradesTable } from '@/components/analytics/TradesTable'
 import { useFetch } from '@/hooks/useFetch'
 import { useAnalyticsFilters } from '@/hooks/useAnalyticsFilters'
-import { fetchBreakdowns, fetchStatistics, fetchTrades } from '@/services/analytics'
+import { fetchBreakdowns, fetchStatistics } from '@/services/analytics'
 import type {
   AnalyticsBreakdownsResponse,
   AnalyticsFilters,
   AnalyticsStatisticsResponse,
-  AnalyticsTradesResponse,
 } from '@/types/analytics'
 
 interface AllAnalyticsData {
   statistics: AnalyticsStatisticsResponse
   breakdowns: AnalyticsBreakdownsResponse
-  trades: AnalyticsTradesResponse
 }
 
 /**
@@ -57,8 +56,7 @@ export function AnalyticsPage() {
         Promise.all([
           fetchStatistics(filtersRef.current, signal),
           fetchBreakdowns(filtersRef.current, signal),
-          fetchTrades(filtersRef.current, 1, 20, signal),
-        ]).then(([statistics, breakdowns, trades]) => ({ statistics, breakdowns, trades })),
+        ]).then(([statistics, breakdowns]) => ({ statistics, breakdowns })),
       [],
     ),
   )
@@ -163,14 +161,8 @@ export function AnalyticsPage() {
         </SimpleGrid>
       )}
 
-      {/* Trades table placeholder */}
-      {hasData && (
-        <Card padding="md" radius="md" withBorder>
-          <Text c="dimmed" size="sm">
-            {t('analytics.placeholder.trades')}
-          </Text>
-        </Card>
-      )}
+      {/* Trades table */}
+      {hasData && <TradesTable filters={debouncedFilters} />}
     </Stack>
   )
 }

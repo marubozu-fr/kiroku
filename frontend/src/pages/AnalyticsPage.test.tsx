@@ -5,7 +5,6 @@ import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import type {
   AnalyticsBreakdownsResponse,
   AnalyticsStatisticsResponse,
-  AnalyticsTradesResponse,
   StatisticsData,
 } from '@/types/analytics'
 import { renderWithProviders } from '@/test/utils'
@@ -20,7 +19,12 @@ vi.mock('@/services/analytics', () => ({
   fetchTrades: vi.fn(),
 }))
 
-import { fetchBreakdowns, fetchStatistics, fetchTrades } from '@/services/analytics'
+import { fetchBreakdowns, fetchStatistics } from '@/services/analytics'
+
+// TradesTable fetches its own data — stub it to avoid noise in page-level tests.
+vi.mock('@/components/analytics/TradesTable', () => ({
+  TradesTable: () => <div data-testid="trades-table-stub" />,
+}))
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -66,11 +70,6 @@ const BREAKDOWNS_RESPONSE: AnalyticsBreakdownsResponse = {
   cumulative_r: [],
 }
 
-const TRADES_RESPONSE: AnalyticsTradesResponse = {
-  trades: [],
-  pagination: { page: 1, per_page: 20, total: 0, total_pages: 0 },
-}
-
 function stubSuccessfulFetch(statsOverride?: Partial<StatisticsData>) {
   const statsResponse: AnalyticsStatisticsResponse = {
     ...STATISTICS_RESPONSE,
@@ -78,14 +77,12 @@ function stubSuccessfulFetch(statsOverride?: Partial<StatisticsData>) {
   }
   vi.mocked(fetchStatistics).mockResolvedValue(statsResponse)
   vi.mocked(fetchBreakdowns).mockResolvedValue(BREAKDOWNS_RESPONSE)
-  vi.mocked(fetchTrades).mockResolvedValue(TRADES_RESPONSE)
 }
 
 function stubFailingFetch() {
   const error = new Error('Network error')
   vi.mocked(fetchStatistics).mockRejectedValue(error)
   vi.mocked(fetchBreakdowns).mockRejectedValue(error)
-  vi.mocked(fetchTrades).mockRejectedValue(error)
 }
 
 // ---------------------------------------------------------------------------
@@ -123,7 +120,6 @@ describe('AnalyticsPage', () => {
     // Arrange: never resolves
     vi.mocked(fetchStatistics).mockReturnValue(new Promise(() => {}))
     vi.mocked(fetchBreakdowns).mockReturnValue(new Promise(() => {}))
-    vi.mocked(fetchTrades).mockReturnValue(new Promise(() => {}))
 
     renderAnalytics()
 
@@ -165,7 +161,7 @@ describe('AnalyticsPage', () => {
     expect(retryButton).toBeInTheDocument()
   })
 
-  it('renders placeholder slots when data is populated', async () => {
+  it('renders chart sections and trades table when data is populated', async () => {
     stubSuccessfulFetch()
     renderAnalytics()
 
@@ -173,7 +169,7 @@ describe('AnalyticsPage', () => {
 
     expect(screen.getByText('Asset Breakdown')).toBeInTheDocument()
     expect(screen.getByText('Tag Breakdown')).toBeInTheDocument()
-    expect(screen.getByText('Trades table — coming soon')).toBeInTheDocument()
+    expect(screen.getByTestId('trades-table-stub')).toBeInTheDocument()
   })
 
   it('renders the page header with title and subtitle', async () => {

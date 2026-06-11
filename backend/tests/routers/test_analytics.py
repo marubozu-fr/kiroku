@@ -955,3 +955,112 @@ def test_breakdowns_response_envelope_shape() -> None:
   assert len(data["r_distribution"]) == 14
   assert data["r_distribution"][0]["bucket"] == "< -3.0"
   assert data["r_distribution"][-1]["bucket"] == "3.0+"
+
+
+# ---------------------------------------------------------------------------
+# 29. Trades endpoint — tags and emotions on each row
+# ---------------------------------------------------------------------------
+
+
+def test_trades_includes_tags_and_emotions() -> None:
+  """A trade row in /api/analytics/trades must include its tags and emotions."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    tag_id = _create_tag(client, "Breakout")
+    emotion_id = _create_emotion(client, "Confident")
+
+    trade_id = _trade(
+      client,
+      asset_id,
+      "2024-01-10",
+      120.0,
+      tag_ids=[tag_id],
+      emotion_ids=[emotion_id],
+    )
+
+    data = _trades(client)
+
+  row = next(t for t in data["trades"] if t["id"] == trade_id)
+  assert row["tags"] == [{"id": tag_id, "name": "Breakout"}]
+  assert row["emotions"] == [{"id": emotion_id, "name": "Confident", "severity": "Good"}]
+
+
+def test_trades_empty_tags_and_emotions_when_none() -> None:
+  """A trade with no tags or emotions returns empty lists for both fields."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = _trade(client, asset_id, "2024-01-10", 120.0)
+
+    data = _trades(client)
+
+  row = next(t for t in data["trades"] if t["id"] == trade_id)
+  assert row["tags"] == []
+  assert row["emotions"] == []
+
+
+def test_trades_emotion_severity_propagated() -> None:
+  """Emotion severity value (Good/Warning/Bad) is present on the trade row."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    # Create emotions with distinct severities.
+    e_good = _create_emotion(client, "Confident")
+    resp_warn = client.post(
+      "/api/emotions",
+      json={"name": "Anxious", "severity": "Warning", "category": "Emotional State"},
+    )
+    assert resp_warn.status_code == 201, resp_warn.text
+    e_warning = resp_warn.json()["data"]["id"]
+    resp_bad = client.post(
+      "/api/emotions",
+      json={"name": "Fearful", "severity": "Bad", "category": "Emotional State"},
+    )
+    assert resp_bad.status_code == 201, resp_bad.text
+    e_bad = resp_bad.json()["data"]["id"]
+
+    trade_id = _trade(
+      client,
+      asset_id,
+      "2024-01-10",
+      120.0,
+      emotion_ids=[e_good, e_warning, e_bad],
+    )
+
+    data = _trades(client)
+
+  row = next(t for t in data["trades"] if t["id"] == trade_id)
+  by_name = {e["name"]: e for e in row["emotions"]}
+  assert by_name["Confident"]["severity"] == "Good"
+  assert by_name["Anxious"]["severity"] == "Warning"
+  assert by_name["Fearful"]["severity"] == "Bad"
+
+
+def test_trades_tags_and_emotions_sorted_by_name() -> None:
+  """Tags and emotions on each trade row are sorted alphabetically by name."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    t_z = _create_tag(client, "Zebra")
+    t_a = _create_tag(client, "Alpha")
+    e_z = _create_emotion(client, "Zen")
+    resp_e_a = client.post(
+      "/api/emotions",
+      json={"name": "Angry", "severity": "Bad", "category": "Emotional State"},
+    )
+    assert resp_e_a.status_code == 201, resp_e_a.text
+    e_a = resp_e_a.json()["data"]["id"]
+
+    trade_id = _trade(
+      client,
+      asset_id,
+      "2024-01-10",
+      120.0,
+      tag_ids=[t_z, t_a],
+      emotion_ids=[e_z, e_a],
+    )
+
+    data = _trades(client)
+
+  row = next(t for t in data["trades"] if t["id"] == trade_id)
+  tag_names = [t["name"] for t in row["tags"]]
+  emotion_names = [e["name"] for e in row["emotions"]]
+  assert tag_names == sorted(tag_names)
+  assert emotion_names == sorted(emotion_names)
