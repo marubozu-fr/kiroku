@@ -27,3 +27,9 @@ class TagResponse(BaseModel):
   is_active: bool
   created_at: Optional[str] = None
   updated_at: Optional[str] = None
+
+
+class TagTradeCount(BaseModel):
+  """Response schema for a tag's trade reference count."""
+
+  trade_count: int

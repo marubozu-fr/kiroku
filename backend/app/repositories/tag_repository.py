@@ -47,9 +47,19 @@ async def update(tag_id: int, fields: dict[str, Any], now: str) -> None:
   await database.execute(query, values)
 
 
-async def soft_delete(tag_id: int, now: str) -> None:
-  """Mark a tag inactive without removing the row."""
-  await database.execute(
-    "UPDATE tags SET is_active = 0, updated_at = :now WHERE id = :id",
-    {"now": now, "id": tag_id},
+async def count_trades(tag_id: int) -> int:
+  """Return how many trades reference this tag."""
+  row = await database.fetch_one(
+    "SELECT COUNT(*) AS count FROM trade_tags WHERE tag_id = :id", {"id": tag_id}
   )
+  return row["count"] if row is not None else 0
+
+
+async def delete(tag_id: int) -> None:
+  """Remove the tag's trade associations, then delete the tag row.
+
+  `trade_tags.tag_id` has no ON DELETE CASCADE, so the associations must be
+  cleared first or the foreign key constraint would block the delete.
+  """
+  await database.execute("DELETE FROM trade_tags WHERE tag_id = :id", {"id": tag_id})
+  await database.execute("DELETE FROM tags WHERE id = :id", {"id": tag_id})
