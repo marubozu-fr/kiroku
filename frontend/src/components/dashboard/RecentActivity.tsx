@@ -10,19 +10,12 @@ import {
   formatR,
   signedColor,
 } from '@/components/journal/format'
+import { formatAssetLabel } from '@/utils/format'
 import classes from './RecentActivity.module.css'
 
 interface RecentActivityProps {
   trades: RecentTradeItem[]
   displayMode: DisplayMode
-}
-
-/** Format asset display from name and currency fields. */
-function formatAsset(name: string | null, currency: string | null): string {
-  if (name === null && currency === null) return '—'
-  if (currency === null) return name as string
-  if (name === null) return currency
-  return `${name}/${currency}`
 }
 
 /** Format P&L according to display mode, handling nulls. */
@@ -82,7 +75,7 @@ export function RecentActivity({ trades, displayMode }: RecentActivityProps) {
                   className={classes.row}
                   onClick={() => navigate(`/journal/${trade.id}`)}
                 >
-                  <Table.Td>{formatAsset(trade.asset_name, trade.asset_currency)}</Table.Td>
+                  <Table.Td>{formatAssetLabel(trade.asset_name, trade.asset_currency)}</Table.Td>
                   <Table.Td>
                     {trade.direction !== null && trade.direction in DIRECTION_COLOR ? (
                       <Badge

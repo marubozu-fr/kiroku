@@ -43,6 +43,7 @@ import { notifyError, notifySuccess } from '@/components/settings/notify'
 import { useFetch } from '@/hooks/useFetch'
 import { assetsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
+import { formatAssetLabel } from '@/utils/format'
 import { EMOTION_CATEGORIES } from '@/types/referenceData'
 import type { EmotionSeverity } from '@/types/referenceData'
 import type { AccountType, TradeScreenshot } from '@/types/trade'
@@ -85,7 +86,9 @@ export function TradeDetailPage() {
   const assetName = useMemo(() => {
     const assetId = tradeFetch.data?.asset_id ?? null
     if (assetId === null) return '—'
-    return (assetsFetch.data ?? []).find((a) => a.id === assetId)?.name ?? '—'
+    const match = (assetsFetch.data ?? []).find((a) => a.id === assetId)
+    if (!match) return '—'
+    return formatAssetLabel(match.name, match.currency)
   }, [tradeFetch.data, assetsFetch.data])
 
   const screenshotGroups = useMemo(() => {

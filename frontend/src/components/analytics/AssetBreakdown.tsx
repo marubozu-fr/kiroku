@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { BreakdownChart } from '@/components/analytics/BreakdownChart'
 import type { BreakdownChartItem } from '@/components/analytics/BreakdownChart'
 import type { AssetBreakdown as AssetBreakdownType } from '@/types/analytics'
+import { formatAssetLabel } from '@/utils/format'
 
 interface AssetBreakdownProps {
   data: AssetBreakdownType[]
@@ -12,7 +13,7 @@ export function AssetBreakdown({ data }: AssetBreakdownProps) {
 
   const items: BreakdownChartItem[] = data.map((d) => ({
     id: d.asset_id,
-    label: d.asset_name,
+    label: formatAssetLabel(d.asset_name, d.asset_currency),
     total_trades: d.total_trades,
     winning_trades: d.winning_trades,
     win_rate: d.win_rate,

@@ -19,6 +19,7 @@ import { DatePickerInput } from '@mantine/dates'
 import { useDisclosure } from '@mantine/hooks'
 import dayjs from 'dayjs'
 import type { AnalyticsFilters, AvailableFilters } from '@/types/analytics'
+import { formatAssetLabel } from '@/utils/format'
 import classes from './FilterPanel.module.css'
 
 interface FilterPanelProps {
@@ -41,7 +42,7 @@ export function FilterPanel({
 
   const assetOptions = availableFilters.assets.map((a) => ({
     value: String(a.id),
-    label: a.name,
+    label: formatAssetLabel(a.name, a.currency ?? null),
   }))
 
   const tagOptions = availableFilters.tags.map((tag) => ({

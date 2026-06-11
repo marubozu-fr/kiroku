@@ -285,7 +285,10 @@ export function TradeFormPage() {
         group: category,
         items: (assets.data ?? [])
           .filter((asset) => asset.is_active && asset.category === category)
-          .map((asset) => ({ value: String(asset.id), label: asset.name })),
+          .map((asset) => ({
+            value: String(asset.id),
+            label: asset.currency ? `${asset.name} (${asset.currency})` : asset.name,
+          })),
       })).filter((group) => group.items.length > 0),
     [assets.data],
   )

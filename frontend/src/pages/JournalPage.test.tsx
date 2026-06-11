@@ -33,7 +33,7 @@ function trade(overrides: Partial<TradeSummary> = {}): TradeSummary {
 
 const asset: Asset = {
   id: 1,
-  name: 'EUR/USD',
+  name: 'EUR',
   category: 'Forex',
   currency: 'USD',
   is_active: true,
