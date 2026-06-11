@@ -220,7 +220,86 @@
   },
   "projections": {
     "title": "Projeções",
-    "placeholder": "As projeções de capital aparecerão aqui."
+    "subtitle": "Preveja o seu ano com uma simulação Monte Carlo da sua própria edge.",
+    "load_error": "Não foi possível carregar as projeções",
+    "filters": {
+      "title": "Filtros",
+      "toggle": "Filtros",
+      "reset": "Redefinir",
+      "start_date": "Data de início",
+      "assets": "Ativos",
+      "assets_placeholder": "Todos os ativos",
+      "goal_r": "Meta R anual"
+    },
+    "stats": {
+      "expectancy": "Expectancy",
+      "expectancy_sub": "por trade",
+      "win_rate": "Win Rate",
+      "win_rate_sub": "{{winning}} de {{total}}",
+      "std_deviation": "Desvio padrão",
+      "std_deviation_sub": "σ por trade",
+      "goal_probability": "Probabilidade de meta",
+      "goal_probability_sub": "atingir {{target}} até dez.",
+      "risk_of_ruin": "Risco de ruína",
+      "risk_of_ruin_sub": "terminar o ano < 0R"
+    },
+    "chart": {
+      "title": "R Acumulado — Real e Projeção",
+      "simulations": "10.000 simulações",
+      "now": "agora",
+      "goal_label": "Meta",
+      "legend": {
+        "actual": "Real",
+        "p50": "Projeção P50 (mediana)",
+        "p25_p75": "P25–P75",
+        "p10_p90": "P10–P90",
+        "goal": "Meta"
+      },
+      "tooltip": {
+        "actual": "Real",
+        "p90": "P90",
+        "p75": "P75",
+        "p50": "P50 (mediana)",
+        "p25": "P25",
+        "p10": "P10",
+        "goal": "Meta"
+      }
+    },
+    "empty": {
+      "title": "Ainda não há trades para projetar",
+      "description": "As projeções simulam a sua edge — precisam de trades reais fechados. Registe alguns trades e o Kiroku projetará o intervalo de resultados para o resto do ano.",
+      "cta": "Adicionar o seu primeiro trade",
+      "preview_label": "O que irá obter",
+      "preview": {
+        "fan_chart": {
+          "title": "Gráfico em leque",
+          "description": "Veja as bandas P10–P90 alargarem-se mês a mês — não uma linha reta falsa."
+        },
+        "goal_ruin": {
+          "title": "Meta e risco de ruína",
+          "description": "Defina uma meta R anual e veja as suas probabilidades de a atingir — e de ter um ano negativo."
+        },
+        "edge_stats": {
+          "title": "Estatísticas da edge",
+          "description": "Expectancy, Win Rate e desvio padrão — os dados que alimentam o modelo."
+        }
+      }
+    },
+    "methodology": {
+      "title": "Como funciona esta projeção",
+      "intro": "O leque é uma simulação Monte Carlo — não traça retas para o futuro. Reproduz a sua edge milhares de vezes e mostra o intervalo de resultados plausíveis.",
+      "step1_title": "Amostrar o histórico.",
+      "step1_body": "Cada trade fechado na janela filtrada contribui com o seu R-múltiplo (lucro/perda medido em unidades de risco).",
+      "step2_title": "Estimar os trades restantes.",
+      "step2_body": "O seu ritmo histórico projeta quantos trades restam até 31 de dezembro.",
+      "step3_title": "Executar N simulações.",
+      "step3_body": "Para cada um dos 10.000 anos simulados extraem-se aleatoriamente com reposição R-múltiplos da distribuição real e acumulam-se sobre o total atual.",
+      "step4_title": "Calcular as bandas de percentil.",
+      "step4_body": "No final de cada mês leem-se os percentis 10, 25, 50, 75 e 90 em todas as simulações. A mediana é P50; as bandas P25–P75 e P10–P90 são os intervalos de confiança. Alargam-se com o tempo.",
+      "step5_title": "Ler os resultados.",
+      "step5_body": "A probabilidade de meta é a parcela das simulações que terminam acima do seu objetivo. O risco de ruína é a parcela que termina negativa.",
+      "disclaimer": "Este é um modelo do seu comportamento passado, não uma promessa. Assume que os trades futuros se assemelham aos passados e ignora mudanças no regime de mercado, dimensionamento ou disciplina."
+    }
   },
   "journal": {
     "title": "Journal",

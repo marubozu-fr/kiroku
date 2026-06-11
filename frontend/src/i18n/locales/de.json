@@ -220,7 +220,86 @@
   },
   "projections": {
     "title": "Projektionen",
-    "placeholder": "Hier erscheinen die Kapitalprojektionen."
+    "subtitle": "Prognostiziere dein Jahr mit einer Monte-Carlo-Simulation deiner eigenen Edge.",
+    "load_error": "Projektionen konnten nicht geladen werden",
+    "filters": {
+      "title": "Filter",
+      "toggle": "Filter",
+      "reset": "Zurücksetzen",
+      "start_date": "Startdatum",
+      "assets": "Assets",
+      "assets_placeholder": "Alle Assets",
+      "goal_r": "Jahres-R-Ziel"
+    },
+    "stats": {
+      "expectancy": "Expectancy",
+      "expectancy_sub": "pro Trade",
+      "win_rate": "Win Rate",
+      "win_rate_sub": "{{winning}} von {{total}}",
+      "std_deviation": "Standardabweichung",
+      "std_deviation_sub": "σ pro Trade",
+      "goal_probability": "Zielwahrscheinlichkeit",
+      "goal_probability_sub": "{{target}} bis Dez. erreichen",
+      "risk_of_ruin": "Ruinrisiko",
+      "risk_of_ruin_sub": "Jahr < 0R beenden"
+    },
+    "chart": {
+      "title": "Kumulatives R — Ist & Projektion",
+      "simulations": "10.000 Simulationen",
+      "now": "jetzt",
+      "goal_label": "Ziel",
+      "legend": {
+        "actual": "Ist",
+        "p50": "Projektion P50 (Median)",
+        "p25_p75": "P25–P75",
+        "p10_p90": "P10–P90",
+        "goal": "Ziel"
+      },
+      "tooltip": {
+        "actual": "Ist",
+        "p90": "P90",
+        "p75": "P75",
+        "p50": "P50 (Median)",
+        "p25": "P25",
+        "p10": "P10",
+        "goal": "Ziel"
+      }
+    },
+    "empty": {
+      "title": "Noch keine Trades zum Projizieren",
+      "description": "Projektionen simulieren deine Edge — sie benötigen echte geschlossene Trades. Erfasse einige Trades und Kiroku prognostiziert das Ergebnisspektrum für den Rest des Jahres.",
+      "cta": "Ersten Trade hinzufügen",
+      "preview_label": "Was du erhältst",
+      "preview": {
+        "fan_chart": {
+          "title": "Fächerdiagramm",
+          "description": "Sieh, wie sich die P10–P90-Bänder monatlich aufweiten — keine einfache Gerade."
+        },
+        "goal_ruin": {
+          "title": "Ziel & Ruinrisiko",
+          "description": "Setze ein jährliches R-Ziel und sieh deine Chancen, es zu erreichen — und ein Verlustjahr zu haben."
+        },
+        "edge_stats": {
+          "title": "Edge-Statistiken",
+          "description": "Expectancy, Win Rate und Standardabweichung — die Eingaben, die das Modell antreiben."
+        }
+      }
+    },
+    "methodology": {
+      "title": "Wie diese Projektion funktioniert",
+      "intro": "Der Fächer ist eine Monte-Carlo-Simulation — er zeichnet keine Geraden in die Zukunft. Stattdessen wiederholt er deine Edge tausendmal und zeigt das Spektrum plausibleer Ergebnisse.",
+      "step1_title": "Verlauf abtasten.",
+      "step1_body": "Jeder geschlossene Trade im gefilterten Zeitfenster trägt sein R-Vielfaches bei (Gewinn/Verlust gemessen in Risikoeinheiten).",
+      "step2_title": "Verbleibende Trades schätzen.",
+      "step2_body": "Dein historisches Tempo projiziert, wie viele Trades bis zum 31. Dezember noch folgen.",
+      "step3_title": "N Simulationen ausführen.",
+      "step3_body": "Für jedes der 10.000 simulierten Jahre werden zufällig mit Zurücklegen R-Vielfache aus deiner realen Verteilung gezogen und auf den heutigen Stand aufaddiert.",
+      "step4_title": "Perzentilbänder ableiten.",
+      "step4_body": "Zum Monatsende werden die Perzentile 10, 25, 50, 75 und 90 über alle Simulationen abgelesen. Der Median ist P50; die P25–P75- und P10–P90-Bänder sind die Konfidenzintervalle. Sie weiten sich mit der Zeit auf.",
+      "step5_title": "Ergebnisse ablesen.",
+      "step5_body": "Zielwahrscheinlichkeit: der Anteil der Simulationen, die über dem Ziel abschließen. Ruinrisiko: der Anteil, der im Minus endet.",
+      "disclaimer": "Dies ist ein Modell deines vergangenen Verhaltens, kein Versprechen. Es setzt voraus, dass zukünftige Trades den vergangenen ähneln, und ignoriert Änderungen im Marktregime, Positionsgrößen oder Disziplin."
+    }
   },
   "journal": {
     "title": "Journal",

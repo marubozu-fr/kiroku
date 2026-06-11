@@ -220,7 +220,86 @@
   },
   "projections": {
     "title": "Proyecciones",
-    "placeholder": "Aquí aparecerán las proyecciones de capital."
+    "subtitle": "Pronostica tu año con una simulación Monte Carlo de tu propio edge.",
+    "load_error": "No se pudieron cargar las proyecciones",
+    "filters": {
+      "title": "Filtros",
+      "toggle": "Filtros",
+      "reset": "Restablecer",
+      "start_date": "Fecha de inicio",
+      "assets": "Activos",
+      "assets_placeholder": "Todos los activos",
+      "goal_r": "Objetivo R anual"
+    },
+    "stats": {
+      "expectancy": "Expectancy",
+      "expectancy_sub": "por trade",
+      "win_rate": "Win Rate",
+      "win_rate_sub": "{{winning}} de {{total}}",
+      "std_deviation": "Desviación estándar",
+      "std_deviation_sub": "σ por trade",
+      "goal_probability": "Probabilidad de objetivo",
+      "goal_probability_sub": "alcanzar {{target}} en dic.",
+      "risk_of_ruin": "Riesgo de ruina",
+      "risk_of_ruin_sub": "terminar el año < 0R"
+    },
+    "chart": {
+      "title": "R Acumulado — Real y Proyección",
+      "simulations": "10.000 simulaciones",
+      "now": "ahora",
+      "goal_label": "Objetivo",
+      "legend": {
+        "actual": "Real",
+        "p50": "Proyección P50 (mediana)",
+        "p25_p75": "P25–P75",
+        "p10_p90": "P10–P90",
+        "goal": "Objetivo"
+      },
+      "tooltip": {
+        "actual": "Real",
+        "p90": "P90",
+        "p75": "P75",
+        "p50": "P50 (mediana)",
+        "p25": "P25",
+        "p10": "P10",
+        "goal": "Objetivo"
+      }
+    },
+    "empty": {
+      "title": "No hay trades que proyectar aún",
+      "description": "Las proyecciones simulan tu edge — necesitan trades reales cerrados. Registra algunos trades y Kiroku proyectará el rango de resultados para el resto del año.",
+      "cta": "Añadir tu primer trade",
+      "preview_label": "Lo que obtendrás",
+      "preview": {
+        "fan_chart": {
+          "title": "Gráfico de abanico",
+          "description": "Observa cómo las bandas P10–P90 se amplían mes a mes — no una línea recta falsa."
+        },
+        "goal_ruin": {
+          "title": "Objetivo y riesgo de ruina",
+          "description": "Fija un objetivo R anual y conoce tus probabilidades de alcanzarlo — y de terminar en pérdidas."
+        },
+        "edge_stats": {
+          "title": "Estadísticas del edge",
+          "description": "Expectancy, Win Rate y desviación estándar — los datos que impulsan el modelo."
+        }
+      }
+    },
+    "methodology": {
+      "title": "Cómo funciona esta proyección",
+      "intro": "El abanico es una simulación Monte Carlo — no traza líneas rectas hacia el futuro. En cambio, repite tu edge miles de veces y muestra el rango de resultados posibles.",
+      "step1_title": "Muestrear el historial.",
+      "step1_body": "Cada trade cerrado en la ventana filtrada aporta su R-múltiplo (beneficio/pérdida medido en unidades de riesgo).",
+      "step2_title": "Estimar los trades restantes.",
+      "step2_body": "Tu ritmo histórico proyecta cuántos trades quedan hasta el 31 de diciembre.",
+      "step3_title": "Ejecutar N simulaciones.",
+      "step3_body": "Para cada uno de los 10.000 años simulados se extraen aleatoriamente con reposición R-múltiplos de tu distribución real y se acumulan sobre el total actual.",
+      "step4_title": "Calcular las bandas de percentiles.",
+      "step4_body": "A fin de cada mes se leen los percentiles 10, 25, 50, 75 y 90 en todas las simulaciones. La mediana es P50; las bandas P25–P75 y P10–P90 son los intervalos de confianza. Se amplían con el tiempo.",
+      "step5_title": "Interpretar los resultados.",
+      "step5_body": "La probabilidad de objetivo es la proporción de simulaciones que terminan por encima de tu meta. El riesgo de ruina es la proporción que termina en negativo.",
+      "disclaimer": "Este es un modelo de tu comportamiento pasado, no una promesa. Asume que los trades futuros se parecen a los pasados e ignora cambios en el régimen de mercado, sizing o disciplina."
+    }
   },
   "journal": {
     "title": "Journal",

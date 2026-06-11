@@ -1,0 +1,17 @@
+.card {
+  min-width: 0;
+}
+
+.label {
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.value {
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.sub {
+  line-height: 1.3;
+}
