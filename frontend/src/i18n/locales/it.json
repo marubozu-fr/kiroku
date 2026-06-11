@@ -101,8 +101,25 @@
       "title": "Nessun trade ancora",
       "description": "Le tue analisi appariranno qui non appena registrerai il tuo primo trade."
     },
-    "placeholder": {
-      "trades": "Tabella dei trade — prossimamente"
+    "table": {
+      "title": "Trades",
+      "header": {
+        "date": "Data",
+        "asset": "Strumento",
+        "direction": "Direzione",
+        "entry_tf": "TF ingresso",
+        "tags": "Tags",
+        "emotions": "Emozioni",
+        "pnl": "P&L",
+        "duration": "Durata"
+      },
+      "count": "Visualizzazione {{from}}–{{to}} di {{total}} trades",
+      "missed": "Mancato",
+      "load_error": "Impossibile caricare i trade",
+      "empty": {
+        "title": "Nessun trade corrisponde ai tuoi filtri",
+        "description": "Prova a modificare o azzerare i filtri."
+      }
     },
     "filters": {
       "title": "Filtri",

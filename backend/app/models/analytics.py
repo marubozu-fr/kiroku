@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.models.response import ApiResponse
 
@@ -79,6 +79,14 @@ class NamedFilter(BaseModel):
   name: str
 
 
+class TradeEmotion(BaseModel):
+  """An emotion attached to a trade row, with its severity for color coding."""
+
+  id: int
+  name: str
+  severity: str
+
+
 class DateRange(BaseModel):
   """Earliest and latest trade dates present in the dataset (YYYY-MM-DD)."""
 
@@ -119,6 +127,8 @@ class AnalyticsTrade(BaseModel):
   account_type: str
   status: str
   direction: Optional[str] = None
+  tags: list[NamedFilter] = Field(default_factory=list)
+  emotions: list[TradeEmotion] = Field(default_factory=list)
   performance_r: Optional[float] = None
   timeframe_unit: Optional[str] = None
   timeframe_value: Optional[int] = None

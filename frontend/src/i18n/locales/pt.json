@@ -101,8 +101,25 @@
       "title": "Ainda sem trades",
       "description": "As suas análises aparecerão aqui assim que registar o primeiro trade."
     },
-    "placeholder": {
-      "trades": "Tabela de trades — em breve"
+    "table": {
+      "title": "Trades",
+      "header": {
+        "date": "Data",
+        "asset": "Ativo",
+        "direction": "Direção",
+        "entry_tf": "TF entrada",
+        "tags": "Tags",
+        "emotions": "Emoções",
+        "pnl": "P&L",
+        "duration": "Duração"
+      },
+      "count": "A mostrar {{from}}–{{to}} de {{total}} trades",
+      "missed": "Perdido",
+      "load_error": "Não foi possível carregar os trades",
+      "empty": {
+        "title": "Nenhum trade corresponde aos seus filtros",
+        "description": "Tente ajustar ou limpar os seus filtros."
+      }
     },
     "filters": {
       "title": "Filtros",

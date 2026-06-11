@@ -90,6 +90,17 @@ export interface AnalyticsStatisticsResponse {
 // Trades
 // ---------------------------------------------------------------------------
 
+export interface AnalyticsTradeTag {
+  id: number
+  name: string
+}
+
+export interface AnalyticsTradeEmotion {
+  id: number
+  name: string
+  severity: string
+}
+
 export interface AnalyticsTrade {
   id: number
   asset_id: number | null
@@ -104,6 +115,8 @@ export interface AnalyticsTrade {
   trade_date: string | null
   duration_minutes: number | null
   missed_opportunity: boolean
+  tags: AnalyticsTradeTag[]
+  emotions: AnalyticsTradeEmotion[]
 }
 
 export interface Pagination {

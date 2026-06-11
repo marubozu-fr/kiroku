@@ -1,0 +1,7 @@
+.row {
+  cursor: pointer;
+}
+
+.missed {
+  opacity: 0.6;
+}
