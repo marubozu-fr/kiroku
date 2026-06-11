@@ -93,7 +93,6 @@
       "description": "Tus analíticas aparecerán aquí cuando registres tu primer trade."
     },
     "placeholder": {
-      "charts": "Gráficos — próximamente",
       "trades": "Tabla de trades — próximamente"
     },
     "filters": {
@@ -140,6 +139,24 @@
       "avg_duration": "Duración media",
       "best_worst": "Mejor / Peor",
       "streak": "Winning / Losing Streak"
+    },
+    "breakdown": {
+      "assets": {
+        "title": "Asset Breakdown",
+        "empty": "No hay datos de activos para este período."
+      },
+      "tags": {
+        "title": "Tag Breakdown",
+        "empty": "No se usaron tags en ningún trade de este período."
+      },
+      "others": "Otros",
+      "need_more": "Se necesitan al menos dos elementos para mostrar este gráfico.",
+      "tooltip": {
+        "trades": "Trades",
+        "win_rate": "Win Rate",
+        "avg_pnl": "P&L medio",
+        "profit_factor": "Profit Factor"
+      }
     }
   },
   "projections": {
