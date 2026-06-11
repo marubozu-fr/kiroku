@@ -1,0 +1,66 @@
+.tooltip {
+  background: var(--mantine-color-body);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+  padding: var(--mantine-spacing-xs);
+  min-width: 160px;
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-sm);
+  margin-top: 2px;
+}
+
+.legend {
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding-top: var(--mantine-spacing-xs);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendLineActual {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--mantine-color-green-6);
+}
+
+.legendLineP50 {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--mantine-color-blue-5);
+}
+
+.legendLineGoal {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  background: var(--mantine-color-yellow-5);
+  border-top: 2px dashed var(--mantine-color-yellow-5);
+  background: transparent;
+}
+
+.legendSwatchInner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: var(--mantine-color-blue-6);
+  opacity: 0.44;
+  border-radius: 2px;
+}
+
+.legendSwatchOuter {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: var(--mantine-color-blue-6);
+  opacity: 0.2;
+  border-radius: 2px;
+}

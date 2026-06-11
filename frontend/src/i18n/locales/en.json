@@ -220,7 +220,86 @@
   },
   "projections": {
     "title": "Projections",
-    "placeholder": "Equity projections will appear here."
+    "subtitle": "Forecast your year with a Monte Carlo simulation of your own edge.",
+    "load_error": "Could not load projections",
+    "filters": {
+      "title": "Filters",
+      "toggle": "Filters",
+      "reset": "Reset",
+      "start_date": "Start date",
+      "assets": "Assets",
+      "assets_placeholder": "All assets",
+      "goal_r": "Annual R Target"
+    },
+    "stats": {
+      "expectancy": "Expectancy",
+      "expectancy_sub": "per trade",
+      "win_rate": "Win Rate",
+      "win_rate_sub": "{{winning}} of {{total}}",
+      "std_deviation": "Std Deviation",
+      "std_deviation_sub": "per-trade σ",
+      "goal_probability": "Goal Probability",
+      "goal_probability_sub": "reach {{target}} by Dec",
+      "risk_of_ruin": "Risk of Ruin",
+      "risk_of_ruin_sub": "finish year < 0R"
+    },
+    "chart": {
+      "title": "Cumulative R — Actual & Projection",
+      "simulations": "10,000 simulations",
+      "now": "now",
+      "goal_label": "Goal",
+      "legend": {
+        "actual": "Actual",
+        "p50": "Projection P50 (median)",
+        "p25_p75": "P25–P75",
+        "p10_p90": "P10–P90",
+        "goal": "Goal"
+      },
+      "tooltip": {
+        "actual": "Actual",
+        "p90": "P90",
+        "p75": "P75",
+        "p50": "P50 (median)",
+        "p25": "P25",
+        "p10": "P10",
+        "goal": "Goal"
+      }
+    },
+    "empty": {
+      "title": "No trades to project yet",
+      "description": "Projections simulate your trading edge — they need real closed trades to sample from. Log a few trades and Kiroku will forecast the range of outcomes for the rest of the year.",
+      "cta": "Add your first trade",
+      "preview_label": "What you'll get",
+      "preview": {
+        "fan_chart": {
+          "title": "Confidence fan chart",
+          "description": "See P10–P90 bands widen month by month — not a fake straight line."
+        },
+        "goal_ruin": {
+          "title": "Goal & ruin odds",
+          "description": "Set an annual R target and see your odds of hitting it — and of a losing year."
+        },
+        "edge_stats": {
+          "title": "Edge statistics",
+          "description": "Expectancy, Win Rate and standard deviation — the inputs that drive the model."
+        }
+      }
+    },
+    "methodology": {
+      "title": "How this projection works",
+      "intro": "The fan is a Monte Carlo simulation — it does not draw straight lines into the future. Instead it replays your own trading edge thousands of times and shows the range of plausible outcomes.",
+      "step1_title": "Sample your history.",
+      "step1_body": "Every closed trade in the filtered window contributes its R-multiple (profit/loss measured in units of risk).",
+      "step2_title": "Estimate remaining trades.",
+      "step2_body": "Your historical pace projects how many more trades remain until 31 December.",
+      "step3_title": "Run N simulations.",
+      "step3_body": "For each of 10,000 simulated years we draw that many R-multiples at random, with replacement, from your real distribution and accumulate them on top of today's total.",
+      "step4_title": "Derive percentile bands.",
+      "step4_body": "At each month-end we read the 10th, 25th, 50th, 75th and 90th percentiles across all simulations. The median is P50; the shaded P25–P75 and P10–P90 bands are the confidence intervals. They widen over time because uncertainty compounds with each additional trade.",
+      "step5_title": "Read the answers.",
+      "step5_body": "Goal probability is the share of simulations that finish at or above your goal. Risk of Ruin is the share that finish negative.",
+      "disclaimer": "This is a model of your past behaviour, not a promise. It assumes future trades resemble past ones and ignores changes in market regime, position sizing or discipline."
+    }
   },
   "journal": {
     "title": "Journal",

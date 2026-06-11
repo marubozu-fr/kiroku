@@ -220,7 +220,86 @@
   },
   "projections": {
     "title": "Projections",
-    "placeholder": "Les projections de capital s'afficheront ici."
+    "subtitle": "Projetez votre année avec une simulation Monte Carlo de votre propre edge.",
+    "load_error": "Impossible de charger les projections",
+    "filters": {
+      "title": "Filtres",
+      "toggle": "Filtres",
+      "reset": "Réinitialiser",
+      "start_date": "Date de début",
+      "assets": "Instruments",
+      "assets_placeholder": "Tous les instruments",
+      "goal_r": "Objectif R annuel"
+    },
+    "stats": {
+      "expectancy": "Expectancy",
+      "expectancy_sub": "par trade",
+      "win_rate": "Win Rate",
+      "win_rate_sub": "{{winning}} sur {{total}}",
+      "std_deviation": "Écart-type",
+      "std_deviation_sub": "σ par trade",
+      "goal_probability": "Probabilité d'objectif",
+      "goal_probability_sub": "atteindre {{target}} en déc.",
+      "risk_of_ruin": "Risque de ruine",
+      "risk_of_ruin_sub": "finir l'année < 0R"
+    },
+    "chart": {
+      "title": "R Cumulé — Réel & Projection",
+      "simulations": "10 000 simulations",
+      "now": "maintenant",
+      "goal_label": "Objectif",
+      "legend": {
+        "actual": "Réel",
+        "p50": "Projection P50 (médiane)",
+        "p25_p75": "P25–P75",
+        "p10_p90": "P10–P90",
+        "goal": "Objectif"
+      },
+      "tooltip": {
+        "actual": "Réel",
+        "p90": "P90",
+        "p75": "P75",
+        "p50": "P50 (médiane)",
+        "p25": "P25",
+        "p10": "P10",
+        "goal": "Objectif"
+      }
+    },
+    "empty": {
+      "title": "Aucun trade à projeter pour l'instant",
+      "description": "Les projections simulent votre edge — elles nécessitent de vrais trades clôturés. Enregistrez quelques trades et Kiroku projettera les résultats possibles pour la fin de l'année.",
+      "cta": "Ajouter votre premier trade",
+      "preview_label": "Ce que vous obtiendrez",
+      "preview": {
+        "fan_chart": {
+          "title": "Graphique en éventail",
+          "description": "Visualisez les bandes P10–P90 qui s'élargissent mois après mois — pas une simple droite."
+        },
+        "goal_ruin": {
+          "title": "Objectif et risque de ruine",
+          "description": "Fixez un objectif R annuel et voyez vos chances de l'atteindre — et de finir en perte."
+        },
+        "edge_stats": {
+          "title": "Statistiques d'edge",
+          "description": "Expectancy, Win Rate et écart-type — les entrées qui alimentent le modèle."
+        }
+      }
+    },
+    "methodology": {
+      "title": "Comment fonctionne cette projection",
+      "intro": "L'éventail est une simulation Monte Carlo — il ne trace pas des lignes droites dans le futur. Il rejoue votre edge des milliers de fois et affiche l'éventail des résultats plausibles.",
+      "step1_title": "Échantillonner l'historique.",
+      "step1_body": "Chaque trade clôturé dans la fenêtre filtrée contribue son R-multiple (profit/perte mesuré en unités de risque).",
+      "step2_title": "Estimer les trades restants.",
+      "step2_body": "Votre rythme historique projette combien de trades restent jusqu'au 31 décembre.",
+      "step3_title": "Exécuter N simulations.",
+      "step3_body": "Pour chacune des 10 000 années simulées, on tire aléatoirement avec remise des R-multiples de votre distribution réelle, cumulés au-dessus du total actuel.",
+      "step4_title": "Calculer les bandes de percentiles.",
+      "step4_body": "À chaque fin de mois, on lit les 10e, 25e, 50e, 75e et 90e percentiles sur toutes les simulations. La médiane est P50 ; les bandes P25–P75 et P10–P90 sont les intervalles de confiance. Ils s'élargissent dans le temps.",
+      "step5_title": "Lire les résultats.",
+      "step5_body": "La probabilité d'objectif est la part des simulations terminant au-dessus de votre cible. Le risque de ruine est la part terminant en négatif.",
+      "disclaimer": "C'est un modèle de votre comportement passé, pas une promesse. Il suppose que les trades futurs ressemblent aux passés et ignore les changements de régime, de sizing ou de discipline."
+    }
   },
   "journal": {
     "title": "Journal",

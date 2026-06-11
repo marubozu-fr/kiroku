@@ -220,7 +220,86 @@
   },
   "projections": {
     "title": "Proiezioni",
-    "placeholder": "Qui appariranno le proiezioni del capitale."
+    "subtitle": "Prevedi il tuo anno con una simulazione Monte Carlo del tuo edge.",
+    "load_error": "Impossibile caricare le proiezioni",
+    "filters": {
+      "title": "Filtri",
+      "toggle": "Filtri",
+      "reset": "Reimposta",
+      "start_date": "Data di inizio",
+      "assets": "Asset",
+      "assets_placeholder": "Tutti gli asset",
+      "goal_r": "Obiettivo R annuale"
+    },
+    "stats": {
+      "expectancy": "Expectancy",
+      "expectancy_sub": "per trade",
+      "win_rate": "Win Rate",
+      "win_rate_sub": "{{winning}} su {{total}}",
+      "std_deviation": "Deviazione standard",
+      "std_deviation_sub": "σ per trade",
+      "goal_probability": "Probabilità obiettivo",
+      "goal_probability_sub": "raggiungere {{target}} entro dic.",
+      "risk_of_ruin": "Rischio di rovina",
+      "risk_of_ruin_sub": "finire l'anno < 0R"
+    },
+    "chart": {
+      "title": "R Cumulato — Reale e Proiezione",
+      "simulations": "10.000 simulazioni",
+      "now": "adesso",
+      "goal_label": "Obiettivo",
+      "legend": {
+        "actual": "Reale",
+        "p50": "Proiezione P50 (mediana)",
+        "p25_p75": "P25–P75",
+        "p10_p90": "P10–P90",
+        "goal": "Obiettivo"
+      },
+      "tooltip": {
+        "actual": "Reale",
+        "p90": "P90",
+        "p75": "P75",
+        "p50": "P50 (mediana)",
+        "p25": "P25",
+        "p10": "P10",
+        "goal": "Obiettivo"
+      }
+    },
+    "empty": {
+      "title": "Nessun trade da proiettare ancora",
+      "description": "Le proiezioni simulano il tuo edge — richiedono trade reali chiusi. Registra alcuni trade e Kiroku proietterà il range di risultati per il resto dell'anno.",
+      "cta": "Aggiungi il tuo primo trade",
+      "preview_label": "Cosa otterrai",
+      "preview": {
+        "fan_chart": {
+          "title": "Grafico a ventaglio",
+          "description": "Visualizza le bande P10–P90 che si allargano mese per mese — non una semplice retta."
+        },
+        "goal_ruin": {
+          "title": "Obiettivo e rischio di rovina",
+          "description": "Imposta un obiettivo R annuale e scopri le probabilità di raggiungerlo — e di finire in perdita."
+        },
+        "edge_stats": {
+          "title": "Statistiche dell'edge",
+          "description": "Expectancy, Win Rate e deviazione standard — i dati che alimentano il modello."
+        }
+      }
+    },
+    "methodology": {
+      "title": "Come funziona questa proiezione",
+      "intro": "Il ventaglio è una simulazione Monte Carlo — non traccia rette nel futuro. Riproduce il tuo edge migliaia di volte e mostra il range di risultati plausibili.",
+      "step1_title": "Campionare la cronologia.",
+      "step1_body": "Ogni trade chiuso nella finestra filtrata contribuisce con il suo R-multiplo (profitto/perdita misurato in unità di rischio).",
+      "step2_title": "Stimare i trade rimanenti.",
+      "step2_body": "Il tuo ritmo storico proietta quanti trade rimangono fino al 31 dicembre.",
+      "step3_title": "Eseguire N simulazioni.",
+      "step3_body": "Per ognuno dei 10.000 anni simulati si estraggono casualmente con ripetizione R-multipli dalla distribuzione reale e si accumulano sul totale attuale.",
+      "step4_title": "Calcolare le bande di percentile.",
+      "step4_body": "A fine mese si leggono i percentili 10, 25, 50, 75 e 90 su tutte le simulazioni. La mediana è P50; le bande P25–P75 e P10–P90 sono gli intervalli di confidenza. Si allargano nel tempo.",
+      "step5_title": "Interpretare i risultati.",
+      "step5_body": "La probabilità obiettivo è la quota di simulazioni che terminano sopra il tuo target. Il rischio di rovina è la quota che termina in negativo.",
+      "disclaimer": "Questo è un modello del tuo comportamento passato, non una promessa. Assume che i trade futuri somiglino a quelli passati e ignora cambiamenti nel regime di mercato, nel sizing o nella disciplina."
+    }
   },
   "journal": {
     "title": "Journal",
