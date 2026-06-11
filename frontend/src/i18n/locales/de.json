@@ -31,7 +31,8 @@
     }
   },
   "app": {
-    "toggle_color_scheme": "Farbschema umschalten"
+    "toggle_color_scheme": "Farbschema umschalten",
+    "logo_alt": "Kiroku-Logo"
   },
   "nav": {
     "dashboard": "Dashboard",

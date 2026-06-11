@@ -5,8 +5,6 @@ import {
   Burger,
   Group,
   NavLink,
-  Text,
-  Title,
   useMantineColorScheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -14,6 +12,7 @@ import { IconMoon, IconSun } from '@tabler/icons-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { navItems } from './navItems'
+import { Logo } from '../Logo/Logo'
 
 export function AppLayout() {
   const { t } = useTranslation()
@@ -47,9 +46,7 @@ export function AppLayout() {
               visibleFrom="sm"
               size="sm"
             />
-            <Title order={4}>
-              記録 <Text span c="dimmed" inherit>Kiroku</Text>
-            </Title>
+            <Logo />
           </Group>
           <ActionIcon
             variant="default"
