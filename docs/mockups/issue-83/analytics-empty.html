@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Analytics · Empty</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #83 — Analytics EMPTY state (no trades match the active filters).
+    The page header and the Filter panel stay visible (the user still needs the
+    controls to widen their filters), but the KPI cards, charts and table are
+    replaced by a single centered .empty-state card with a "Reset filters" CTA.
+    See README "Empty-state decision".
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink active" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Analytics</h1>
+            <p class="page-subtitle">Slice your trades to find what works — and what to cut.</p>
+          </div>
+        </div>
+
+        <!-- Filter panel stays available so the user can loosen the filters -->
+        <div class="card filter-panel open">
+          <div class="card-header" role="button" aria-expanded="true">
+            <span class="filter-title">
+              <span class="chevron">▾</span>
+              <span class="card-title">Filters</span>
+              <span class="count">4 active</span>
+            </span>
+            <button class="btn subtle sm" type="button">Reset filters</button>
+          </div>
+
+          <div class="filter-body">
+            <div class="filter-grid">
+              <div class="field">
+                <label>Date from</label>
+                <div class="datepick"><input class="input" type="text" value="2026-06-01" readonly /></div>
+              </div>
+              <div class="field">
+                <label>Date to</label>
+                <div class="datepick"><input class="input" type="text" value="2026-06-09" readonly /></div>
+              </div>
+              <div class="field span-2">
+                <label>Asset</label>
+                <div class="multiselect">
+                  <span class="ms-pill">GBP/JPY <span class="x">×</span></span>
+                  <span class="ms-placeholder">Add asset…</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Direction</label>
+                <div class="segmented full" role="group" aria-label="Direction">
+                  <span class="seg">All</span>
+                  <span class="seg active">Long</span>
+                  <span class="seg">Short</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Account type</label>
+                <div class="segmented full" role="group" aria-label="Account type">
+                  <span class="seg">All</span>
+                  <span class="seg active">Live</span>
+                  <span class="seg">Demo</span>
+                  <span class="seg">Test</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>P&amp;L (R)</label>
+                <div class="range-row">
+                  <div class="select-wrap"><select class="input"><option>≥</option><option>≤</option></select></div>
+                  <input class="input" type="text" value="3.0" />
+                </div>
+              </div>
+              <div class="field">
+                <label>Missed opportunities</label>
+                <label class="switch">
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-lbl">Include missed</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Single empty-state card replacing KPIs / charts / table -->
+        <div class="card">
+          <div class="empty-state">
+            <div class="icon">⚖</div>
+            <div class="title">No trades match these filters</div>
+            <div class="desc">
+              Your current filters are too narrow — no trade satisfies all of
+              them at once. Try widening the date range, removing an asset, or
+              lowering the P&amp;L threshold.
+            </div>
+            <button class="btn default" type="button">Reset filters</button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>

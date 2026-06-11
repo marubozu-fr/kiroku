@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Analytics</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #83 — Analytics (DESKTOP, POPULATED).
+    Top to bottom: page header (title + subtitle), collapsible Filter panel
+    (open), 4 prominent KPI cards + a secondary KPI grid, four chart cards
+    (Day-Hour heatmap, Asset breakdown, R-distribution histogram, Tag breakdown)
+    laid out in two rows + a full-width Cumulative R curve, then the dense
+    paginated trades Table. Charts are hand-authored CSS/SVG stand-ins for
+    Recharts — see README. Sample data is internally consistent (84 trades,
+    total +49.00R).
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink active" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <!-- Page header: title + dimmed subtitle -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Analytics</h1>
+            <p class="page-subtitle">Slice your trades to find what works — and what to cut.</p>
+          </div>
+        </div>
+
+        <!-- ============================ FILTER PANEL ============================ -->
+        <!-- Collapsible Card (Mantine Collapse). Shown OPEN here. -->
+        <div class="card filter-panel open">
+          <div class="card-header" role="button" aria-expanded="true">
+            <span class="filter-title">
+              <span class="chevron">▾</span>
+              <span class="card-title">Filters</span>
+              <span class="count">3 active</span>
+            </span>
+            <button class="btn subtle sm" type="button">Reset filters</button>
+          </div>
+
+          <div class="filter-body">
+            <div class="filter-grid">
+
+              <!-- Date range: two DatePickerInput (available_filters.date_range) -->
+              <div class="field">
+                <label>Date from</label>
+                <div class="datepick"><input class="input" type="text" value="2026-01-01" readonly /></div>
+              </div>
+              <div class="field">
+                <label>Date to</label>
+                <div class="datepick"><input class="input" type="text" value="2026-06-09" readonly /></div>
+              </div>
+
+              <!-- Asset: MultiSelect (available_filters.assets) -->
+              <div class="field span-2">
+                <label>Asset</label>
+                <div class="multiselect">
+                  <span class="ms-pill">EUR/USD <span class="x">×</span></span>
+                  <span class="ms-pill">US100 <span class="x">×</span></span>
+                  <span class="ms-placeholder">Add asset…</span>
+                </div>
+              </div>
+
+              <!-- Direction: SegmentedControl All / Long / Short -->
+              <div class="field">
+                <label>Direction</label>
+                <div class="segmented full" role="group" aria-label="Direction">
+                  <span class="seg active">All</span>
+                  <span class="seg">Long</span>
+                  <span class="seg">Short</span>
+                </div>
+              </div>
+
+              <!-- Account type: SegmentedControl All / Live / Demo / Test -->
+              <div class="field">
+                <label>Account type</label>
+                <div class="segmented full" role="group" aria-label="Account type">
+                  <span class="seg active">All</span>
+                  <span class="seg">Live</span>
+                  <span class="seg">Demo</span>
+                  <span class="seg">Test</span>
+                </div>
+              </div>
+
+              <!-- Entry TF: MultiSelect (available_filters.timeframes) -->
+              <div class="field">
+                <label>Entry timeframe</label>
+                <div class="multiselect">
+                  <span class="ms-pill">15m <span class="x">×</span></span>
+                  <span class="ms-placeholder">Add TF…</span>
+                </div>
+              </div>
+
+              <!-- Emotions: MultiSelect (available_filters.emotions) -->
+              <div class="field">
+                <label>Emotions</label>
+                <div class="multiselect">
+                  <span class="ms-placeholder">Any emotion</span>
+                </div>
+              </div>
+
+              <!-- Tags: MultiSelect + AND/OR SegmentedControl -->
+              <div class="field span-2">
+                <label>Tags</label>
+                <div class="range-row">
+                  <div class="multiselect" style="flex:1">
+                    <span class="ms-pill">Breakout <span class="x">×</span></span>
+                    <span class="ms-placeholder">Add tag…</span>
+                  </div>
+                  <div class="segmented" role="group" aria-label="Tags logic">
+                    <span class="seg active">AND</span>
+                    <span class="seg">OR</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- P&L range: Select (≥/≤) + NumberInput -->
+              <div class="field">
+                <label>P&amp;L (R)</label>
+                <div class="range-row">
+                  <div class="select-wrap">
+                    <select class="input"><option>≥</option><option>≤</option></select>
+                  </div>
+                  <input class="input" type="text" placeholder="e.g. 1.0" inputmode="decimal" />
+                </div>
+              </div>
+
+              <!-- Duration: Select (≥/≤) + NumberInput + Select (unit) -->
+              <div class="field">
+                <label>Duration</label>
+                <div class="range-row">
+                  <div class="select-wrap">
+                    <select class="input"><option>≥</option><option>≤</option></select>
+                  </div>
+                  <input class="input" type="text" placeholder="0" inputmode="numeric" />
+                  <div class="select-wrap unit">
+                    <select class="input"><option>min</option><option>hours</option><option>days</option></select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Missed opportunities: Switch (off by default) -->
+              <div class="field">
+                <label>Missed opportunities</label>
+                <label class="switch">
+                  <span class="track"><span class="knob"></span></span>
+                  <span class="switch-lbl">Include missed</span>
+                </label>
+              </div>
+
+            </div>
+
+            <div class="note">
+              Filter options are populated from <code>available_filters</code>.
+              Values with no matching trades render as <strong>disabled</strong>
+              options. Changing any filter refetches
+              <code>/api/analytics/statistics</code>, <code>/breakdowns</code>
+              and <code>/trades</code> with the same query params.
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================ KPI — MAIN ROW ============================ -->
+        <div class="metrics">
+          <div class="metric">
+            <div class="lbl">Total Trades</div>
+            <div class="val">84</div>
+            <div class="sub">50 W · 30 L · 4 BE</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Total P&amp;L (R)</div>
+            <!-- +49.00R -> profit green -->
+            <div class="val profit">+49.00R</div>
+            <div class="sub">sum of closed trades</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Win Rate</div>
+            <!-- 59.52% ≥ 50% -> green -->
+            <div class="val profit">59.52%</div>
+            <div class="sub">50 of 84</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Profit Factor</div>
+            <!-- 2.36 ≥ 1.5 -> green -->
+            <div class="val profit">2.36</div>
+            <div class="sub">gross win / gross loss</div>
+          </div>
+        </div>
+
+        <!-- ============================ KPI — SECONDARY ============================ -->
+        <div class="section-label">Detailed statistics</div>
+        <div class="metrics secondary">
+          <div class="metric">
+            <div class="lbl">Avg P&amp;L (R)</div>
+            <div class="val profit">+0.58R</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Avg Win (R)</div>
+            <div class="val profit">+1.70R</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Avg Loss (R)</div>
+            <div class="val loss">-1.20R</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Expectancy (R)</div>
+            <div class="val profit">+0.58R</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Avg Duration</div>
+            <div class="val">4h 12m</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Best / Worst (R)</div>
+            <div class="split">
+              <span class="best">+8.20R</span>
+              <span class="sep">/</span>
+              <span class="worst">-3.10R</span>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Win / Loss Streak</div>
+            <!-- Streaks are counts, not money — neutral (never green/red). -->
+            <div class="split">
+              <span class="streak">7</span>
+              <span class="sep">/</span>
+              <span class="streak">4</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================ CHARTS — ROW 1 ============================ -->
+        <div class="chart-row">
+
+          <!-- Left (wider): Day-Hour Heatmap (7 × 24, cell = win-rate intensity) -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Day &amp; Hour Win Rate</h3>
+            </div>
+            <div class="heatmap-scroll">
+              <div class="heatmap" aria-label="Win rate by day of week and hour of day">
+                <!-- Header row: corner + 24 hour labels -->
+                <div class="hm-corner"></div>
+                <div class="hm-h">0</div><div class="hm-h">1</div><div class="hm-h">2</div><div class="hm-h">3</div>
+                <div class="hm-h">4</div><div class="hm-h">5</div><div class="hm-h">6</div><div class="hm-h">7</div>
+                <div class="hm-h">8</div><div class="hm-h">9</div><div class="hm-h">10</div><div class="hm-h">11</div>
+                <div class="hm-h">12</div><div class="hm-h">13</div><div class="hm-h">14</div><div class="hm-h">15</div>
+                <div class="hm-h">16</div><div class="hm-h">17</div><div class="hm-h">18</div><div class="hm-h">19</div>
+                <div class="hm-h">20</div><div class="hm-h">21</div><div class="hm-h">22</div><div class="hm-h">23</div>
+
+                <!-- Mon -->
+                <div class="hm-d">Mon</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr2" title="Mon 07:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr3" title="Mon 08:00 · 4 trades · 75% WR"></div>
+                <div class="cell wr4" title="Mon 09:00 · 5 trades · 80% WR"></div>
+                <div class="cell wr3" title="Mon 10:00 · 4 trades · 75% WR"></div>
+                <div class="cell wr2" title="Mon 11:00 · 2 trades · 50% WR"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr3" title="Mon 13:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr4" title="Mon 14:00 · 4 trades · 80% WR"></div>
+                <div class="cell wr5" title="Mon 15:00 · 5 trades · 100% WR"></div>
+                <div class="cell wr3" title="Mon 16:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr2" title="Mon 17:00 · 2 trades · 50% WR"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <!-- Tue -->
+                <div class="hm-d">Tue</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr1" title="Tue 07:00 · 2 trades · 50% WR"></div>
+                <div class="cell wr2" title="Tue 08:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr3" title="Tue 09:00 · 4 trades · 75% WR"></div>
+                <div class="cell wr1" title="Tue 10:00 · 3 trades · 33% WR"></div>
+                <div class="cell wr2" title="Tue 11:00 · 2 trades · 50% WR"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr2" title="Tue 13:00 · 2 trades · 50% WR"></div>
+                <div class="cell wr3" title="Tue 14:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr4" title="Tue 15:00 · 4 trades · 80% WR"></div>
+                <div class="cell wr3" title="Tue 16:00 · 3 trades · 67% WR"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div>
+
+                <!-- Wed -->
+                <div class="hm-d">Wed</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr3" title="Wed 07:00 · 4 trades · 75% WR"></div>
+                <div class="cell wr4" title="Wed 08:00 · 5 trades · 80% WR"></div>
+                <div class="cell wr5" title="Wed 09:00 · 6 trades · 100% WR"></div>
+                <div class="cell wr4" title="Wed 10:00 · 5 trades · 80% WR"></div>
+                <div class="cell wr3" title="Wed 11:00 · 3 trades · 67% WR"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr2" title="Wed 13:00 · 2 trades · 50% WR"></div>
+                <div class="cell wr3" title="Wed 14:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr3" title="Wed 15:00 · 4 trades · 75% WR"></div>
+                <div class="cell wr1" title="Wed 16:00 · 3 trades · 33% WR"></div>
+                <div class="cell wr1" title="Wed 17:00 · 2 trades · 50% WR"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <!-- Thu -->
+                <div class="hm-d">Thu</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr2" title="Thu 07:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr2" title="Thu 08:00 · 2 trades · 50% WR"></div>
+                <div class="cell wr3" title="Thu 09:00 · 4 trades · 75% WR"></div>
+                <div class="cell wr3" title="Thu 10:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr2" title="Thu 11:00 · 2 trades · 50% WR"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr3" title="Thu 13:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr4" title="Thu 14:00 · 4 trades · 80% WR"></div>
+                <div class="cell wr4" title="Thu 15:00 · 5 trades · 80% WR"></div>
+                <div class="cell wr3" title="Thu 16:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr2" title="Thu 17:00 · 2 trades · 50% WR"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <!-- Fri -->
+                <div class="hm-d">Fri</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr1" title="Fri 07:00 · 2 trades · 50% WR"></div>
+                <div class="cell wr1" title="Fri 08:00 · 3 trades · 33% WR"></div>
+                <div class="cell wr2" title="Fri 09:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr3" title="Fri 10:00 · 4 trades · 75% WR"></div>
+                <div class="cell wr2" title="Fri 11:00 · 2 trades · 50% WR"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr2" title="Fri 13:00 · 2 trades · 50% WR"></div>
+                <div class="cell wr3" title="Fri 14:00 · 3 trades · 67% WR"></div>
+                <div class="cell wr2" title="Fri 15:00 · 2 trades · 50% WR"></div>
+                <div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <!-- Sat (no trades) -->
+                <div class="hm-d">Sat</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <!-- Sun (light evening activity) -->
+                <div class="hm-d">Sun</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr1" title="Sun 18:00 · 2 trades · 50% WR"></div>
+                <div class="cell wr2" title="Sun 19:00 · 2 trades · 67% WR"></div>
+                <div class="cell wr1" title="Sun 20:00 · 1 trade · 50% WR"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+              </div>
+            </div>
+            <div class="heatmap-legend">
+              <span>Low win rate</span>
+              <span class="swatch" style="background:rgba(64,192,87,0.18)"></span>
+              <span class="swatch" style="background:rgba(64,192,87,0.52)"></span>
+              <span class="swatch" style="background:rgba(64,192,87,0.92)"></span>
+              <span>High</span>
+            </div>
+          </div>
+
+          <!-- Right: Asset Breakdown (horizontal bars: total P&L + WR + count) -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Asset Breakdown</h3>
+            </div>
+            <div class="hbars">
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">EUR/USD</span><span class="hbar-meta">63.6% · 22 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:100%"></div></div>
+                <div class="hbar-val profit">+18.40R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">US100</span><span class="hbar-meta">56.3% · 16 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:65.8%"></div></div>
+                <div class="hbar-val profit">+12.10R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">GBP/USD</span><span class="hbar-meta">64.3% · 14 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:53.3%"></div></div>
+                <div class="hbar-val profit">+9.80R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">GOLD</span><span class="hbar-meta">50.0% · 12 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:34.8%"></div></div>
+                <div class="hbar-val profit">+6.40R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">US30</span><span class="hbar-meta">54.5% · 11 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:23.4%"></div></div>
+                <div class="hbar-val profit">+4.30R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">USD/JPY</span><span class="hbar-meta">44.4% · 9 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill down" style="width:10.9%"></div></div>
+                <div class="hbar-val loss">-2.00R</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================ CHARTS — ROW 2 ============================ -->
+        <div class="chart-row">
+
+          <!-- Left (wider): R-Distribution Histogram (0.5R buckets) -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">R-Distribution</h3>
+            </div>
+            <div class="histogram" aria-label="Distribution of trade outcomes in 0.5R buckets">
+              <div class="hbucket"><span class="hcount">1</span><div class="hbar down" style="height:9%"></div></div>
+              <div class="hbucket"><span class="hcount">1</span><div class="hbar down" style="height:9%"></div></div>
+              <div class="hbucket"><span class="hcount">2</span><div class="hbar down" style="height:18%"></div></div>
+              <div class="hbucket"><span class="hcount">3</span><div class="hbar down" style="height:27%"></div></div>
+              <div class="hbucket"><span class="hcount">5</span><div class="hbar down" style="height:45%"></div></div>
+              <div class="hbucket"><span class="hcount">8</span><div class="hbar down" style="height:73%"></div></div>
+              <div class="hbucket"><span class="hcount">10</span><div class="hbar down" style="height:91%"></div></div>
+              <!-- zero reference line: flex divider exactly on the 0R boundary -->
+              <div class="zero-div" title="0R"></div>
+              <div class="hbucket"><span class="hcount">9</span><div class="hbar up" style="height:82%"></div></div>
+              <div class="hbucket"><span class="hcount">11</span><div class="hbar up" style="height:100%"></div></div>
+              <div class="hbucket"><span class="hcount">9</span><div class="hbar up" style="height:82%"></div></div>
+              <div class="hbucket"><span class="hcount">8</span><div class="hbar up" style="height:73%"></div></div>
+              <div class="hbucket"><span class="hcount">6</span><div class="hbar up" style="height:55%"></div></div>
+              <div class="hbucket"><span class="hcount">4</span><div class="hbar up" style="height:36%"></div></div>
+              <div class="hbucket"><span class="hcount">3</span><div class="hbar up" style="height:27%"></div></div>
+            </div>
+            <div class="histogram-x">
+              <span class="hxl">≤-3</span><span class="hxl">-2.5</span><span class="hxl">-2</span><span class="hxl">-1.5</span>
+              <span class="hxl">-1</span><span class="hxl">-0.5</span><span class="hxl">0</span><span class="hxl">0.5</span>
+              <span class="hxl">1</span><span class="hxl">1.5</span><span class="hxl">2</span><span class="hxl">2.5</span>
+              <span class="hxl">3</span><span class="hxl">3+</span>
+            </div>
+            <div class="histogram-caption">R-multiple buckets — red = losing buckets, green = winning, line at 0R</div>
+          </div>
+
+          <!-- Right: Tag Breakdown (same format as asset breakdown) -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Tag Breakdown</h3>
+            </div>
+            <div class="hbars">
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">Breakout</span><span class="hbar-meta">67.9% · 28 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:100%"></div></div>
+                <div class="hbar-val profit">+24.10R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">Pullback</span><span class="hbar-meta">58.3% · 24 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:58.9%"></div></div>
+                <div class="hbar-val profit">+14.20R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">Reversal</span><span class="hbar-meta">50.0% · 18 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:26.1%"></div></div>
+                <div class="hbar-val profit">+6.30R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">News</span><span class="hbar-meta">40.0% · 10 trades</span></div>
+                <div class="hbar-track"><div class="hbar-fill down" style="width:11.6%"></div></div>
+                <div class="hbar-val loss">-2.80R</div>
+              </div>
+            </div>
+            <div class="note" style="margin-bottom:0">
+              Tags overlap (a trade can carry several), so per-tag totals do not
+              sum to the overall P&amp;L. Bar width is scaled to the largest
+              absolute tag total.
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================ CHARTS — ROW 3 (full width) ============================ -->
+        <div class="card rcurve">
+          <div class="card-header">
+            <h3 class="card-title">Cumulative R Curve</h3>
+          </div>
+          <svg class="eq-svg" viewBox="0 0 960 252" preserveAspectRatio="none" role="img"
+               aria-label="Cumulative R over time for the filtered trades, ending at +49.00R">
+            <!-- gridlines -->
+            <line class="eq-grid" x1="46" y1="32.2" x2="950" y2="32.2" />
+            <line class="eq-grid" x1="46" y1="130" x2="950" y2="130" />
+            <!-- zero reference line (dashed) -->
+            <line class="eq-zero" x1="46" y1="232" x2="950" y2="232" />
+            <!-- filled area under the cumulative line -->
+            <path class="eq-area"
+              d="M 46.0,232.0 L 46.0,232.0 99.2,219.0 152.4,224.7 205.5,209.6 258.7,199.4 311.9,205.9 365.1,186.3 418.2,170.8 471.4,177.0 524.6,151.3 577.8,134.2 630.9,140.3 684.1,113.8 737.3,87.3 790.5,97.5 843.6,68.1 896.8,48.6 950.0,32.2 L 950.0,232.0 Z" />
+            <!-- cumulative line -->
+            <polyline class="eq-line"
+              points="46.0,232.0 99.2,219.0 152.4,224.7 205.5,209.6 258.7,199.4 311.9,205.9 365.1,186.3 418.2,170.8 471.4,177.0 524.6,151.3 577.8,134.2 630.9,140.3 684.1,113.8 737.3,87.3 790.5,97.5 843.6,68.1 896.8,48.6 950.0,32.2" />
+            <!-- axis labels -->
+            <text class="eq-axis-lbl" x="42" y="36" text-anchor="end">+49R</text>
+            <text class="eq-axis-lbl" x="42" y="133" text-anchor="end">+25R</text>
+            <text class="eq-axis-lbl" x="42" y="235" text-anchor="end">0R</text>
+            <text class="eq-axis-lbl" x="46" y="248">2026-01</text>
+            <text class="eq-axis-lbl" x="498" y="248" text-anchor="middle">2026-03</text>
+            <text class="eq-axis-lbl" x="950" y="248" text-anchor="end">2026-06</text>
+          </svg>
+          <div class="note" style="margin-bottom:0">
+            In the real app this is a Recharts <code>AreaChart</code> built from
+            <code>breakdowns.cumulative_r</code> — one point per filtered trade,
+            green fill, dashed zero reference line. The heatmap, breakdown bars
+            and histogram above map to a Recharts custom grid, <code>BarChart</code>
+            (horizontal) and <code>BarChart</code> respectively.
+          </div>
+        </div>
+
+        <!-- ============================ TRADES TABLE ============================ -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Trades</h3>
+            <span class="summary" style="font-size:12px;color:var(--dimmed)">84 trades match</span>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Date ▾</th>
+                  <th>Asset</th>
+                  <th>Dir</th>
+                  <th>Entry TF</th>
+                  <th>Tags</th>
+                  <th>Emotions</th>
+                  <th class="right">P&amp;L (R)</th>
+                  <th class="right">Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="mono">2026-06-09</td>
+                  <td class="mono">EUR/USD</td>
+                  <td><span class="dir-icon long" title="Long">↑</span></td>
+                  <td class="mono">15m</td>
+                  <td><span class="badge-group"><span class="badge tag">Breakout</span><span class="badge tag">Pullback</span></span></td>
+                  <td><span class="badge emotion">Confident</span></td>
+                  <td class="num profit">+5.00R</td>
+                  <td class="num">2h 10m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-09</td>
+                  <td class="mono">US100</td>
+                  <td><span class="dir-icon long" title="Long">↑</span></td>
+                  <td class="mono">5m</td>
+                  <td><span class="badge-group"><span class="badge tag">Breakout</span></span></td>
+                  <td><span class="badge emotion">FOMO</span></td>
+                  <td class="num profit">+1.30R</td>
+                  <td class="num">0h 45m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-08</td>
+                  <td class="mono">GBP/USD</td>
+                  <td><span class="dir-icon short" title="Short">↓</span></td>
+                  <td class="mono">1h</td>
+                  <td><span class="badge-group"><span class="badge tag">Reversal</span></span></td>
+                  <td><span class="badge emotion">Calm</span></td>
+                  <td class="num loss">-1.20R</td>
+                  <td class="num">5h 30m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-06</td>
+                  <td class="mono">GOLD</td>
+                  <td><span class="dir-icon long" title="Long">↑</span></td>
+                  <td class="mono">4h</td>
+                  <td><span class="badge-group"><span class="badge tag">Pullback</span></span></td>
+                  <td><span class="badge emotion">Disciplined</span></td>
+                  <td class="num profit">+8.20R</td>
+                  <td class="num">1d 4h</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-05</td>
+                  <td class="mono">US30</td>
+                  <td><span class="dir-icon long" title="Long">↑</span></td>
+                  <td class="mono">15m</td>
+                  <td><span class="badge-group"><span class="badge tag">Breakout</span><span class="badge tag">News</span></span></td>
+                  <td><span class="badge emotion">Anxious</span></td>
+                  <td class="num loss">-3.10R</td>
+                  <td class="num">1h 05m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-05</td>
+                  <td class="mono">USD/JPY</td>
+                  <td><span class="dir-icon short" title="Short">↓</span></td>
+                  <td class="mono">1h</td>
+                  <td><span class="badge-group"><span class="badge tag">Reversal</span></span></td>
+                  <td><span class="badge emotion">Calm</span></td>
+                  <td class="num profit">+2.40R</td>
+                  <td class="num">6h 20m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-04</td>
+                  <td class="mono">EUR/USD</td>
+                  <td><span class="dir-icon short" title="Short">↓</span></td>
+                  <td class="mono">5m</td>
+                  <td><span class="badge-group"><span class="badge tag">News</span></span></td>
+                  <td><span class="badge emotion">FOMO</span></td>
+                  <td class="num neutral">0.00R</td>
+                  <td class="num">0h 20m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-03</td>
+                  <td class="mono">US100</td>
+                  <td><span class="dir-icon long" title="Long">↑</span></td>
+                  <td class="mono">15m</td>
+                  <td><span class="badge-group"><span class="badge tag">Pullback</span></span></td>
+                  <td><span class="badge emotion">Confident</span></td>
+                  <td class="num profit">+3.60R</td>
+                  <td class="num">3h 15m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-02</td>
+                  <td class="mono">GBP/USD</td>
+                  <td><span class="dir-icon long" title="Long">↑</span></td>
+                  <td class="mono">1h</td>
+                  <td><span class="badge-group"><span class="badge tag">Breakout</span><span class="badge tag">Pullback</span></span></td>
+                  <td><span class="badge emotion">Disciplined</span></td>
+                  <td class="num profit">+1.80R</td>
+                  <td class="num">4h 00m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-02</td>
+                  <td class="mono">GOLD</td>
+                  <td><span class="dir-icon short" title="Short">↓</span></td>
+                  <td class="mono">4h</td>
+                  <td><span class="badge-group"><span class="badge tag">Reversal</span></span></td>
+                  <td><span class="badge emotion">Anxious</span></td>
+                  <td class="num loss">-2.00R</td>
+                  <td class="num">8h 45m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-05-30</td>
+                  <td class="mono">US30</td>
+                  <td><span class="dir-icon long" title="Long">↑</span></td>
+                  <td class="mono">15m</td>
+                  <td><span class="badge-group"><span class="badge tag">Breakout</span></span></td>
+                  <td><span class="badge emotion">Calm</span></td>
+                  <td class="num profit">+2.20R</td>
+                  <td class="num">1h 50m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-05-29</td>
+                  <td class="mono">USD/JPY</td>
+                  <td><span class="dir-icon long" title="Long">↑</span></td>
+                  <td class="mono">1h</td>
+                  <td><span class="badge-group"><span class="badge tag">Pullback</span></span></td>
+                  <td><span class="badge emotion">Confident</span></td>
+                  <td class="num profit">+1.10R</td>
+                  <td class="num">2h 30m</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination: 20 per page, page 1 of 5 (84 trades) -->
+          <div class="pagination">
+            <span class="summary">Showing 1–20 of 84</span>
+            <div class="pages">
+              <span class="page" aria-label="Previous">‹</span>
+              <span class="page active">1</span>
+              <span class="page">2</span>
+              <span class="page">3</span>
+              <span class="page">4</span>
+              <span class="page">5</span>
+              <span class="page" aria-label="Next">›</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>

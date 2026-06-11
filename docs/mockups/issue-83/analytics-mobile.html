@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Analytics · Mobile</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #83 — Analytics MOBILE (≤768px), populated.
+    Wrapped in a ~390px .phone-frame so the file renders at phone width when
+    opened directly on desktop; the @media (max-width:768px) rules in the CSS
+    drive the real stacking. Demonstrates: navbar -> hidden (hamburger drawer),
+    Filter panel COLLAPSED (tap to expand), KPI 4->2 cols, charts stacked
+    full-width, heatmap horizontally scrollable, table horizontally scrollable.
+  -->
+  <div class="phone-frame">
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Analytics</h1>
+            <p class="page-subtitle">Find what works — and what to cut.</p>
+          </div>
+        </div>
+
+        <!-- Filter panel COLLAPSED on mobile (Mantine Collapse closed) -->
+        <div class="card filter-panel collapsed">
+          <div class="card-header" role="button" aria-expanded="false">
+            <span class="filter-title">
+              <span class="chevron">▸</span>
+              <span class="card-title">Filters</span>
+              <span class="count">3 active</span>
+            </span>
+          </div>
+          <div class="filter-body">
+            <!-- one filter per row on mobile (filter-grid -> 1fr) -->
+          </div>
+        </div>
+
+        <!-- KPI main row: 4 -> 2 cols -->
+        <div class="metrics">
+          <div class="metric">
+            <div class="lbl">Total Trades</div>
+            <div class="val">84</div>
+            <div class="sub">50 W · 30 L · 4 BE</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Total P&amp;L (R)</div>
+            <div class="val profit">+49.00R</div>
+            <div class="sub">closed trades</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Win Rate</div>
+            <div class="val profit">59.52%</div>
+            <div class="sub">50 of 84</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Profit Factor</div>
+            <div class="val profit">2.36</div>
+            <div class="sub">win / loss</div>
+          </div>
+        </div>
+
+        <!-- Secondary KPI: 2 cols -->
+        <div class="metrics secondary">
+          <div class="metric"><div class="lbl">Avg P&amp;L (R)</div><div class="val profit">+0.58R</div></div>
+          <div class="metric"><div class="lbl">Expectancy (R)</div><div class="val profit">+0.58R</div></div>
+          <div class="metric"><div class="lbl">Avg Win (R)</div><div class="val profit">+1.70R</div></div>
+          <div class="metric"><div class="lbl">Avg Loss (R)</div><div class="val loss">-1.20R</div></div>
+          <div class="metric"><div class="lbl">Avg Duration</div><div class="val">4h 12m</div></div>
+          <div class="metric">
+            <div class="lbl">Best / Worst (R)</div>
+            <div class="split"><span class="best">+8.20R</span><span class="sep">/</span><span class="worst">-3.10R</span></div>
+          </div>
+        </div>
+
+        <!-- Charts stack vertically (chart-row -> 1fr) -->
+        <div class="chart-row">
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">Day &amp; Hour Win Rate</h3></div>
+            <!-- heatmap scrolls horizontally on phones -->
+            <div class="heatmap-scroll">
+              <div class="heatmap" aria-label="Win rate by day and hour">
+                <div class="hm-corner"></div>
+                <div class="hm-h">0</div><div class="hm-h">1</div><div class="hm-h">2</div><div class="hm-h">3</div>
+                <div class="hm-h">4</div><div class="hm-h">5</div><div class="hm-h">6</div><div class="hm-h">7</div>
+                <div class="hm-h">8</div><div class="hm-h">9</div><div class="hm-h">10</div><div class="hm-h">11</div>
+                <div class="hm-h">12</div><div class="hm-h">13</div><div class="hm-h">14</div><div class="hm-h">15</div>
+                <div class="hm-h">16</div><div class="hm-h">17</div><div class="hm-h">18</div><div class="hm-h">19</div>
+                <div class="hm-h">20</div><div class="hm-h">21</div><div class="hm-h">22</div><div class="hm-h">23</div>
+
+                <div class="hm-d">Mon</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr2"></div><div class="cell wr3"></div><div class="cell wr4"></div><div class="cell wr3"></div><div class="cell wr2"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr3"></div><div class="cell wr4"></div><div class="cell wr5"></div><div class="cell wr3"></div><div class="cell wr2"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <div class="hm-d">Tue</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr1"></div><div class="cell wr2"></div><div class="cell wr3"></div><div class="cell wr1"></div><div class="cell wr2"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr2"></div><div class="cell wr3"></div><div class="cell wr4"></div><div class="cell wr3"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <div class="hm-d">Wed</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr3"></div><div class="cell wr4"></div><div class="cell wr5"></div><div class="cell wr4"></div><div class="cell wr3"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr2"></div><div class="cell wr3"></div><div class="cell wr3"></div><div class="cell wr1"></div><div class="cell wr1"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <div class="hm-d">Thu</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr2"></div><div class="cell wr2"></div><div class="cell wr3"></div><div class="cell wr3"></div><div class="cell wr2"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr3"></div><div class="cell wr4"></div><div class="cell wr4"></div><div class="cell wr3"></div><div class="cell wr2"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <div class="hm-d">Fri</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell wr1"></div><div class="cell wr1"></div><div class="cell wr2"></div><div class="cell wr3"></div><div class="cell wr2"></div>
+                <div class="cell empty"></div>
+                <div class="cell wr2"></div><div class="cell wr3"></div><div class="cell wr2"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <div class="hm-d">Sat</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+
+                <div class="hm-d">Sun</div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+                <div class="cell empty"></div><div class="cell empty"></div><div class="cell wr1"></div><div class="cell wr2"></div>
+                <div class="cell wr1"></div><div class="cell empty"></div><div class="cell empty"></div><div class="cell empty"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3 class="card-title">Asset Breakdown</h3></div>
+            <div class="hbars">
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">EUR/USD</span><span class="hbar-meta">63.6% · 22</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:100%"></div></div>
+                <div class="hbar-val profit">+18.40R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">US100</span><span class="hbar-meta">56.3% · 16</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:65.8%"></div></div>
+                <div class="hbar-val profit">+12.10R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">GBP/USD</span><span class="hbar-meta">64.3% · 14</span></div>
+                <div class="hbar-track"><div class="hbar-fill up" style="width:53.3%"></div></div>
+                <div class="hbar-val profit">+9.80R</div>
+              </div>
+              <div class="hbar-row">
+                <div class="hbar-head"><span class="hbar-label">USD/JPY</span><span class="hbar-meta">44.4% · 9</span></div>
+                <div class="hbar-track"><div class="hbar-fill down" style="width:10.9%"></div></div>
+                <div class="hbar-val loss">-2.00R</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cumulative R curve full-width -->
+        <div class="card rcurve">
+          <div class="card-header"><h3 class="card-title">Cumulative R Curve</h3></div>
+          <svg class="eq-svg" viewBox="0 0 960 252" preserveAspectRatio="none" role="img"
+               aria-label="Cumulative R, ending at +49.00R">
+            <line class="eq-grid" x1="46" y1="32.2" x2="950" y2="32.2" />
+            <line class="eq-grid" x1="46" y1="130" x2="950" y2="130" />
+            <line class="eq-zero" x1="46" y1="232" x2="950" y2="232" />
+            <path class="eq-area"
+              d="M 46.0,232.0 L 46.0,232.0 99.2,219.0 152.4,224.7 205.5,209.6 258.7,199.4 311.9,205.9 365.1,186.3 418.2,170.8 471.4,177.0 524.6,151.3 577.8,134.2 630.9,140.3 684.1,113.8 737.3,87.3 790.5,97.5 843.6,68.1 896.8,48.6 950.0,32.2 L 950.0,232.0 Z" />
+            <polyline class="eq-line"
+              points="46.0,232.0 99.2,219.0 152.4,224.7 205.5,209.6 258.7,199.4 311.9,205.9 365.1,186.3 418.2,170.8 471.4,177.0 524.6,151.3 577.8,134.2 630.9,140.3 684.1,113.8 737.3,87.3 790.5,97.5 843.6,68.1 896.8,48.6 950.0,32.2" />
+            <text class="eq-axis-lbl" x="42" y="36" text-anchor="end">+49R</text>
+            <text class="eq-axis-lbl" x="42" y="235" text-anchor="end">0R</text>
+          </svg>
+        </div>
+
+        <!-- Trades table: horizontally scrollable -->
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Trades</h3></div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Date ▾</th><th>Asset</th><th>Dir</th><th>TF</th>
+                  <th>Tags</th><th class="right">P&amp;L (R)</th><th class="right">Dur</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="mono">2026-06-09</td><td class="mono">EUR/USD</td>
+                  <td><span class="dir-icon long">↑</span></td><td class="mono">15m</td>
+                  <td><span class="badge tag">Breakout</span></td>
+                  <td class="num profit">+5.00R</td><td class="num">2h 10m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-08</td><td class="mono">GBP/USD</td>
+                  <td><span class="dir-icon short">↓</span></td><td class="mono">1h</td>
+                  <td><span class="badge tag">Reversal</span></td>
+                  <td class="num loss">-1.20R</td><td class="num">5h 30m</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-06</td><td class="mono">GOLD</td>
+                  <td><span class="dir-icon long">↑</span></td><td class="mono">4h</td>
+                  <td><span class="badge tag">Pullback</span></td>
+                  <td class="num profit">+8.20R</td><td class="num">1d 4h</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-05</td><td class="mono">US30</td>
+                  <td><span class="dir-icon long">↑</span></td><td class="mono">15m</td>
+                  <td><span class="badge tag">News</span></td>
+                  <td class="num loss">-3.10R</td><td class="num">1h 05m</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination">
+            <span class="summary">1–20 of 84</span>
+            <div class="pages">
+              <span class="page active">1</span>
+              <span class="page">2</span>
+              <span class="page">3</span>
+              <span class="page">›</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
