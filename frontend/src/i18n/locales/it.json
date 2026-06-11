@@ -361,6 +361,7 @@
   },
   "settings": {
     "title": "Impostazioni",
+    "delete_count_error": "Impossibile verificare l'utilizzo nei trade. Riprova.",
     "tabs": {
       "general": "Generale",
       "assets": "Asset",
@@ -382,11 +383,20 @@
         "category": "Categoria",
         "currency": "Valuta",
         "active": "Attivo",
-        "edit": "Modifica"
+        "actions": "Azioni"
       },
       "activate_aria": "Attiva {{name}}",
       "deactivate_aria": "Disattiva {{name}}",
       "edit_aria": "Modifica {{name}}",
+      "delete": {
+        "aria": "Elimina {{name}}",
+        "title": "Elimina asset",
+        "simple": "Eliminare {{name}}? L'operazione non può essere annullata.",
+        "blockedTitle": "Impossibile eliminare l'asset",
+        "blocked_one": "Impossibile eliminare {{name}}. Questo asset è associato a {{count}} trade.",
+        "blocked_other": "Impossibile eliminare {{name}}. Questo asset è associato a {{count}} trade.",
+        "blockedHint": "Riassegna o elimina quei trade prima di riprovare."
+      },
       "modal": {
         "add_title": "Aggiungi asset",
         "edit_title": "Modifica asset"
@@ -409,8 +419,10 @@
         "updated": "{{name}} aggiornato",
         "activated": "{{name}} attivato",
         "deactivated": "{{name}} disattivato",
+        "deleted": "{{name}} eliminato",
         "save_error": "Impossibile salvare l'asset",
-        "update_error": "Impossibile aggiornare l'asset"
+        "update_error": "Impossibile aggiornare l'asset",
+        "delete_error": "Impossibile eliminare l'asset"
       }
     },
     "tags": {
@@ -420,11 +432,20 @@
         "name": "Nome",
         "description": "Descrizione",
         "active": "Attivo",
-        "edit": "Modifica"
+        "actions": "Azioni"
       },
       "activate_aria": "Attiva {{name}}",
       "deactivate_aria": "Disattiva {{name}}",
       "edit_aria": "Modifica {{name}}",
+      "delete": {
+        "aria": "Elimina {{name}}",
+        "title": "Elimina tag",
+        "simple": "Eliminare {{name}}? L'operazione non può essere annullata.",
+        "question": "Eliminare {{name}}?",
+        "warning_one": "Questo tag è associato a {{count}} trade. Verrà rimosso da quei trade.",
+        "warning_other": "Questo tag è associato a {{count}} trade. Verrà rimosso da quei trade.",
+        "undone": "L'operazione non può essere annullata."
+      },
       "modal": {
         "add_title": "Aggiungi tag",
         "edit_title": "Modifica tag"
@@ -443,8 +464,10 @@
         "updated": "{{name}} aggiornato",
         "activated": "{{name}} attivato",
         "deactivated": "{{name}} disattivato",
+        "deleted": "{{name}} eliminato",
         "save_error": "Impossibile salvare il tag",
-        "update_error": "Impossibile aggiornare il tag"
+        "update_error": "Impossibile aggiornare il tag",
+        "delete_error": "Impossibile eliminare il tag"
       }
     },
     "emotions": {
@@ -457,7 +480,15 @@
         "actions": "Azioni"
       },
       "edit_aria": "Modifica {{name}}",
-      "delete_aria": "Elimina {{name}}",
+      "delete": {
+        "aria": "Elimina {{name}}",
+        "title": "Elimina emozione",
+        "simple": "Eliminare {{name}}? L'operazione non può essere annullata.",
+        "question": "Eliminare {{name}}?",
+        "warning_one": "Questa emozione è associata a {{count}} trade. Verrà rimossa da quei trade.",
+        "warning_other": "Questa emozione è associata a {{count}} trade. Verrà rimossa da quei trade.",
+        "undone": "L'operazione non può essere annullata."
+      },
       "modal": {
         "add_title": "Aggiungi emozione",
         "edit_title": "Modifica emozione"
@@ -483,10 +514,6 @@
         "deleted": "{{name}} eliminata",
         "save_error": "Impossibile salvare l'emozione",
         "delete_error": "Impossibile eliminare l'emozione"
-      },
-      "delete_modal": {
-        "title": "Elimina emozione",
-        "confirm": "Eliminare <strong>{{name}}</strong>? L'operazione non può essere annullata."
       }
     }
   },

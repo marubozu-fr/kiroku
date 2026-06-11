@@ -89,9 +89,9 @@ describe('AssetsTab', () => {
     )
   })
 
-  it('deactivates an active asset via the toggle', async () => {
+  it('deactivates an active asset via a PUT toggle', async () => {
     const fetchMock = vi.fn(async (_input: string, init?: RequestInit) => {
-      if (init?.method === 'DELETE') {
+      if (init?.method === 'PUT') {
         return jsonResponse(asset({ is_active: false }))
       }
       return jsonResponse([asset()])
@@ -106,8 +106,92 @@ describe('AssetsTab', () => {
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         '/api/assets/1',
-        expect.objectContaining({ method: 'DELETE' }),
+        expect.objectContaining({
+          method: 'PUT',
+          body: JSON.stringify({ is_active: false }),
+        }),
       ),
     )
+  })
+
+  describe('guarded delete — trade_count == 0', () => {
+    it('opens the modal with a Delete button and issues DELETE on confirm', async () => {
+      const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
+        if (input.endsWith('/trade-count')) return jsonResponse({ trade_count: 0 })
+        if (init?.method === 'DELETE') return jsonResponse(null, { status: 204 })
+        return jsonResponse([asset()])
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText('EUR/USD')
+
+      // Open the delete modal.
+      fireEvent.click(screen.getByLabelText('Delete EUR/USD'))
+
+      const dialog = await screen.findByRole('dialog')
+
+      // The modal should show the simple confirm copy.
+      expect(
+        await within(dialog).findByText('Delete EUR/USD? This action cannot be undone.'),
+      ).toBeInTheDocument()
+
+      // A red Delete button must be present.
+      const deleteBtn = within(dialog).getByRole('button', { name: 'Delete' })
+      expect(deleteBtn).toBeInTheDocument()
+
+      // Clicking Delete issues DELETE /api/assets/1.
+      fetchMock.mockClear()
+      fireEvent.click(deleteBtn)
+
+      await waitFor(() =>
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/api/assets/1',
+          expect.objectContaining({ method: 'DELETE' }),
+        ),
+      )
+
+      // Modal closes after deletion.
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+    })
+  })
+
+  describe('guarded delete — trade_count > 0', () => {
+    it('shows the blocking modal with only a Close button and issues no DELETE', async () => {
+      const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
+        if (input.endsWith('/trade-count')) return jsonResponse({ trade_count: 3 })
+        if (init?.method === 'DELETE') return jsonResponse(null, { status: 204 })
+        return jsonResponse([asset()])
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText('EUR/USD')
+
+      fireEvent.click(screen.getByLabelText('Delete EUR/USD'))
+
+      const dialog = await screen.findByRole('dialog')
+
+      // Blocking copy must be visible.
+      expect(
+        await within(dialog).findByText(
+          'Cannot delete EUR/USD. This asset is associated with 3 trades.',
+        ),
+      ).toBeInTheDocument()
+
+      // Only a Close button — no Delete button.
+      expect(within(dialog).queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+      const closeBtn = within(dialog).getByRole('button', { name: 'Close' })
+      expect(closeBtn).toBeInTheDocument()
+
+      // Clicking Close issues NO DELETE request.
+      fetchMock.mockClear()
+      fireEvent.click(closeBtn)
+
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+      expect(
+        fetchMock.mock.calls.every(([, init]) => init?.method !== 'DELETE'),
+      ).toBe(true)
+    })
   })
 })

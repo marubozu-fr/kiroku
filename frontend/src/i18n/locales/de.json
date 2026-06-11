@@ -361,6 +361,7 @@
   },
   "settings": {
     "title": "Einstellungen",
+    "delete_count_error": "Trade-Nutzung konnte nicht geprüft werden. Bitte versuche es erneut.",
     "tabs": {
       "general": "Allgemein",
       "assets": "Assets",
@@ -382,11 +383,20 @@
         "category": "Kategorie",
         "currency": "Währung",
         "active": "Aktiv",
-        "edit": "Bearbeiten"
+        "actions": "Aktionen"
       },
       "activate_aria": "{{name}} aktivieren",
       "deactivate_aria": "{{name}} deaktivieren",
       "edit_aria": "{{name}} bearbeiten",
+      "delete": {
+        "aria": "{{name}} löschen",
+        "title": "Asset löschen",
+        "simple": "{{name}} löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+        "blockedTitle": "Asset kann nicht gelöscht werden",
+        "blocked_one": "{{name}} kann nicht gelöscht werden. Dieses Asset ist mit {{count}} Trade verknüpft.",
+        "blocked_other": "{{name}} kann nicht gelöscht werden. Dieses Asset ist mit {{count}} Trades verknüpft.",
+        "blockedHint": "Weise diese Trades zuerst neu zu oder lösche sie, dann versuche es erneut."
+      },
       "modal": {
         "add_title": "Asset hinzufügen",
         "edit_title": "Asset bearbeiten"
@@ -409,8 +419,10 @@
         "updated": "{{name}} aktualisiert",
         "activated": "{{name}} aktiviert",
         "deactivated": "{{name}} deaktiviert",
+        "deleted": "{{name}} gelöscht",
         "save_error": "Asset konnte nicht gespeichert werden",
-        "update_error": "Asset konnte nicht aktualisiert werden"
+        "update_error": "Asset konnte nicht aktualisiert werden",
+        "delete_error": "Asset konnte nicht gelöscht werden"
       }
     },
     "tags": {
@@ -420,11 +432,20 @@
         "name": "Name",
         "description": "Beschreibung",
         "active": "Aktiv",
-        "edit": "Bearbeiten"
+        "actions": "Aktionen"
       },
       "activate_aria": "{{name}} aktivieren",
       "deactivate_aria": "{{name}} deaktivieren",
       "edit_aria": "{{name}} bearbeiten",
+      "delete": {
+        "aria": "{{name}} löschen",
+        "title": "Tag löschen",
+        "simple": "{{name}} löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+        "question": "{{name}} löschen?",
+        "warning_one": "Dieser Tag ist mit {{count}} Trade verknüpft. Er wird von diesen Trades entfernt.",
+        "warning_other": "Dieser Tag ist mit {{count}} Trades verknüpft. Er wird von diesen Trades entfernt.",
+        "undone": "Diese Aktion kann nicht rückgängig gemacht werden."
+      },
       "modal": {
         "add_title": "Tag hinzufügen",
         "edit_title": "Tag bearbeiten"
@@ -443,8 +464,10 @@
         "updated": "{{name}} aktualisiert",
         "activated": "{{name}} aktiviert",
         "deactivated": "{{name}} deaktiviert",
+        "deleted": "{{name}} gelöscht",
         "save_error": "Tag konnte nicht gespeichert werden",
-        "update_error": "Tag konnte nicht aktualisiert werden"
+        "update_error": "Tag konnte nicht aktualisiert werden",
+        "delete_error": "Tag konnte nicht gelöscht werden"
       }
     },
     "emotions": {
@@ -457,7 +480,15 @@
         "actions": "Aktionen"
       },
       "edit_aria": "{{name}} bearbeiten",
-      "delete_aria": "{{name}} löschen",
+      "delete": {
+        "aria": "{{name}} löschen",
+        "title": "Emotion löschen",
+        "simple": "{{name}} löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+        "question": "{{name}} löschen?",
+        "warning_one": "Diese Emotion ist mit {{count}} Trade verknüpft. Sie wird von diesen Trades entfernt.",
+        "warning_other": "Diese Emotion ist mit {{count}} Trades verknüpft. Sie wird von diesen Trades entfernt.",
+        "undone": "Diese Aktion kann nicht rückgängig gemacht werden."
+      },
       "modal": {
         "add_title": "Emotion hinzufügen",
         "edit_title": "Emotion bearbeiten"
@@ -483,10 +514,6 @@
         "deleted": "{{name}} gelöscht",
         "save_error": "Emotion konnte nicht gespeichert werden",
         "delete_error": "Emotion konnte nicht gelöscht werden"
-      },
-      "delete_modal": {
-        "title": "Emotion löschen",
-        "confirm": "<strong>{{name}}</strong> löschen? Dies kann nicht rückgängig gemacht werden."
       }
     }
   },
