@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Projections · Mobile</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #102 — Projections MOBILE (≤768px), populated.
+    Wrapped in a ~390px .phone-frame so the file renders at phone width when
+    opened on desktop; the @media (max-width:768px) rules in the CSS drive the
+    real stacking. Demonstrates: navbar -> hidden (hamburger drawer), Filter
+    panel COLLAPSED (tap to expand), fan chart stacked ABOVE the stats, stats
+    5 -> 2 cols, methodology collapsed by default to keep the chart above fold.
+  -->
+  <div class="phone-frame">
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Projections</h1>
+            <p class="page-subtitle">Forecast your year from your own edge.</p>
+          </div>
+        </div>
+
+        <!-- Filter panel COLLAPSED on mobile (Mantine Collapse closed) -->
+        <div class="card filter-panel collapsed">
+          <div class="card-header" role="button" aria-expanded="false">
+            <span class="filter-title">
+              <span class="chevron">▸</span>
+              <span class="card-title">Filters</span>
+              <span class="count">1 active</span>
+            </span>
+          </div>
+          <div class="filter-body">
+            <!-- one filter per row on mobile (filter-grid -> 1fr) -->
+          </div>
+        </div>
+
+        <!-- Fan chart stacks ABOVE the stats on mobile -->
+        <div class="card fanchart">
+          <div class="card-header">
+            <h3 class="card-title">Cumulative R — 2026</h3>
+          </div>
+          <svg class="fan-svg" viewBox="0 0 960 320" preserveAspectRatio="none" role="img"
+               aria-label="Cumulative R: green actual to +18.4R then a widening blue projection fan to a P50 of +36.6R, amber dashed goal at +40R.">
+            <line class="fan-grid" x1="60" y1="91.4"  x2="940" y2="91.4" />
+            <line class="fan-grid" x1="60" y1="162.9" x2="940" y2="162.9" />
+            <line class="fan-zero" x1="60" y1="234.3" x2="940" y2="234.3" />
+
+            <path class="fan-band-outer"
+              d="M 463.3,168.6 500.0,143.6 573.3,119.0 646.7,98.9 720.0,80.8 793.3,63.7 866.7,47.4 940.0,31.6 L 940.0,175.5 866.7,179.8 793.3,183.4 720.0,186.4 646.7,188.2 573.3,188.1 500.0,183.5 463.3,168.6 Z" />
+            <path class="fan-band-inner"
+              d="M 463.3,168.6 500.0,153.1 573.3,135.4 646.7,120.1 720.0,105.8 793.3,92.1 866.7,78.7 940.0,65.7 L 940.0,141.4 866.7,148.4 793.3,155.1 720.0,161.4 646.7,167.1 573.3,171.8 500.0,174.1 463.3,168.6 Z" />
+            <polyline class="fan-p50-line"
+              points="463.3,168.6 500.0,163.6 573.3,153.6 646.7,143.6 720.0,133.6 793.3,123.6 866.7,113.6 940.0,103.6" />
+
+            <path class="fan-actual-area"
+              d="M 60.0,234.3 60.0,234.3 133.3,225.0 206.7,230.0 280.0,211.4 353.3,195.7 426.7,177.5 463.3,168.6 L 463.3,234.3 Z" />
+            <polyline class="fan-actual-line"
+              points="60.0,234.3 133.3,225.0 206.7,230.0 280.0,211.4 353.3,195.7 426.7,177.5 463.3,168.6" />
+            <circle class="fan-now-marker" cx="463.3" cy="168.6" r="4" />
+
+            <line class="fan-now" x1="463.3" y1="20" x2="463.3" y2="240" />
+            <text class="fan-now-lbl" x="463.3" y="16" text-anchor="middle">now</text>
+
+            <line class="fan-goal" x1="60" y1="91.4" x2="940" y2="91.4" />
+            <text class="fan-goal-lbl" x="936" y="86" text-anchor="end">Goal +40R</text>
+
+            <text class="fan-axis-lbl" x="56" y="95"  text-anchor="end">+40R</text>
+            <text class="fan-axis-lbl" x="56" y="166" text-anchor="end">+20R</text>
+            <text class="fan-axis-lbl" x="56" y="237" text-anchor="end">0R</text>
+
+            <text class="fan-axis-lbl" x="60.0"  y="258" text-anchor="middle">Jan</text>
+            <text class="fan-axis-lbl" x="280.0" y="258" text-anchor="middle">Apr</text>
+            <text class="fan-axis-lbl" x="500.0" y="258" text-anchor="middle">Jul</text>
+            <text class="fan-axis-lbl" x="720.0" y="258" text-anchor="middle">Oct</text>
+            <text class="fan-axis-lbl" x="866.7" y="258" text-anchor="middle">Dec</text>
+          </svg>
+          <div class="fan-legend">
+            <span class="lg"><span class="line actual"></span> Actual</span>
+            <span class="lg"><span class="line p50"></span> P50</span>
+            <span class="lg"><span class="swatch inner"></span> P25–75</span>
+            <span class="lg"><span class="swatch outer"></span> P10–90</span>
+            <span class="lg"><span class="line goal"></span> Goal</span>
+          </div>
+        </div>
+
+        <!-- Stats row: 5 -> 2 cols -->
+        <div class="metrics stats5">
+          <div class="metric">
+            <div class="lbl">Expectancy (R)</div>
+            <div class="val profit">+0.28R</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Win Rate</div>
+            <div class="val profit">55.0%</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Std Deviation (R)</div>
+            <div class="val dispersion">1.95R</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Goal Probability</div>
+            <div class="val dispersion">41%</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Risk of Ruin</div>
+            <div class="val ror">1.0%</div>
+          </div>
+        </div>
+
+        <!-- Methodology collapsed by default on mobile -->
+        <div class="card methodology collapsed">
+          <div class="card-header" role="button" aria-expanded="false">
+            <span class="method-title">
+              <span class="chevron">▸</span>
+              <span class="card-title">How this projection works</span>
+            </span>
+          </div>
+          <div class="method-body">
+            <!-- tap to expand: Monte Carlo explainer -->
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,617 @@
+/*
+ * Kiroku — Issue #102 mockup stylesheet (Projections page).
+ *
+ * Base tokens/components copied verbatim from docs/mockups/issue-83 so all
+ * mockups look like the same app; projections-specific styles are ADDED below
+ * the "ISSUE #102 ADDITIONS" banner. This folder is self-contained (no
+ * cross-folder imports).
+ *
+ * These CSS variables mirror Mantine's built-in dark theme. In the real app
+ * these come from Mantine tokens (var(--mantine-color-*)) — never hardcoded.
+ * Engineers translate the classes below 1:1 to Mantine + Recharts (see README).
+ *
+ * Semantic colors per docs/DESIGN_SYSTEM.md:
+ *   profit = green.6, loss = red.6, neutral = dimmed, form errors = orange.
+ *   Direction uses NON-semantic hues (Long=teal, Short=grape); Tags=cyan,
+ *   Emotions=indigo — so they never collide with P&L green/red.
+ */
+
+:root {
+  /* Mantine dark surface scale (dark.7 body, dark.6 cards, dark.5 inputs/borders) */
+  --body-bg: #1a1b1e;          /* dark.7 */
+  --card-bg: #25262b;          /* dark.6 */
+  --input-bg: #2c2e33;         /* dark.5 */
+  --border: #373a40;           /* dark.4 */
+  --border-strong: #5c5f66;    /* dark.3 */
+
+  /* Text */
+  --text: #c1c2c5;            /* dark.0 */
+  --text-bright: #f1f3f5;     /* near white headings */
+  --dimmed: #909296;          /* Mantine dimmed */
+
+  /* Brand / primary (Mantine blue.6 default primary) */
+  --primary: #228be6;
+  --primary-hover: #1c7ed6;
+
+  /* Semantic — financial only */
+  --profit: #40c057;          /* green.6 */
+  --loss: #fa5252;            /* red.6 */
+  --orange: #fd7e14;          /* form errors / Warning severity */
+
+  /* Non-semantic badge hues */
+  --teal: #12b886;            /* Long direction */
+  --grape: #be4bdb;           /* Short direction */
+  --cyan: #22b8cf;            /* Tags */
+  --indigo: #5c7cfa;          /* Emotions */
+  --blue: #228be6;            /* Open status */
+  --yellow: #fab005;          /* Partial status */
+  --gray: #868e96;            /* Closed / Breakeven */
+
+  /* Mantine spacing scale */
+  --sp-xs: 10px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 20px;
+  --sp-xl: 32px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--body-bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---- App shell stand-in (AppShell) ---- */
+.shell { display: flex; min-height: 100vh; }
+
+.navbar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  padding: var(--sp-md) var(--sp-sm);
+}
+.navbar .brand {
+  font-size: 18px; font-weight: 700; color: var(--text-bright);
+  padding: var(--sp-xs) var(--sp-sm); margin-bottom: var(--sp-md);
+}
+.navbar .brand .sub { color: var(--dimmed); font-weight: 400; font-size: 13px; }
+.navlink {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  padding: var(--sp-xs) var(--sp-sm); border-radius: var(--radius-sm);
+  color: var(--text); margin-bottom: 2px; font-size: 14px;
+}
+.navlink.active { background: rgba(34, 139, 230, 0.15); color: #74c0fc; }
+.navlink .ic { width: 20px; text-align: center; opacity: 0.85; }
+
+.main { flex: 1; padding: var(--sp-md); }
+.content { max-width: 1400px; margin: 0 auto; }
+
+/* ---- Page header row (Group justify=space-between) ---- */
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--sp-md); margin-bottom: var(--sp-md); flex-wrap: wrap;
+}
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-bright); margin: 0; }
+.page-subtitle { font-size: 14px; color: var(--dimmed); margin: 2px 0 0; }
+.page-header .right { display: flex; align-items: center; gap: var(--sp-sm); }
+
+/* ---- Card (Mantine Card padding=md radius=md) ---- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.card:last-child { margin-bottom: 0; }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-sm);
+}
+.card-title { font-size: 15px; font-weight: 600; color: var(--text-bright); margin: 0; }
+
+/* ---- Form field (Select label above) ---- */
+.field { margin-bottom: 0; }
+.field > label {
+  display: block; font-size: 13px; font-weight: 500;
+  margin-bottom: 4px; color: var(--text);
+}
+.input,
+select.input {
+  width: 100%; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text-bright); padding: 7px 10px; font-size: 14px;
+  font-family: var(--sans);
+}
+.input:focus { outline: none; border-color: var(--primary); }
+
+/* ---- SegmentedControl ---- */
+.segmented {
+  display: inline-flex; background: var(--input-bg);
+  border-radius: var(--radius-sm); padding: 3px; gap: 2px;
+}
+.segmented.full { width: 100%; }
+.segmented .seg {
+  flex: 1; text-align: center; padding: 6px 16px; border-radius: 3px;
+  font-size: 14px; font-weight: 500; color: var(--dimmed); cursor: pointer;
+  user-select: none; display: inline-flex; align-items: center;
+  justify-content: center; gap: 6px;
+}
+.segmented .seg.active {
+  background: var(--card-bg); color: var(--text-bright);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* ---- Badges ---- */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  line-height: 1.6; text-transform: none;
+}
+.badge.long   { background: rgba(18,184,134,0.15); color: #38d9a9; }
+.badge.short  { background: rgba(190,75,219,0.15); color: #da77f2; }
+.badge.tag    { background: rgba(34,184,207,0.15); color: #66d9e8; }
+.badge.emotion{ background: rgba(92,124,250,0.15); color: #91a7ff; }
+.badge.open   { background: rgba(34,139,230,0.15); color: #74c0fc; }
+.badge.partial{ background: rgba(250,176,5,0.15);  color: #ffd43b; }
+.badge.closed { background: rgba(134,142,150,0.18); color: #adb5bd; }
+.badge.breakeven { background: rgba(134,142,150,0.18); color: #adb5bd; }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-sm); font-size: 14px;
+  font-weight: 500; cursor: pointer; border: 1px solid transparent;
+  font-family: var(--sans); text-decoration: none;
+}
+.btn.filled { background: var(--primary); color: #fff; }
+.btn.filled:hover { background: var(--primary-hover); }
+.btn.default { background: var(--input-bg); color: var(--text-bright); border-color: var(--border); }
+.btn.light { background: rgba(34,139,230,0.15); color: #74c0fc; }
+.btn.subtle { background: transparent; color: var(--dimmed); padding: 6px 10px; }
+.btn.subtle:hover { background: var(--input-bg); color: var(--text-bright); }
+.btn.sm { padding: 5px 10px; font-size: 13px; }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; font-size: 16px;
+}
+.icon-btn:hover { background: var(--input-bg); }
+.icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- Financial number helper (<Money>/<RValue>) ---- */
+.mono { font-family: var(--mono); }
+.num  { font-family: var(--mono); text-align: right; }
+.profit { color: var(--profit); }
+.loss   { color: var(--loss); }
+.neutral{ color: var(--dimmed); }
+
+/* ---- Metric cards (SimpleGrid cols={{ base: 2, sm: 4 }}) ---- */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-md); margin-bottom: var(--sp-md); }
+.metric { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-md); }
+.metric .lbl { font-size: 13px; color: var(--dimmed); margin-bottom: 6px; }
+.metric .val { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--text-bright); }
+.metric .val.profit { color: var(--profit); }
+.metric .val.loss { color: var(--loss); }
+
+/* Best / Worst, Streak split card: two values side by side. */
+.metric .split {
+  display: flex; align-items: baseline; gap: 6px;
+  font-family: var(--mono); font-size: 24px; font-weight: 700;
+}
+.metric .split .sep { color: var(--dimmed); font-weight: 400; font-size: 18px; }
+.metric .split .best  { color: var(--profit); }
+.metric .split .worst { color: var(--loss); }
+/* Streak counts are NOT money — keep them neutral (bright default), never green/red. */
+.metric .split .streak { color: var(--text-bright); }
+.metric .sub { font-size: 11px; color: var(--dimmed); margin-top: 4px; }
+
+.note { font-size: 12px; color: var(--dimmed); margin: var(--sp-md) 0; padding: var(--sp-sm); border-left: 3px solid var(--primary); background: rgba(34,139,230,0.06); }
+.note:first-child { margin-top: 0; }
+
+/* ---- Tables (Mantine Table striped + highlightOnHover, fz=sm) ---- */
+.table-wrap { overflow-x: auto; }
+table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.table thead th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.4px; color: var(--dimmed);
+  padding: var(--sp-xs) var(--sp-sm); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+table.table thead th.right { text-align: right; }
+table.table tbody td {
+  padding: var(--sp-xs) var(--sp-sm); border-bottom: 1px solid var(--border);
+  color: var(--text); white-space: nowrap;
+}
+table.table tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+table.table tbody tr:hover { background: rgba(34,139,230,0.06); cursor: pointer; }
+table.table td.num { font-family: var(--mono); text-align: right; }
+table.table td.mono { font-family: var(--mono); }
+
+/* ---- Empty state (DESIGN_SYSTEM "Empty") — from issue-65 base ---- */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; gap: var(--sp-sm);
+  padding: var(--sp-xl) var(--sp-md); color: var(--dimmed);
+}
+.empty-state .icon { font-size: 44px; opacity: 0.7; line-height: 1; }
+.empty-state .title { font-size: 18px; font-weight: 600; color: var(--text-bright); }
+.empty-state .desc { font-size: 14px; max-width: 380px; }
+.empty-state .btn { margin-top: var(--sp-xs); }
+
+
+/* ==========================================================================
+ * ISSUE #83 ADDITIONS — Analytics
+ * ======================================================================== */
+
+/*
+ * Analytics-specific styles. The base tokens/components above are copied
+ * verbatim from docs/mockups/issue-72 (self-contained; no cross-folder
+ * imports). Everything below maps 1:1 to the real app's Mantine + Recharts
+ * implementation (see README): a collapsible Filter panel, a 4-up prominent
+ * KPI row + a secondary KPI grid, four chart cards (CSS/SVG stand-ins for the
+ * Recharts heatmap / horizontal-bar breakdowns / R-distribution histogram /
+ * cumulative-R area chart), and the dense paginated trades Table.
+ */
+
+/* ---- Filter panel (collapsible Card) ---- */
+.filter-panel .card-header { cursor: pointer; margin-bottom: 0; }
+.filter-panel.open .card-header { margin-bottom: var(--sp-md); }
+.filter-title { display: inline-flex; align-items: center; gap: var(--sp-xs); }
+.filter-title .chevron { color: var(--dimmed); transition: none; }
+.filter-title .count {
+  font-size: 11px; font-weight: 600; color: #74c0fc;
+  background: rgba(34,139,230,0.15); border-radius: 999px; padding: 1px 8px;
+}
+/* Collapsed body hidden (Mantine Collapse). */
+.filter-panel .filter-body { display: block; }
+.filter-panel.collapsed .filter-body { display: none; }
+
+/* Responsive filter grid (SimpleGrid / Grid auto-fit). */
+.filter-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sp-md);
+}
+.field.span-2 { grid-column: span 2; }
+
+/* MultiSelect stand-in: bordered box holding removable pills + placeholder. */
+.multiselect {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+  min-height: 36px; width: 100%; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+.multiselect .ms-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 2px 6px; font-size: 12px;
+  color: var(--text-bright);
+}
+.multiselect .ms-pill .x { color: var(--dimmed); cursor: pointer; font-size: 13px; }
+.multiselect .ms-placeholder { color: var(--dimmed); font-size: 13px; }
+
+/* A select-with-chevron stand-in (NativeSelect / Select). */
+.select-wrap { position: relative; }
+.select-wrap::after {
+  content: '▾'; position: absolute; right: 10px; top: 50%;
+  transform: translateY(-50%); color: var(--dimmed); pointer-events: none;
+  font-size: 12px;
+}
+
+/* DatePickerInput stand-in: input with a trailing calendar glyph. */
+.datepick { position: relative; }
+.datepick::after {
+  content: '🗓'; position: absolute; right: 9px; top: 50%;
+  transform: translateY(-50%); opacity: 0.6; pointer-events: none; font-size: 13px;
+}
+
+/* Inline row: operator Select + NumberInput (+ optional unit Select). */
+.range-row { display: flex; gap: 6px; align-items: center; }
+.range-row .select-wrap { flex: 0 0 64px; }
+.range-row .select-wrap.unit { flex: 0 0 84px; }
+.range-row .input { flex: 1; }
+
+/* Switch stand-in (Mantine Switch, off by default). */
+.switch {
+  display: inline-flex; align-items: center; gap: var(--sp-xs);
+}
+.switch .track {
+  width: 38px; height: 20px; border-radius: 999px; background: var(--input-bg);
+  border: 1px solid var(--border); position: relative; flex-shrink: 0;
+}
+.switch .track .knob {
+  position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--dimmed); transition: none;
+}
+.switch.on .track { background: var(--primary); border-color: var(--primary); }
+.switch.on .track .knob { left: 20px; background: #fff; }
+.switch .switch-lbl { font-size: 13px; color: var(--text); }
+
+/* Filter footer: reset action aligned right. */
+.filter-footer {
+  display: flex; justify-content: flex-end; gap: var(--sp-sm);
+  margin-top: var(--sp-md); padding-top: var(--sp-sm);
+  border-top: 1px solid var(--border);
+}
+
+/* ---- Secondary KPI grid (smaller cards, SimpleGrid auto-fit) ---- */
+.metrics.secondary {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.metrics.secondary .metric { padding: var(--sp-sm) var(--sp-md); }
+.metrics.secondary .metric .lbl { font-size: 12px; margin-bottom: 4px; }
+.metrics.secondary .metric .val { font-size: 18px; }
+.metrics.secondary .metric .split { font-size: 18px; }
+.metrics.secondary .metric .split .sep { font-size: 14px; }
+
+/* Section heading between KPI rows / chart rows. */
+.section-label {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--dimmed); margin: var(--sp-md) 0 var(--sp-sm);
+}
+
+/* ---- Chart rows: two columns, left wider (Grid col span 7/5) ---- */
+.chart-row {
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.chart-row > .card { margin-bottom: 0; }
+
+/* ---- Day-Hour heatmap (CSS grid; cell color = win-rate intensity) ---- */
+.heatmap-scroll { overflow-x: auto; }
+.heatmap {
+  display: grid;
+  grid-template-columns: 34px repeat(24, 1fr);
+  gap: 3px; min-width: 560px;
+}
+.heatmap .hm-corner { }
+.heatmap .hm-h, .heatmap .hm-d {
+  font-family: var(--mono); font-size: 9px; color: var(--dimmed);
+  text-align: center; align-self: center;
+}
+.heatmap .hm-d { text-align: right; padding-right: 4px; font-size: 10px; }
+.heatmap .cell {
+  height: 16px; border-radius: 2px; background: var(--input-bg);
+}
+/* Win-rate intensity buckets (green alpha ramp). Empty = faint input bg. */
+.heatmap .cell.empty { background: rgba(255,255,255,0.025); }
+.heatmap .cell.wr1 { background: rgba(64,192,87,0.18); }
+.heatmap .cell.wr2 { background: rgba(64,192,87,0.34); }
+.heatmap .cell.wr3 { background: rgba(64,192,87,0.52); }
+.heatmap .cell.wr4 { background: rgba(64,192,87,0.72); }
+.heatmap .cell.wr5 { background: rgba(64,192,87,0.92); }
+.heatmap .cell:hover { outline: 1px solid var(--border-strong); }
+
+.heatmap-legend {
+  display: flex; align-items: center; gap: 6px; margin-top: var(--sp-sm);
+  font-size: 11px; color: var(--dimmed); justify-content: flex-end;
+}
+.heatmap-legend .swatch { width: 14px; height: 14px; border-radius: 2px; }
+
+/* ---- Horizontal-bar breakdown (asset / tag) ---- */
+.hbars { display: flex; flex-direction: column; gap: var(--sp-sm); }
+.hbar-row { display: grid; grid-template-columns: 110px 1fr 70px; gap: var(--sp-sm); align-items: center; }
+.hbar-head { display: flex; flex-direction: column; line-height: 1.25; overflow: hidden; }
+.hbar-label { font-family: var(--mono); font-size: 13px; color: var(--text-bright); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbar-meta { font-size: 11px; color: var(--dimmed); }
+.hbar-track {
+  position: relative; height: 18px; background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-sm);
+}
+.hbar-fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: var(--radius-sm); }
+.hbar-fill.up { background: var(--profit); }
+.hbar-fill.down { background: var(--loss); }
+.hbar-val { font-family: var(--mono); font-size: 13px; text-align: right; }
+
+/* ---- R-distribution histogram (0.5R buckets; green ≥0 / red <0) ---- */
+.histogram { position: relative; height: 240px; display: flex; align-items: flex-end; gap: 3px; padding-top: var(--sp-sm); }
+.histogram .hbucket { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.histogram .hbucket .hbar {
+  width: 70%; border-radius: 2px 2px 0 0; min-height: 2px;
+}
+.histogram .hbucket .hbar.up { background: var(--profit); }
+.histogram .hbucket .hbar.down { background: var(--loss); }
+.histogram .hbucket .hcount { font-family: var(--mono); font-size: 9px; color: var(--dimmed); margin-bottom: 3px; }
+.histogram-x { display: flex; gap: 3px; margin-top: 5px; }
+.histogram-x .hxl { flex: 1; text-align: center; font-family: var(--mono); font-size: 9px; color: var(--dimmed); }
+/* Zero reference line — a flex item dropped between the -0.5..0 and 0..0.5
+   buckets so it lands exactly on the 0R boundary regardless of bucket widths
+   (Recharts equivalent: <ReferenceLine x={0} />). */
+.histogram .zero-div { width: 2px; align-self: stretch; background: var(--border-strong); }
+.histogram-caption { font-size: 11px; color: var(--dimmed); margin-top: 6px; text-align: center; }
+
+/* ---- Cumulative R curve (inline-SVG AreaChart stand-in) ---- */
+.rcurve .eq-svg { width: 100%; height: 260px; display: block; }
+.rcurve .eq-grid { stroke: var(--border); stroke-width: 1; }
+.rcurve .eq-zero { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 4 4; }
+.rcurve .eq-area { fill: rgba(64,192,87,0.14); }
+.rcurve .eq-line { fill: none; stroke: var(--profit); stroke-width: 2; }
+.rcurve .eq-axis-lbl { font-family: var(--mono); font-size: 10px; fill: var(--dimmed); }
+
+/* ---- Direction icon (table) ---- */
+.dir-icon { font-family: var(--mono); font-weight: 700; }
+.dir-icon.long { color: #38d9a9; }
+.dir-icon.short { color: #da77f2; }
+/* Compact badge group inside a cell (tags / emotions). */
+.badge-group { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+
+/* ---- Pagination (Mantine Pagination) ---- */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-sm); margin-top: var(--sp-md);
+  padding-top: var(--sp-sm); border-top: 1px solid var(--border);
+}
+.pagination .pages { display: inline-flex; gap: 4px; }
+.pagination .page {
+  min-width: 30px; height: 30px; padding: 0 8px; border-radius: var(--radius-sm);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; color: var(--text); border: 1px solid var(--border);
+  background: transparent; cursor: pointer; font-family: var(--mono);
+}
+.pagination .page:hover { background: var(--input-bg); }
+.pagination .page.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.pagination .page.dots { border-color: transparent; cursor: default; }
+.pagination .summary { font-size: 12px; color: var(--dimmed); }
+
+/* ---- Loading skeleton (Mantine Skeleton) ---- */
+.skeleton {
+  background: linear-gradient(90deg, var(--input-bg) 0%, #34363c 50%, var(--input-bg) 100%);
+  border-radius: var(--radius-sm); height: 14px;
+}
+.skeleton.val { height: 24px; width: 70%; margin-top: 6px; }
+.skeleton.block { height: 240px; }
+.skeleton.line { margin: 6px 0; }
+
+/* ---- Mobile phone frame (analytics-mobile.html) ---- */
+.phone-frame {
+  max-width: 390px; margin: 0 auto;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; min-height: 100vh; background: var(--body-bg);
+}
+
+/* ---- Responsive: stack at Mantine `sm` (~768px) ---- */
+@media (max-width: 768px) {
+  .navbar { display: none; }                          /* becomes hamburger drawer */
+  .metrics { grid-template-columns: repeat(2, 1fr); } /* 4-up -> 2 cols */
+  .metrics.secondary { grid-template-columns: repeat(2, 1fr); }
+  .chart-row { grid-template-columns: 1fr; }          /* charts stack vertically */
+  .page-header .right { width: 100%; }
+  .filter-grid { grid-template-columns: 1fr; }        /* one filter per row */
+  .field.span-2 { grid-column: span 1; }
+  .heatmap { min-width: 540px; }                      /* heatmap scrolls horizontally */
+}
+
+
+/* ==========================================================================
+ * ISSUE #102 ADDITIONS — Projections (Monte Carlo fan chart)
+ * ==========================================================================
+ *
+ * Base tokens/components above are copied verbatim from docs/mockups/issue-83
+ * (self-contained — no cross-folder imports). Everything below maps 1:1 to the
+ * real app's Mantine + Recharts implementation (see README): a 5-up stats row,
+ * a collapsible Filter panel (Start Date / Asset / Goal), the centerpiece
+ * inline-SVG fan chart (Recharts ComposedChart: actual Area + projection Area
+ * bands + P50 Line + goal ReferenceLine), a chart legend, and a collapsible
+ * Methodology explainer.
+ *
+ * PALETTE DECISION — actual vs projected separation:
+ *   ACTUAL data uses the semantic profit/loss green/red (DESIGN_SYSTEM.md).
+ *   PROJECTED data uses a DISTINCT blue family (Mantine blue tokens) so a glance
+ *   tells "real" from "estimated". P50 = blue.6 solid; the P25-P75 band is a
+ *   semi-transparent blue fill; the P10-P90 band is a lighter, more transparent
+ *   blue fill. Blue is NOT a financial-semantic color here — it is the app's
+ *   primary/brand hue, reused only to mark "this is a model, not a result".
+ *   The goal line is an amber/yellow dashed ReferenceLine so it never collides
+ *   with green (profit), red (loss) or blue (projection).
+ */
+
+/* ---- Stats row: 5 compact cards (SimpleGrid cols={{ base: 2, sm: 3, lg: 5 }}) ---- */
+.metrics.stats5 { grid-template-columns: repeat(5, 1fr); }
+.metrics.stats5 .metric { padding: var(--sp-sm) var(--sp-md); }
+.metrics.stats5 .metric .val { font-size: 22px; }
+/* Std Deviation is a dispersion stat, NOT money -> neutral bright default. */
+.metric .val.dispersion { color: var(--text-bright); }
+/* Risk of Ruin: low is good. Render in dimmed/neutral when low; the value is a
+   probability, so it is intentionally NOT green/red (green/red are reserved for
+   P&L/R). A faint orange warning tint is applied only above a danger threshold. */
+.metric .val.ror { color: var(--text-bright); }
+.metric .val.ror.warn { color: var(--orange); }
+
+/* ---- Fan chart (inline-SVG ComposedChart stand-in) ---- */
+.fanchart .fan-svg { width: 100%; height: 340px; display: block; }
+.fanchart .fan-grid { stroke: var(--border); stroke-width: 1; }
+.fanchart .fan-zero { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 4 4; }
+
+/* ACTUAL: semantic green area + line (matches the Analytics R-curve). */
+.fanchart .fan-actual-area { fill: rgba(64,192,87,0.14); }
+.fanchart .fan-actual-line { fill: none; stroke: var(--profit); stroke-width: 2.5; }
+
+/* PROJECTED: distinct blue family. Outer P10-P90 band lighter/more transparent;
+   inner P25-P75 band more saturated; P50 solid blue line. */
+.fanchart .fan-band-outer { fill: rgba(34,139,230,0.10); }
+.fanchart .fan-band-inner { fill: rgba(34,139,230,0.22); }
+.fanchart .fan-p50-line {
+  fill: none; stroke: var(--blue); stroke-width: 2.5; stroke-dasharray: 1 0;
+}
+/* Vertical divider marking "now" — where actual ends and projection begins. */
+.fanchart .fan-now { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 2 3; }
+.fanchart .fan-now-lbl { font-family: var(--mono); font-size: 10px; fill: var(--dimmed); }
+
+/* GOAL line: amber dashed ReferenceLine + label pill, distinct from all series. */
+.fanchart .fan-goal { stroke: var(--yellow); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.fanchart .fan-goal-lbl { font-family: var(--mono); font-size: 11px; font-weight: 600; fill: var(--yellow); }
+
+.fanchart .fan-axis-lbl { font-family: var(--mono); font-size: 10px; fill: var(--dimmed); }
+.fanchart .fan-now-marker { fill: var(--profit); stroke: var(--body-bg); stroke-width: 1.5; }
+
+/* ---- Chart legend (Recharts <Legend> stand-in) ---- */
+.fan-legend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-md);
+  margin-top: var(--sp-sm); padding-top: var(--sp-sm);
+  border-top: 1px solid var(--border); font-size: 12px; color: var(--dimmed);
+}
+.fan-legend .lg { display: inline-flex; align-items: center; gap: 6px; }
+.fan-legend .lg .swatch { width: 16px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+.fan-legend .lg .line {
+  width: 18px; height: 0; border-top-width: 2.5px; border-top-style: solid; flex-shrink: 0;
+}
+.fan-legend .lg .line.actual { border-color: var(--profit); }
+.fan-legend .lg .line.p50 { border-color: var(--blue); }
+.fan-legend .lg .line.goal { border-color: var(--yellow); border-top-style: dashed; }
+.fan-legend .lg .swatch.inner { background: rgba(34,139,230,0.22); border: 1px solid rgba(34,139,230,0.4); }
+.fan-legend .lg .swatch.outer { background: rgba(34,139,230,0.10); border: 1px solid rgba(34,139,230,0.25); }
+
+/* ---- Methodology explainer (collapsible Card / Collapse) ---- */
+.methodology .card-header { cursor: pointer; margin-bottom: 0; }
+.methodology.open .card-header { margin-bottom: var(--sp-md); }
+.methodology .method-title { display: inline-flex; align-items: center; gap: var(--sp-xs); }
+.methodology .method-title .chevron { color: var(--dimmed); }
+.methodology .method-body { display: block; font-size: 13px; line-height: 1.7; color: var(--text); }
+.methodology.collapsed .method-body { display: none; }
+.methodology .method-body p { margin: 0 0 var(--sp-sm); }
+.methodology .method-body ol { margin: 0 0 var(--sp-sm); padding-left: 20px; }
+.methodology .method-body li { margin-bottom: 6px; }
+.methodology .method-body code {
+  font-family: var(--mono); font-size: 12px; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1px 5px;
+}
+.methodology .method-body strong { color: var(--text-bright); }
+
+/* ---- Empty state: feature-preview cards + CTA (brand-new account) ---- */
+.preview-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.preview-card {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-md); padding: var(--sp-md); text-align: center;
+}
+.preview-card .pc-icon { font-size: 30px; opacity: 0.7; line-height: 1; margin-bottom: var(--sp-xs); }
+.preview-card .pc-title { font-size: 14px; font-weight: 600; color: var(--text-bright); margin-bottom: 4px; }
+.preview-card .pc-desc { font-size: 12px; color: var(--dimmed); line-height: 1.5; }
+/* Faded mini fan-chart illustration inside a preview card. */
+.preview-card .pc-art { height: 70px; margin-bottom: var(--sp-sm); opacity: 0.55; }
+.preview-card .pc-art svg { width: 100%; height: 100%; display: block; }
+
+/* ---- Responsive: stack at Mantine `sm` (~768px) ---- */
+@media (max-width: 768px) {
+  .metrics.stats5 { grid-template-columns: repeat(2, 1fr); } /* 5-up -> 2 cols */
+  .preview-grid { grid-template-columns: 1fr; }              /* preview cards stack */
+  .fanchart .fan-svg { height: 280px; }                      /* shorter on phones */
+  .fan-legend { gap: var(--sp-sm); }
+}

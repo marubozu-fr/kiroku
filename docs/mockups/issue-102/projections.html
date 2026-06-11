@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Projections</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #102 — Projections (DESKTOP, POPULATED).
+    Top to bottom: page header (title + subtitle), collapsible Filter panel
+    (Start Date / Asset / Goal), a 5-up Stats row, the centerpiece fan chart
+    (Monte Carlo forecast of cumulative R, Jan -> Dec 2026) with a legend, then
+    a collapsible Methodology explainer. The fan chart is a hand-authored inline
+    <svg> stand-in for a Recharts ComposedChart — see README. Sample data is
+    internally consistent: expectancy +0.28R over ~120 trades/yr, +18.4R banked
+    to date (mid-June), P50 year-end +36.6R, goal +40R -> 41% goal probability.
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink active" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <!-- Page header: title + dimmed subtitle -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Projections</h1>
+            <p class="page-subtitle">Forecast your year with a Monte Carlo simulation of your own edge.</p>
+          </div>
+        </div>
+
+        <!-- ============================ FILTER PANEL ============================ -->
+        <!-- Collapsible Card (Mantine Collapse). Shown OPEN here. -->
+        <div class="card filter-panel open">
+          <div class="card-header" role="button" aria-expanded="true">
+            <span class="filter-title">
+              <span class="chevron">▾</span>
+              <span class="card-title">Filters</span>
+              <span class="count">1 active</span>
+            </span>
+            <button class="btn subtle sm" type="button">Reset</button>
+          </div>
+
+          <div class="filter-body">
+            <div class="filter-grid">
+
+              <!-- Start Date: DatePickerInput (restricts the historical window) -->
+              <div class="field">
+                <label>Start date</label>
+                <div class="datepick"><input class="input" type="text" value="2026-01-01" readonly /></div>
+              </div>
+
+              <!-- Asset filter: MultiSelect (what-if analysis) -->
+              <div class="field span-2">
+                <label>Assets</label>
+                <div class="multiselect">
+                  <span class="ms-placeholder">All assets</span>
+                </div>
+              </div>
+
+              <!-- Goal (R): NumberInput (optional annual R target) -->
+              <div class="field">
+                <label>Goal (R)</label>
+                <input class="input mono" type="text" value="40" inputmode="decimal" />
+              </div>
+
+            </div>
+
+            <div class="note">
+              Filters re-run the simulation: <strong>Start date</strong> trims the
+              historical window the model samples from, <strong>Assets</strong>
+              restricts which trades feed the sample (what-if analysis), and
+              <strong>Goal (R)</strong> is the dashed target line + the
+              <code>goal_probability</code> stat. Source:
+              <code>GET /api/projections?start_date=&amp;assets=&amp;goal_r=</code>.
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================ STATS ROW (5-up) ============================ -->
+        <div class="metrics stats5">
+          <div class="metric">
+            <div class="lbl">Expectancy (R)</div>
+            <!-- +0.28R per trade -> positive -> profit green -->
+            <div class="val profit">+0.28R</div>
+            <div class="sub">per trade</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Win Rate</div>
+            <!-- percentage; not a money value but win-rate threshold colors apply -->
+            <div class="val profit">55.0%</div>
+            <div class="sub">66 of 120</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Std Deviation (R)</div>
+            <!-- dispersion stat, NOT money -> neutral bright default (never green/red) -->
+            <div class="val dispersion">1.95R</div>
+            <div class="sub">per-trade σ</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Goal Probability</div>
+            <!-- shown ONLY when a goal is set; a probability, not money -> neutral -->
+            <div class="val dispersion">41%</div>
+            <div class="sub">reach +40R by Dec</div>
+          </div>
+          <div class="metric">
+            <div class="lbl">Risk of Ruin</div>
+            <!-- P(finish year negative); low is good -> neutral. .warn tints orange above danger threshold -->
+            <div class="val ror">1.0%</div>
+            <div class="sub">finish year &lt; 0R</div>
+          </div>
+        </div>
+
+        <!-- ============================ FAN CHART (centerpiece) ============================ -->
+        <div class="card fanchart">
+          <div class="card-header">
+            <h3 class="card-title">Cumulative R — Actual &amp; Projection (2026)</h3>
+            <span class="summary" style="font-size:12px;color:var(--dimmed)">10,000 simulations</span>
+          </div>
+
+          <svg class="fan-svg" viewBox="0 0 960 320" preserveAspectRatio="none" role="img"
+               aria-label="Cumulative R over 2026: solid green actual line Jan to mid-June ending at +18.4R, then a blue Monte Carlo projection fan widening to a P50 of +36.6R by December, with an amber dashed goal line at +40R.">
+
+            <!-- gridlines at 0 / 20 / 40 / 60 R -->
+            <line class="fan-grid" x1="60" y1="20.0"  x2="940" y2="20.0" />
+            <line class="fan-grid" x1="60" y1="91.4"  x2="940" y2="91.4" />
+            <line class="fan-grid" x1="60" y1="162.9" x2="940" y2="162.9" />
+
+            <!-- zero reference line (dashed) -->
+            <line class="fan-zero" x1="60" y1="234.3" x2="940" y2="234.3" />
+
+            <!-- ============ PROJECTION (blue fan) ============ -->
+            <!-- Outer P10-P90 band (lighter / more transparent). WIDENS toward Dec. -->
+            <path class="fan-band-outer"
+              d="M 463.3,168.6 500.0,143.6 573.3,119.0 646.7,98.9 720.0,80.8 793.3,63.7 866.7,47.4 940.0,31.6 L 940.0,175.5 866.7,179.8 793.3,183.4 720.0,186.4 646.7,188.2 573.3,188.1 500.0,183.5 463.3,168.6 Z" />
+            <!-- Inner P25-P75 band (more saturated). Also widens toward Dec. -->
+            <path class="fan-band-inner"
+              d="M 463.3,168.6 500.0,153.1 573.3,135.4 646.7,120.1 720.0,105.8 793.3,92.1 866.7,78.7 940.0,65.7 L 940.0,141.4 866.7,148.4 793.3,155.1 720.0,161.4 646.7,167.1 573.3,171.8 500.0,174.1 463.3,168.6 Z" />
+            <!-- P50 median (solid blue line) -->
+            <polyline class="fan-p50-line"
+              points="463.3,168.6 500.0,163.6 573.3,153.6 646.7,143.6 720.0,133.6 793.3,123.6 866.7,113.6 940.0,103.6" />
+
+            <!-- ============ ACTUAL (green) ============ -->
+            <path class="fan-actual-area"
+              d="M 60.0,234.3 60.0,234.3 133.3,225.0 206.7,230.0 280.0,211.4 353.3,195.7 426.7,177.5 463.3,168.6 L 463.3,234.3 Z" />
+            <polyline class="fan-actual-line"
+              points="60.0,234.3 133.3,225.0 206.7,230.0 280.0,211.4 353.3,195.7 426.7,177.5 463.3,168.6" />
+            <!-- "now" marker dot where actual ends / projection starts -->
+            <circle class="fan-now-marker" cx="463.3" cy="168.6" r="4" />
+
+            <!-- ============ "now" divider ============ -->
+            <line class="fan-now" x1="463.3" y1="20" x2="463.3" y2="240" />
+            <text class="fan-now-lbl" x="463.3" y="16" text-anchor="middle">now</text>
+
+            <!-- ============ GOAL line (amber dashed, labeled) ============ -->
+            <line class="fan-goal" x1="60" y1="91.4" x2="940" y2="91.4" />
+            <text class="fan-goal-lbl" x="936" y="86" text-anchor="end">Goal +40R</text>
+
+            <!-- ============ Y axis labels ============ -->
+            <text class="fan-axis-lbl" x="56" y="24"    text-anchor="end">+60R</text>
+            <text class="fan-axis-lbl" x="56" y="95"    text-anchor="end">+40R</text>
+            <text class="fan-axis-lbl" x="56" y="166"   text-anchor="end">+20R</text>
+            <text class="fan-axis-lbl" x="56" y="237"   text-anchor="end">0R</text>
+
+            <!-- ============ X axis labels (months) ============ -->
+            <text class="fan-axis-lbl" x="60.0"  y="258" text-anchor="middle">Jan</text>
+            <text class="fan-axis-lbl" x="133.3" y="258" text-anchor="middle">Feb</text>
+            <text class="fan-axis-lbl" x="206.7" y="258" text-anchor="middle">Mar</text>
+            <text class="fan-axis-lbl" x="280.0" y="258" text-anchor="middle">Apr</text>
+            <text class="fan-axis-lbl" x="353.3" y="258" text-anchor="middle">May</text>
+            <text class="fan-axis-lbl" x="426.7" y="258" text-anchor="middle">Jun</text>
+            <text class="fan-axis-lbl" x="500.0" y="258" text-anchor="middle">Jul</text>
+            <text class="fan-axis-lbl" x="573.3" y="258" text-anchor="middle">Aug</text>
+            <text class="fan-axis-lbl" x="646.7" y="258" text-anchor="middle">Sep</text>
+            <text class="fan-axis-lbl" x="720.0" y="258" text-anchor="middle">Oct</text>
+            <text class="fan-axis-lbl" x="793.3" y="258" text-anchor="middle">Nov</text>
+            <text class="fan-axis-lbl" x="866.7" y="258" text-anchor="middle">Dec</text>
+
+            <!-- P50 endpoint callout -->
+            <text class="fan-axis-lbl" x="936" y="116" text-anchor="end" style="fill:var(--blue)">P50 +36.6R</text>
+          </svg>
+
+          <!-- Legend: distinguishes actual / P50 / P25-75 / P10-90 / goal -->
+          <div class="fan-legend">
+            <span class="lg"><span class="line actual"></span> Actual (Jan–Jun)</span>
+            <span class="lg"><span class="line p50"></span> Projection P50 (median)</span>
+            <span class="lg"><span class="swatch inner"></span> P25–P75</span>
+            <span class="lg"><span class="swatch outer"></span> P10–P90</span>
+            <span class="lg"><span class="line goal"></span> Goal +40R</span>
+          </div>
+
+          <div class="note" style="margin-bottom:0">
+            In the real app this is a Recharts <code>ComposedChart</code> built
+            from <code>GET /api/projections</code>: the green
+            <code>actual</code> series is an <code>Area</code> +
+            <code>Line</code>; the blue fan is two stacked <code>Area</code>
+            bands (<code>projection.p10_p90</code>, <code>projection.p25_p75</code>)
+            plus a <code>Line</code> for <code>projection.p50</code>; the amber
+            dashed goal is a <code>ReferenceLine y={goal_r}</code>; the "now"
+            divider is a <code>ReferenceLine x={current_month}</code>. The bands
+            <strong>widen</strong> month-over-month because percentile spread
+            grows with the square root of remaining trades.
+          </div>
+        </div>
+
+        <!-- ============================ METHODOLOGY (collapsible) ============================ -->
+        <div class="card methodology open">
+          <div class="card-header" role="button" aria-expanded="true">
+            <span class="method-title">
+              <span class="chevron">▾</span>
+              <span class="card-title">How this projection works</span>
+            </span>
+          </div>
+
+          <div class="method-body">
+            <p>
+              The fan is a <strong>Monte Carlo simulation</strong> — it does not
+              draw straight lines into the future. Instead it replays your own
+              trading edge thousands of times and shows the range of plausible
+              outcomes.
+            </p>
+            <ol>
+              <li>
+                <strong>Sample your history.</strong> Every closed trade in the
+                filtered window contributes its <strong>R-multiple</strong>
+                (profit/loss measured in units of risk). Here that is
+                <code>120</code> trades with expectancy <code>+0.28R</code> and
+                a per-trade standard deviation of <code>1.95R</code>.
+              </li>
+              <li>
+                <strong>Estimate remaining trades.</strong> Your historical pace
+                (~<code>10</code> trades / month) projects
+                <code>~65</code> more trades from now until 31 Dec.
+              </li>
+              <li>
+                <strong>Run N simulations.</strong> For each of
+                <code>10,000</code> simulated years we draw that many R-multiples
+                <em>at random, with replacement</em> from your real distribution
+                and accumulate them on top of today's <code>+18.4R</code>.
+              </li>
+              <li>
+                <strong>Derive percentile bands.</strong> At each month-end we
+                read the 10th, 25th, 50th, 75th and 90th percentiles across all
+                simulations. The median is <strong>P50</strong>; the shaded
+                <strong>P25–P75</strong> and <strong>P10–P90</strong> bands are
+                the confidence intervals. They widen over time because
+                uncertainty compounds with each additional trade.
+              </li>
+              <li>
+                <strong>Read the answers.</strong>
+                <strong>Goal probability</strong> is the share of simulations
+                that finish at or above your goal (<code>41%</code> reach
+                <code>+40R</code>). <strong>Risk of ruin</strong> is the share
+                that finish negative (<code>1.0%</code>).
+              </li>
+            </ol>
+            <p>
+              This is a model of <em>your past behaviour</em>, not a promise.
+              It assumes future trades resemble past ones and ignores changes in
+              market regime, position sizing or discipline.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
