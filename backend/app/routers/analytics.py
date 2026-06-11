@@ -3,6 +3,8 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, Query
 
 from app.models.analytics import (
+  AnalyticsBreakdowns,
+  AnalyticsBreakdownsResponse,
   AnalyticsStatistics,
   AnalyticsStatisticsResponse,
   AnalyticsTrades,
@@ -75,3 +77,11 @@ async def get_trades(
     params, page, per_page, sort_by.value, sort_order.value
   )
   return AnalyticsTradesResponse(data=AnalyticsTrades(**data))
+
+
+@router.get("/breakdowns")
+async def get_breakdowns(
+  params: dict[str, Any] = Depends(filter_params),
+) -> AnalyticsBreakdownsResponse:
+  data = await analytics_service.get_breakdowns(params)
+  return AnalyticsBreakdownsResponse(data=AnalyticsBreakdowns(**data))

@@ -145,3 +145,80 @@ class AnalyticsTrades(BaseModel):
 
 class AnalyticsTradesResponse(ApiResponse[AnalyticsTrades]):
   """Standard `{ data, error }` envelope around the trade list payload."""
+
+
+# ---------------------------------------------------------------------------
+# Breakdown models
+# ---------------------------------------------------------------------------
+
+
+class AssetBreakdown(BaseModel):
+  """Per-asset aggregate statistics."""
+
+  asset_id: int
+  asset_name: str
+  asset_currency: Optional[str] = None
+  total_trades: int
+  winning_trades: int
+  losing_trades: int
+  breakeven_trades: int
+  total_pnl: float
+  win_rate: float
+  avg_pnl: float
+  profit_factor: Optional[float] = None
+
+
+class TagBreakdown(BaseModel):
+  """Per-tag aggregate statistics."""
+
+  tag_id: int
+  tag_name: str
+  total_trades: int
+  winning_trades: int
+  losing_trades: int
+  breakeven_trades: int
+  total_pnl: float
+  win_rate: float
+  avg_pnl: float
+  profit_factor: Optional[float] = None
+
+
+class DayHourCell(BaseModel):
+  """Aggregate cell for a day-of-week / hour slot."""
+
+  total_trades: int
+  winning_trades: int
+  total_pnl: float
+  win_rate: float
+
+
+class RDistributionBucket(BaseModel):
+  """A single bucket in the R-distribution histogram."""
+
+  bucket: str
+  min: Optional[float] = None
+  max: Optional[float] = None
+  count: int
+
+
+class CumulativeRPoint(BaseModel):
+  """One data point in the cumulative R curve."""
+
+  trade_date: str
+  trade_id: int
+  performance_r: float
+  cumulative_r: float
+
+
+class AnalyticsBreakdowns(BaseModel):
+  """Payload for `GET /api/analytics/breakdowns`."""
+
+  by_asset: list[AssetBreakdown]
+  by_tag: list[TagBreakdown]
+  by_day_hour: dict[str, dict[str, DayHourCell]]
+  r_distribution: list[RDistributionBucket]
+  cumulative_r: list[CumulativeRPoint]
+
+
+class AnalyticsBreakdownsResponse(ApiResponse[AnalyticsBreakdowns]):
+  """Standard `{ data, error }` envelope around the breakdowns payload."""

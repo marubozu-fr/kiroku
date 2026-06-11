@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -333,6 +334,254 @@ async def get_statistics(params: dict[str, Any]) -> dict[str, Any]:
   statistics = calculate_statistics(filtered)
 
   return {"statistics": statistics, "available_filters": available}
+
+
+# ---------------------------------------------------------------------------
+# Breakdown helpers
+# ---------------------------------------------------------------------------
+
+# Fixed English weekday names in ISO order (Monday = 0).
+_WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+# R-distribution bucket definitions: (label, min_val, max_val).
+# Bucketing convention: [min_val, max_val) — min inclusive, max exclusive.
+# Overflow buckets use None for the unbounded edge.
+_R_BUCKETS: list[tuple[str, Optional[float], Optional[float]]] = [
+  ("< -3.0", None, -3.0),
+  ("-3.0 to -2.5", -3.0, -2.5),
+  ("-2.5 to -2.0", -2.5, -2.0),
+  ("-2.0 to -1.5", -2.0, -1.5),
+  ("-1.5 to -1.0", -1.5, -1.0),
+  ("-1.0 to -0.5", -1.0, -0.5),
+  ("-0.5 to 0.0", -0.5, 0.0),
+  ("0.0 to 0.5", 0.0, 0.5),
+  ("0.5 to 1.0", 0.5, 1.0),
+  ("1.0 to 1.5", 1.0, 1.5),
+  ("1.5 to 2.0", 1.5, 2.0),
+  ("2.0 to 2.5", 2.0, 2.5),
+  ("2.5 to 3.0", 2.5, 3.0),
+  ("3.0+", 3.0, None),
+]
+
+
+def _group_stats(trades: list[dict[str, Any]]) -> dict[str, Any]:
+  """Compute per-group breakdown stats mirroring calculate_statistics math.
+
+  total_trades counts ALL trades in the group. win/loss/breakeven/pnl/avg/win_rate
+  are computed over the scored subset (non-null performance_r) only.
+  """
+  total_trades = len(trades)
+  scored = [t for t in trades if t.get("performance_r") is not None]
+  perfs = [t["performance_r"] for t in scored]
+  n = len(perfs)
+
+  winning = [r for r in perfs if r > EPS]
+  losing = [r for r in perfs if r < -EPS]
+  breakeven = [r for r in perfs if abs(r) <= EPS]
+
+  total_pnl = round(sum(perfs), 2) if perfs else 0.0
+  avg_pnl = round(sum(perfs) / n, 2) if n else 0.0
+  win_rate = round(len(winning) / n * 100, 2) if n else 0.0
+
+  total_losses = sum(abs(r) for r in losing)
+  profit_factor: Optional[float] = (
+    round(sum(winning) / total_losses, 2) if total_losses > EPS else None
+  )
+
+  return {
+    "total_trades": total_trades,
+    "winning_trades": len(winning),
+    "losing_trades": len(losing),
+    "breakeven_trades": len(breakeven),
+    "total_pnl": total_pnl,
+    "win_rate": win_rate,
+    "avg_pnl": avg_pnl,
+    "profit_factor": profit_factor,
+  }
+
+
+def _by_asset(trades: list[dict[str, Any]]) -> list[dict[str, Any]]:
+  """Group filtered trades by asset and compute per-asset stats."""
+  groups: dict[int, list[dict[str, Any]]] = {}
+  meta: dict[int, tuple[str, Optional[str]]] = {}  # asset_id -> (name, currency)
+  for t in trades:
+    aid = t.get("asset_id")
+    if aid is None:
+      continue
+    groups.setdefault(aid, []).append(t)
+    if aid not in meta:
+      meta[aid] = (t.get("asset_name") or "", t.get("asset_currency"))
+
+  result: list[dict[str, Any]] = []
+  for aid, group in groups.items():
+    name, currency = meta[aid]
+    stats = _group_stats(group)
+    result.append({
+      "asset_id": aid,
+      "asset_name": name,
+      "asset_currency": currency,
+      **stats,
+    })
+
+  result.sort(key=lambda x: (-x["total_trades"], x["asset_name"]))
+  return result
+
+
+def _by_tag(
+  trades: list[dict[str, Any]],
+  tag_names: dict[int, str],
+) -> list[dict[str, Any]]:
+  """Group filtered trades by tag (a trade with N tags counts in each group)."""
+  groups: dict[int, list[dict[str, Any]]] = {}
+  for t in trades:
+    for tid in t.get("tag_ids", []):
+      groups.setdefault(tid, []).append(t)
+
+  result: list[dict[str, Any]] = []
+  for tid, group in groups.items():
+    stats = _group_stats(group)
+    result.append({
+      "tag_id": tid,
+      "tag_name": tag_names.get(tid, ""),
+      **stats,
+    })
+
+  result.sort(key=lambda x: (-x["total_trades"], x["tag_name"]))
+  return result
+
+
+def _by_day_hour(trades: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+  """Build a day-of-week x hour matrix from trade_date timestamps.
+
+  Outer keys are English weekday names (Monday..Sunday).
+  Inner keys are the hour as a string ("0".."23").
+  Only cells with at least one trade are included.
+  """
+  # cells[weekday_name][hour_str] -> {all: list, scored: list, winning: list, perfs: list}
+  cells: dict[str, dict[str, dict[str, Any]]] = {}
+
+  for t in trades:
+    raw_date = t.get("trade_date") or ""
+    if not raw_date:
+      continue
+    try:
+      dt = datetime.fromisoformat(raw_date)
+    except ValueError:
+      continue
+    day_name = _WEEKDAYS[dt.weekday()]
+    hour_str = str(dt.hour)
+
+    if day_name not in cells:
+      cells[day_name] = {}
+    if hour_str not in cells[day_name]:
+      cells[day_name][hour_str] = {"total": 0, "scored": [], "winning": 0, "pnl": 0.0}
+
+    cell = cells[day_name][hour_str]
+    cell["total"] += 1
+    perf = t.get("performance_r")
+    if perf is not None:
+      cell["scored"].append(perf)
+      if perf > EPS:
+        cell["winning"] += 1
+      cell["pnl"] += perf
+
+  result: dict[str, dict[str, Any]] = {}
+  for day_name in _WEEKDAYS:
+    if day_name not in cells:
+      continue
+    result[day_name] = {}
+    for hour_str, cell in cells[day_name].items():
+      scored_n = len(cell["scored"])
+      win_rate = round(cell["winning"] / scored_n * 100, 2) if scored_n else 0.0
+      result[day_name][hour_str] = {
+        "total_trades": cell["total"],
+        "winning_trades": cell["winning"],
+        "total_pnl": round(cell["pnl"], 2),
+        "win_rate": win_rate,
+      }
+
+  return result
+
+
+def _r_distribution(trades: list[dict[str, Any]]) -> list[dict[str, Any]]:
+  """Build fixed R-distribution histogram over scored trades.
+
+  Bucketing uses [min, max) — min-inclusive, max-exclusive convention.
+  The first bucket ("< -3.0") captures all values below -3.0.
+  The last bucket ("3.0+") captures all values >= 3.0.
+  """
+  counts = {label: 0 for label, _, _ in _R_BUCKETS}
+
+  for t in trades:
+    perf = t.get("performance_r")
+    if perf is None:
+      continue
+    for label, lo, hi in _R_BUCKETS:
+      # Lower-overflow bucket: no lower bound — catches perf < -3.0.
+      if lo is None:
+        if perf < hi:  # type: ignore[operator]
+          counts[label] += 1
+          break
+      # Upper-overflow bucket: no upper bound — catches perf >= 3.0.
+      elif hi is None:
+        if perf >= lo:
+          counts[label] += 1
+          break
+      # Normal [lo, hi) bucket.
+      else:
+        if lo <= perf < hi:
+          counts[label] += 1
+          break
+
+  return [
+    {"bucket": label, "min": lo, "max": hi, "count": counts[label]}
+    for label, lo, hi in _R_BUCKETS
+  ]
+
+
+def _cumulative_r(trades: list[dict[str, Any]]) -> list[dict[str, Any]]:
+  """Build a chronological cumulative R curve over scored trades.
+
+  Trades with null performance_r are excluded entirely.
+  Sorted by trade_date ASC, then trade id ASC (same tie-break as _streaks).
+  """
+  scored = [t for t in trades if t.get("performance_r") is not None]
+  ordered = sorted(scored, key=lambda t: ((t.get("trade_date") or ""), t["id"]))
+
+  result: list[dict[str, Any]] = []
+  running = 0.0
+  for t in ordered:
+    perf = round(t["performance_r"], 2)
+    running = round(running + perf, 2)
+    result.append({
+      "trade_date": t.get("trade_date") or "",
+      "trade_id": t["id"],
+      "performance_r": perf,
+      "cumulative_r": running,
+    })
+
+  return result
+
+
+async def get_breakdowns(params: dict[str, Any]) -> dict[str, Any]:
+  """Compute all analytics breakdowns for the given query params.
+
+  Mirrors get_statistics: load → build filters → apply missed → filter → compute.
+  """
+  trades = await _load_trades()
+  filters = build_trade_filters(params)
+  base = _apply_missed(trades, filters.include_missed)
+  filtered = filter_trades(base, filters)
+
+  tag_names, _ = await _reference_names()
+
+  return {
+    "by_asset": _by_asset(filtered),
+    "by_tag": _by_tag(filtered, tag_names),
+    "by_day_hour": _by_day_hour(filtered),
+    "r_distribution": _r_distribution(filtered),
+    "cumulative_r": _cumulative_r(filtered),
+  }
 
 
 def _sort_key(sort_by: str):
