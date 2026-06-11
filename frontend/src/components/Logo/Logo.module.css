@@ -4,9 +4,3 @@
   width: 32px;
   height: 32px;
 }
-
-.text-column {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
