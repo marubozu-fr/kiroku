@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any, Optional
 
+from app.database import database
 from app.errors import NotFoundError
 from app.models.emotion import EmotionCategory, EmotionCreate, EmotionUpdate
 from app.repositories import emotion_repository
@@ -61,9 +62,16 @@ async def update_emotion(emotion_id: int, payload: EmotionUpdate) -> dict[str, A
   return updated
 
 
-async def delete_emotion(emotion_id: int) -> dict[str, Any]:
+async def count_trades(emotion_id: int) -> int:
   existing = await emotion_repository.get_by_id(emotion_id)
   if existing is None:
     raise EmotionNotFoundError(f"Emotion {emotion_id} not found")
-  await emotion_repository.delete(emotion_id)
-  return existing
+  return await emotion_repository.count_trades(emotion_id)
+
+
+async def delete_emotion(emotion_id: int) -> None:
+  existing = await emotion_repository.get_by_id(emotion_id)
+  if existing is None:
+    raise EmotionNotFoundError(f"Emotion {emotion_id} not found")
+  async with database.transaction():
+    await emotion_repository.delete(emotion_id)
