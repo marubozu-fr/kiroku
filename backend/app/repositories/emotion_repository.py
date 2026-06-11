@@ -55,6 +55,19 @@ async def update(emotion_id: int, fields: dict[str, Any], now: str) -> None:
   await database.execute(query, values)
 
 
+async def count_trades(emotion_id: int) -> int:
+  """Return how many trades reference this emotion."""
+  row = await database.fetch_one(
+    "SELECT COUNT(*) AS count FROM trade_emotions WHERE emotion_id = :id", {"id": emotion_id}
+  )
+  return row["count"] if row is not None else 0
+
+
 async def delete(emotion_id: int) -> None:
-  """Permanently remove an emotion row."""
+  """Remove the emotion's trade associations, then delete the emotion row.
+
+  `trade_emotions.emotion_id` has no ON DELETE CASCADE, so the associations
+  must be cleared first or the foreign key constraint would block the delete.
+  """
+  await database.execute("DELETE FROM trade_emotions WHERE emotion_id = :id", {"id": emotion_id})
   await database.execute("DELETE FROM emotions WHERE id = :id", {"id": emotion_id})

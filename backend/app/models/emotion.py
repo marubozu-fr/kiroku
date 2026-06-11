@@ -55,3 +55,9 @@ class EmotionResponse(BaseModel):
   category: EmotionCategory
   created_at: Optional[str] = None
   updated_at: Optional[str] = None
+
+
+class EmotionTradeCount(BaseModel):
+  """Response schema for an emotion's trade reference count."""
+
+  trade_count: int

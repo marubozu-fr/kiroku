@@ -15,6 +15,26 @@ def _create(client: TestClient, **overrides: object) -> Response:
   return client.post("/api/emotions", json=payload)
 
 
+def _create_trade_with_emotions(
+  client: TestClient, emotion_ids: list[int], asset_name: str = "EURUSD"
+) -> int:
+  asset_id = client.post(
+    "/api/assets", json={"name": asset_name, "category": "Forex"}
+  ).json()["data"]["id"]
+  response = client.post(
+    "/api/trades",
+    json={
+      "asset_id": asset_id,
+      "emotion_ids": emotion_ids,
+      "activities": [
+        {"type": "Buy", "price": 1.1000, "quantity": 1.0, "date": "2024-03-15"},
+      ],
+    },
+  )
+  assert response.status_code == 201, response.text
+  return response.json()["data"]["id"]
+
+
 def test_create_emotion_happy_path() -> None:
   with TestClient(app) as client:
     response = _create(client)
@@ -188,8 +208,8 @@ def test_delete_emotion_hard_deletes() -> None:
     created = _create(client).json()["data"]
     response = client.delete(f"/api/emotions/{created['id']}")
 
-    assert response.status_code == 200
-    assert response.json()["data"]["id"] == created["id"]
+    assert response.status_code == 204
+    assert response.content == b""
 
     # Hard delete: the row is gone.
     fetched = client.get(f"/api/emotions/{created['id']}")
@@ -202,3 +222,53 @@ def test_delete_emotion_not_found() -> None:
 
   assert response.status_code == 404
   assert response.json()["error"] is not None
+
+
+def test_trade_count_zero() -> None:
+  with TestClient(app) as client:
+    created = _create(client).json()["data"]
+    response = client.get(f"/api/emotions/{created['id']}/trade-count")
+
+  assert response.status_code == 200
+  body = response.json()
+  assert body["error"] is None
+  assert body["data"]["trade_count"] == 0
+
+
+def test_trade_count_with_trades() -> None:
+  with TestClient(app) as client:
+    emotion_id = _create(client).json()["data"]["id"]
+    _create_trade_with_emotions(client, [emotion_id], asset_name="EURUSD")
+    _create_trade_with_emotions(client, [emotion_id], asset_name="GBPUSD")
+
+    response = client.get(f"/api/emotions/{emotion_id}/trade-count")
+
+  assert response.status_code == 200
+  assert response.json()["data"]["trade_count"] == 2
+
+
+def test_trade_count_not_found() -> None:
+  with TestClient(app) as client:
+    response = client.get("/api/emotions/999/trade-count")
+
+  assert response.status_code == 404
+  body = response.json()
+  assert body["data"] is None
+  assert "not found" in body["error"].lower()
+
+
+def test_delete_emotion_cascades_from_trades() -> None:
+  with TestClient(app) as client:
+    keep_id = _create(client, name="Keep me").json()["data"]["id"]
+    drop_id = _create(client, name="Drop me").json()["data"]["id"]
+    trade_id = _create_trade_with_emotions(client, [keep_id, drop_id])
+
+    response = client.delete(f"/api/emotions/{drop_id}")
+    assert response.status_code == 204
+
+    # The emotion is removed from the trade, the other emotion survives.
+    detail = client.get(f"/api/trades/{trade_id}").json()["data"]
+    assert [emotion["id"] for emotion in detail["emotions"]] == [keep_id]
+
+    # The emotion row itself is gone.
+    assert client.get(f"/api/emotions/{drop_id}").status_code == 404

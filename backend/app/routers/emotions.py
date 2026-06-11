@@ -6,6 +6,7 @@ from app.models.emotion import (
   EmotionCategory,
   EmotionCreate,
   EmotionResponse,
+  EmotionTradeCount,
   EmotionUpdate,
 )
 from app.models.response import ApiResponse
@@ -36,6 +37,12 @@ async def get_emotion(emotion_id: int) -> ApiResponse[EmotionResponse]:
   return ApiResponse(data=EmotionResponse(**emotion))
 
 
+@router.get("/{emotion_id}/trade-count")
+async def get_emotion_trade_count(emotion_id: int) -> ApiResponse[EmotionTradeCount]:
+  trade_count = await emotion_service.count_trades(emotion_id)
+  return ApiResponse(data=EmotionTradeCount(trade_count=trade_count))
+
+
 @router.post("", status_code=201)
 async def create_emotion(payload: EmotionCreate) -> ApiResponse[EmotionResponse]:
   emotion = await emotion_service.create_emotion(payload)
@@ -48,7 +55,6 @@ async def update_emotion(emotion_id: int, payload: EmotionUpdate) -> ApiResponse
   return ApiResponse(data=EmotionResponse(**emotion))
 
 
-@router.delete("/{emotion_id}")
-async def delete_emotion(emotion_id: int) -> ApiResponse[EmotionResponse]:
-  emotion = await emotion_service.delete_emotion(emotion_id)
-  return ApiResponse(data=EmotionResponse(**emotion))
+@router.delete("/{emotion_id}", status_code=204)
+async def delete_emotion(emotion_id: int) -> None:
+  await emotion_service.delete_emotion(emotion_id)
