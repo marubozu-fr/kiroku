@@ -283,7 +283,7 @@
       "expectancy": "Expectancy",
       "win_rate": "Win Rate",
       "median_end": "Mediana fim de ano",
-      "note": "E se negociasse apenas {{assets}} pelo resto do ano? O leque mostra a projeção reancoraa no R acumulado atual."
+      "note": "E se negociasse apenas {{assets}} pelo resto do ano? O leque mostra a projeção reancorada no R acumulado atual."
     },
     "empty": {
       "title": "Ainda não há trades para projetar",
