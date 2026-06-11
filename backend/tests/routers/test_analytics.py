@@ -577,3 +577,381 @@ def test_invalid_int_list_returns_400() -> None:
 
   assert resp.status_code == 400
   assert resp.json()["error"] is not None
+
+
+# ---------------------------------------------------------------------------
+# Breakdowns helpers and tests
+# ---------------------------------------------------------------------------
+
+
+def _breakdowns(client: TestClient, query: str = "") -> dict:
+  resp = client.get(f"/api/analytics/breakdowns{query}")
+  assert resp.status_code == 200, resp.text
+  body = resp.json()
+  assert body["error"] is None
+  return body["data"]
+
+
+# 17. Empty dataset returns empty breakdowns.
+
+
+def test_breakdowns_empty_dataset() -> None:
+  """No trades → all breakdowns are empty / zero counts."""
+  with TestClient(app) as client:
+    data = _breakdowns(client)
+
+  assert data["by_asset"] == []
+  assert data["by_tag"] == []
+  assert data["by_day_hour"] == {}
+  # r_distribution must have all 14 buckets with count 0.
+  assert len(data["r_distribution"]) == 14
+  for bucket in data["r_distribution"]:
+    assert bucket["count"] == 0
+  assert data["cumulative_r"] == []
+
+
+# 18. Mixed results — by_asset and by_tag correctness.
+
+
+def test_breakdowns_by_asset_and_by_tag() -> None:
+  """
+  Two assets, two tags:
+    a1: trade1 +2R (tag1), trade2 -1R (tag1, tag2)
+    a2: trade3 +3R (tag2)
+
+  by_asset expected:
+    a1: total=2, winning=1, losing=1, breakeven=0, total_pnl=1.0, win_rate=50.0,
+        avg_pnl=0.5, profit_factor=2.0
+    a2: total=1, winning=1, losing=0, breakeven=0, total_pnl=3.0, win_rate=100.0,
+        avg_pnl=3.0, profit_factor=None
+
+  by_tag expected:
+    tag1: total=2, winning=1, losing=1
+    tag2: total=2, winning=2 (trade2 -1R loses → 1 win from trade3, 1 loss from trade2)
+  """
+  with TestClient(app) as client:
+    a1 = _create_asset(client, name="EURUSD")
+    a2 = _create_asset(client, name="GBPUSD")
+    t1 = _create_tag(client, "Breakout")
+    t2 = _create_tag(client, "Pullback")
+
+    _trade(client, a1, "2024-01-10", 120.0, tag_ids=[t1])          # +2R
+    _trade(client, a1, "2024-02-10", 90.0, tag_ids=[t1, t2])       # -1R
+    _trade(client, a2, "2024-03-10", 130.0, tag_ids=[t2])          # +3R
+
+    data = _breakdowns(client)
+
+  by_asset = {item["asset_id"]: item for item in data["by_asset"]}
+  a1_stats = by_asset[a1]
+  assert a1_stats["asset_name"] == "EURUSD"
+  assert a1_stats["total_trades"] == 2
+  assert a1_stats["winning_trades"] == 1
+  assert a1_stats["losing_trades"] == 1
+  assert a1_stats["breakeven_trades"] == 0
+  assert a1_stats["total_pnl"] == pytest.approx(1.0)
+  assert a1_stats["win_rate"] == pytest.approx(50.0)
+  assert a1_stats["avg_pnl"] == pytest.approx(0.5)
+  assert a1_stats["profit_factor"] == pytest.approx(2.0)
+
+  a2_stats = by_asset[a2]
+  assert a2_stats["total_trades"] == 1
+  assert a2_stats["winning_trades"] == 1
+  assert a2_stats["profit_factor"] is None
+
+  by_tag = {item["tag_id"]: item for item in data["by_tag"]}
+  # tag1 has trade1 (+2R) and trade2 (-1R)
+  t1_stats = by_tag[t1]
+  assert t1_stats["tag_name"] == "Breakout"
+  assert t1_stats["total_trades"] == 2
+  assert t1_stats["winning_trades"] == 1
+  assert t1_stats["losing_trades"] == 1
+
+  # tag2 has trade2 (-1R) and trade3 (+3R) → 1 win, 1 loss
+  t2_stats = by_tag[t2]
+  assert t2_stats["tag_name"] == "Pullback"
+  assert t2_stats["total_trades"] == 2
+  assert t2_stats["winning_trades"] == 1
+  assert t2_stats["losing_trades"] == 1
+
+
+# 19. by_asset sorted by total_trades DESC, tie-break asset_name ASC.
+
+
+def test_breakdowns_by_asset_sort_order() -> None:
+  with TestClient(app) as client:
+    a_apple = _create_asset(client, name="Apple")
+    a_banana = _create_asset(client, name="Banana")
+    a_cherry = _create_asset(client, name="Cherry")
+
+    # Cherry: 1 trade; Apple + Banana: 2 trades each (tie → alphabetical)
+    _trade(client, a_apple, "2024-01-10", 120.0)
+    _trade(client, a_apple, "2024-02-10", 110.0)
+    _trade(client, a_banana, "2024-01-15", 120.0)
+    _trade(client, a_banana, "2024-02-15", 110.0)
+    _trade(client, a_cherry, "2024-03-10", 120.0)
+
+    data = _breakdowns(client)
+
+  names = [item["asset_name"] for item in data["by_asset"]]
+  # Apple and Banana tie at 2 trades each, then Cherry at 1
+  assert names[0] in ("Apple", "Banana")
+  assert names[1] in ("Apple", "Banana")
+  assert names[0] < names[1]  # alphabetical for the tie
+  assert names[2] == "Cherry"
+
+
+# 20. by_tag: a trade with 2 tags counts in both groups.
+
+
+def test_breakdowns_by_tag_multi_tag_trade() -> None:
+  """A single trade with 2 tags must appear in both tag groups."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    t1 = _create_tag(client, "Momentum")
+    t2 = _create_tag(client, "News")
+
+    _trade(client, asset_id, "2024-01-10", 120.0, tag_ids=[t1, t2])  # +2R, both tags
+
+    data = _breakdowns(client)
+
+  by_tag = {item["tag_id"]: item for item in data["by_tag"]}
+  assert t1 in by_tag
+  assert t2 in by_tag
+  assert by_tag[t1]["total_trades"] == 1
+  assert by_tag[t2]["total_trades"] == 1
+  assert by_tag[t1]["winning_trades"] == 1
+  assert by_tag[t2]["winning_trades"] == 1
+
+
+# 21. by_tag: archived (soft-deleted) tag still appears with its name.
+
+
+def test_breakdowns_by_tag_includes_archived_tag() -> None:
+  """A trade tagged with an archived tag must still appear in by_tag with its name."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    tag_id = _create_tag(client, "OldStrategy")
+    _trade(client, asset_id, "2024-01-10", 120.0, tag_ids=[tag_id])  # +2R
+
+    # Soft-delete the tag.
+    resp = client.delete(f"/api/tags/{tag_id}")
+    assert resp.status_code == 200, resp.text
+
+    data = _breakdowns(client)
+
+  by_tag = {item["tag_id"]: item for item in data["by_tag"]}
+  assert tag_id in by_tag
+  assert by_tag[tag_id]["tag_name"] == "OldStrategy"
+  assert by_tag[tag_id]["total_trades"] == 1
+
+
+# 22. by_day_hour: Monday first; known date/time assertions.
+
+
+def test_breakdowns_by_day_hour() -> None:
+  """
+  Trade on 2024-01-15T10:30:00 (Monday, hour=10) → appears under Monday/"10".
+  Trade on 2024-01-16T14:00:00 (Tuesday, hour=14) → appears under Tuesday/"14".
+  trade_date is set from the first activity date (Buy) — so pass the full datetime.
+  """
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    # Monday 2024-01-15 10:30 — +2R
+    _trade(client, asset_id, "2024-01-15T10:30:00", 120.0)
+    # Tuesday 2024-01-16 14:00 — -1R
+    _trade(client, asset_id, "2024-01-16T14:00:00", 90.0)
+
+    data = _breakdowns(client)
+
+  dh = data["by_day_hour"]
+
+  # Monday is first key in the dict.
+  keys = list(dh.keys())
+  assert keys[0] == "Monday"
+
+  assert "Monday" in dh
+  assert "10" in dh["Monday"]
+  monday_10 = dh["Monday"]["10"]
+  assert monday_10["total_trades"] == 1
+  assert monday_10["winning_trades"] == 1
+  assert monday_10["total_pnl"] == pytest.approx(2.0)
+  assert monday_10["win_rate"] == pytest.approx(100.0)
+
+  assert "Tuesday" in dh
+  assert "14" in dh["Tuesday"]
+  tuesday_14 = dh["Tuesday"]["14"]
+  assert tuesday_14["total_trades"] == 1
+  assert tuesday_14["winning_trades"] == 0
+  assert tuesday_14["total_pnl"] == pytest.approx(-1.0)
+  assert tuesday_14["win_rate"] == pytest.approx(0.0)
+
+
+# 23. by_day_hour: open trade (null perf) counted in total_trades but not winning.
+
+
+def test_breakdowns_by_day_hour_open_trade() -> None:
+  """An open trade (null performance_r) increments total_trades but not winning."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _open_trade(client, asset_id, "2024-01-15T09:00:00")  # Monday, hour=9
+
+    data = _breakdowns(client)
+
+  dh = data["by_day_hour"]
+  assert "Monday" in dh
+  assert "9" in dh["Monday"]
+  cell = dh["Monday"]["9"]
+  assert cell["total_trades"] == 1
+  assert cell["winning_trades"] == 0
+  assert cell["win_rate"] == pytest.approx(0.0)
+
+
+# 24. r_distribution: correct bucket counts and overflow buckets.
+
+
+def test_breakdowns_r_distribution_basic() -> None:
+  """Four scored trades verify normal and overflow bucket assignment."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _trade(client, asset_id, "2024-01-10", 120.0)   # +2R  → "2.0 to 2.5"
+    _trade(client, asset_id, "2024-02-10", 90.0)    # -1R  → "-1.0 to -0.5"
+    _trade(client, asset_id, "2024-03-10", 150.0)   # +5R  → "3.0+"
+    _trade(client, asset_id, "2024-04-10", 50.0)    # -5R  → "< -3.0"
+
+    data = _breakdowns(client)
+
+  buckets = {b["bucket"]: b["count"] for b in data["r_distribution"]}
+
+  assert len(data["r_distribution"]) == 14
+  assert buckets["< -3.0"] == 1       # -5R outlier
+  assert buckets["-1.0 to -0.5"] == 1  # -1R
+  assert buckets["2.0 to 2.5"] == 1   # +2R
+  assert buckets["3.0+"] == 1         # +5R outlier
+
+  # All other buckets are zero.
+  for b in data["r_distribution"]:
+    if b["bucket"] not in {"< -3.0", "-1.0 to -0.5", "2.0 to 2.5", "3.0+"}:
+      assert b["count"] == 0, f"Expected 0 for {b['bucket']}, got {b['count']}"
+
+
+def test_breakdowns_r_distribution_boundary() -> None:
+  """Verify half-open [min, max) convention at bucket boundaries."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    # exit=130 → perf_r = (130-100)/10 = +3.0 → lands in "3.0+" (>= 3.0, no upper bound)
+    _trade(client, asset_id, "2024-01-10", 130.0)
+    # exit=70 → perf_r = (70-100)/10 = -3.0 → lands in "-3.0 to -2.5" ([−3, −2.5))
+    _trade(client, asset_id, "2024-02-10", 70.0)
+
+    data = _breakdowns(client)
+
+  buckets = {b["bucket"]: b["count"] for b in data["r_distribution"]}
+  assert buckets["3.0+"] == 1
+  assert buckets["< -3.0"] == 0
+  assert buckets["-3.0 to -2.5"] == 1
+
+
+def test_breakdowns_r_distribution_null_perf_excluded() -> None:
+  """Open trades (null performance_r) must not appear in any bucket."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _open_trade(client, asset_id, "2024-01-10")
+
+    data = _breakdowns(client)
+
+  assert all(b["count"] == 0 for b in data["r_distribution"])
+
+
+# 25. cumulative_r: chronological order and correct running totals.
+
+
+def test_breakdowns_cumulative_r() -> None:
+  """
+  Three trades in date order: +2R, -1R, +3R.
+  cumulative_r: 2.0, 1.0, 4.0.
+  Open trade (null perf) is excluded.
+  """
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    id1 = _trade(client, asset_id, "2024-01-10", 120.0)   # +2R
+    id2 = _trade(client, asset_id, "2024-02-10", 90.0)    # -1R
+    id3 = _trade(client, asset_id, "2024-03-10", 130.0)   # +3R
+    _open_trade(client, asset_id, "2024-04-10")            # null perf, excluded
+
+    data = _breakdowns(client)
+
+  points = data["cumulative_r"]
+  assert len(points) == 3
+  assert points[0]["trade_id"] == id1
+  assert points[0]["performance_r"] == pytest.approx(2.0)
+  assert points[0]["cumulative_r"] == pytest.approx(2.0)
+  assert points[1]["trade_id"] == id2
+  assert points[1]["performance_r"] == pytest.approx(-1.0)
+  assert points[1]["cumulative_r"] == pytest.approx(1.0)
+  assert points[2]["trade_id"] == id3
+  assert points[2]["performance_r"] == pytest.approx(3.0)
+  assert points[2]["cumulative_r"] == pytest.approx(4.0)
+
+
+# 26. Breakdowns respect the same filters as statistics.
+
+
+def test_breakdowns_respect_filters() -> None:
+  """asset_ids filter narrows breakdowns to the selected asset only."""
+  with TestClient(app) as client:
+    a1 = _create_asset(client, name="EURUSD")
+    a2 = _create_asset(client, name="GBPUSD")
+    _trade(client, a1, "2024-01-10", 120.0)  # +2R
+    _trade(client, a2, "2024-02-10", 110.0)  # +1R
+
+    data = _breakdowns(client, f"?asset_ids={a1}")
+
+  assert len(data["by_asset"]) == 1
+  assert data["by_asset"][0]["asset_id"] == a1
+  assert len(data["cumulative_r"]) == 1
+  assert data["cumulative_r"][0]["performance_r"] == pytest.approx(2.0)
+
+
+def test_breakdowns_date_filter() -> None:
+  """date_from / date_to filter applies before computing breakdowns."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _trade(client, asset_id, "2024-01-10", 120.0)   # +2R — outside range
+    _trade(client, asset_id, "2024-06-10", 110.0)   # +1R — inside range
+
+    data = _breakdowns(client, "?date_from=2024-03-01&date_to=2024-09-01")
+
+  assert len(data["by_asset"]) == 1
+  assert data["by_asset"][0]["total_trades"] == 1
+  assert data["cumulative_r"][0]["performance_r"] == pytest.approx(1.0)
+
+
+# 27. include_missed=false default excludes missed trades; include_missed=true includes them.
+
+
+def test_breakdowns_include_missed_default_false() -> None:
+  """Missed trade excluded by default; included when include_missed=true."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _trade(client, asset_id, "2024-01-10", 120.0)                           # +2R counted
+    _trade(client, asset_id, "2024-02-10", 130.0, missed_opportunity=True)  # +3R excluded
+
+    default_data = _breakdowns(client)
+    included_data = _breakdowns(client, "?include_missed=true")
+
+  assert default_data["by_asset"][0]["total_trades"] == 1
+  assert included_data["by_asset"][0]["total_trades"] == 2
+
+
+# 28. Response envelope shape.
+
+
+def test_breakdowns_response_envelope_shape() -> None:
+  with TestClient(app) as client:
+    data = _breakdowns(client)
+
+  assert set(data.keys()) == {"by_asset", "by_tag", "by_day_hour", "r_distribution", "cumulative_r"}
+  # r_distribution has exactly 14 buckets (1 lower-overflow + 12 normal + 1 upper-overflow).
+  assert len(data["r_distribution"]) == 14
+  assert data["r_distribution"][0]["bucket"] == "< -3.0"
+  assert data["r_distribution"][-1]["bucket"] == "3.0+"
