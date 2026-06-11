@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Projections · Empty</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #102 — Projections EMPTY state (brand-new account, NO trades yet).
+    This is NOT a filter-empty case: there is no edge to simulate, so the filter
+    panel and stats/chart are replaced by a feature-preview section (three
+    preview cards: fan chart, scenarios, stats) and a single primary CTA to add
+    the first trade. See README "Empty-state decision".
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink active" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Projections</h1>
+            <p class="page-subtitle">Forecast your year with a Monte Carlo simulation of your own edge.</p>
+          </div>
+        </div>
+
+        <!-- Intro empty-state card: explains the page can't run yet -->
+        <div class="card">
+          <div class="empty-state">
+            <div class="icon">◔</div>
+            <div class="title">No trades to project yet</div>
+            <div class="desc">
+              Projections simulate <strong>your</strong> trading edge — they need
+              real closed trades to sample from. Log a few trades and Kiroku will
+              forecast the range of outcomes for the rest of the year.
+            </div>
+            <a class="btn filled" href="#">+ Add your first trade</a>
+          </div>
+        </div>
+
+        <!-- Feature-preview cards: what unlocks once trades exist -->
+        <div class="section-label">What you'll get</div>
+        <div class="preview-grid">
+
+          <!-- Preview 1: fan chart -->
+          <div class="preview-card">
+            <div class="pc-art">
+              <!-- faded mini fan: green actual into a widening blue fan + dashed goal -->
+              <svg viewBox="0 0 240 70" preserveAspectRatio="none" aria-hidden="true">
+                <line x1="0" y1="58" x2="240" y2="58" stroke="#5c5f66" stroke-width="1" stroke-dasharray="3 3" />
+                <line x1="0" y1="22" x2="240" y2="22" stroke="#fab005" stroke-width="1" stroke-dasharray="5 3" />
+                <path d="M 120,40 150,30 180,20 210,12 240,6 L 240,52 210,46 180,42 150,42 120,40 Z" fill="rgba(34,139,230,0.10)" />
+                <path d="M 120,40 150,34 180,28 210,22 240,18 L 240,44 210,40 180,38 150,40 120,40 Z" fill="rgba(34,139,230,0.22)" />
+                <polyline points="120,40 150,37 180,33 210,30 240,26" fill="none" stroke="#228be6" stroke-width="2" />
+                <polyline points="0,56 30,50 60,52 90,46 120,40" fill="none" stroke="#40c057" stroke-width="2" />
+              </svg>
+            </div>
+            <div class="pc-title">Confidence fan chart</div>
+            <div class="pc-desc">See P10–P90 bands widen month by month — not a fake straight line.</div>
+          </div>
+
+          <!-- Preview 2: scenarios / probabilities -->
+          <div class="preview-card">
+            <div class="pc-icon">⚖</div>
+            <div class="pc-title">Goal &amp; ruin odds</div>
+            <div class="pc-desc">Set an annual R target and see your odds of hitting it — and of a losing year.</div>
+          </div>
+
+          <!-- Preview 3: stats -->
+          <div class="preview-card">
+            <div class="pc-icon">∑</div>
+            <div class="pc-title">Edge statistics</div>
+            <div class="pc-desc">Expectancy, win rate and standard deviation — the inputs that drive the model.</div>
+          </div>
+
+        </div>
+
+        <div class="note" style="margin-bottom:0">
+          This brand-new-account empty state replaces the filters, stats row and
+          fan chart entirely (there is nothing to simulate). It is distinct from
+          a <em>filter-empty</em> case (trades exist but none match the filters),
+          which would instead keep the filter panel and show a "widen your
+          filters" message like the Analytics page (issue #83).
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
