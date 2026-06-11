@@ -294,7 +294,7 @@
       },
       "form": {
         "name_label": "Nome",
-        "name_placeholder": "EUR/USD",
+        "name_placeholder": "es. EUR, NQ, BTC",
         "category_label": "Categoria",
         "category_placeholder": "Scegli una categoria",
         "currency_label": "Valuta",
@@ -302,7 +302,8 @@
         "name_min": "Il nome deve contenere almeno 2 caratteri",
         "name_max": "Il nome non può superare i 50 caratteri",
         "category_required": "La categoria è obbligatoria",
-        "currency_max": "La valuta non può superare i 10 caratteri"
+        "currency_max": "La valuta non può superare i 10 caratteri",
+        "name_slash_hint": "Usa il campo Valuta per la valuta di quotazione (es. nome: EUR, valuta: USD)"
       },
       "notify": {
         "created": "{{name}} creato",

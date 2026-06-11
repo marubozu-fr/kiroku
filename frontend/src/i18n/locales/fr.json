@@ -294,7 +294,7 @@
       },
       "form": {
         "name_label": "Nom",
-        "name_placeholder": "EUR/USD",
+        "name_placeholder": "ex. EUR, NQ, BTC",
         "category_label": "Catégorie",
         "category_placeholder": "Choisir une catégorie",
         "currency_label": "Devise",
@@ -302,7 +302,8 @@
         "name_min": "Le nom doit comporter au moins 2 caractères",
         "name_max": "Le nom ne doit pas dépasser 50 caractères",
         "category_required": "La catégorie est requise",
-        "currency_max": "La devise ne doit pas dépasser 10 caractères"
+        "currency_max": "La devise ne doit pas dépasser 10 caractères",
+        "name_slash_hint": "Utilisez le champ Devise pour la devise de cotation (ex. nom : EUR, devise : USD)"
       },
       "notify": {
         "created": "{{name}} créé",

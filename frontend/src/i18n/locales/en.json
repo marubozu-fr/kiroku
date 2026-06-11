@@ -294,7 +294,7 @@
       },
       "form": {
         "name_label": "Name",
-        "name_placeholder": "EUR/USD",
+        "name_placeholder": "e.g. EUR, NQ, BTC",
         "category_label": "Category",
         "category_placeholder": "Pick a category",
         "currency_label": "Currency",
@@ -302,7 +302,8 @@
         "name_min": "Name must be at least 2 characters",
         "name_max": "Name must be at most 50 characters",
         "category_required": "Category is required",
-        "currency_max": "Currency must be at most 10 characters"
+        "currency_max": "Currency must be at most 10 characters",
+        "name_slash_hint": "Use the Currency field for the quote currency (e.g. name: EUR, currency: USD)"
       },
       "notify": {
         "created": "{{name}} created",
