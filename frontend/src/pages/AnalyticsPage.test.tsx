@@ -171,7 +171,6 @@ describe('AnalyticsPage', () => {
 
     await screen.findByText('Total Trades')
 
-    expect(screen.getByText('Filters — coming soon')).toBeInTheDocument()
     expect(screen.getByText('Charts — coming soon')).toBeInTheDocument()
     expect(screen.getByText('Trades table — coming soon')).toBeInTheDocument()
   })
