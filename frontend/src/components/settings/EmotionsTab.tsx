@@ -5,20 +5,20 @@ import {
   Badge,
   Button,
   Group,
-  Modal,
   Stack,
   Table,
   Text,
   Title,
 } from '@mantine/core'
-import { Trans, useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { emotionsApi } from '@/services/referenceData'
 import { EMOTION_CATEGORIES } from '@/types/referenceData'
 import type { Emotion, EmotionSeverity } from '@/types/referenceData'
 import { DataStates } from './DataStates'
+import { DeleteEntityModal } from './DeleteEntityModal'
 import { EmotionModal } from './EmotionModal'
-import { notifyError, notifySuccess } from './notify'
+import { useDeleteEntity } from './useDeleteEntity'
 
 // Severity colours per docs/DESIGN_SYSTEM.md and issue #10.
 const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
@@ -32,8 +32,14 @@ export function EmotionsTab() {
   const { data, loading, error, reload } = useFetch(emotionsApi.grouped)
   const [editing, setEditing] = useState<Emotion | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
-  const [deleting, setDeleting] = useState<Emotion | null>(null)
-  const [deletePending, setDeletePending] = useState(false)
+
+  const del = useDeleteEntity<Emotion>({
+    countFn: emotionsApi.tradeCount,
+    deleteFn: emotionsApi.remove,
+    onDeleted: reload,
+    successMessage: (emotion) => t('settings.emotions.notify.deleted', { name: emotion.name }),
+    errorMessage: t('settings.emotions.notify.delete_error'),
+  })
 
   const openAdd = () => {
     setEditing(null)
@@ -43,23 +49,6 @@ export function EmotionsTab() {
   const openEdit = (emotion: Emotion) => {
     setEditing(emotion)
     setModalOpen(true)
-  }
-
-  const confirmDelete = async () => {
-    if (!deleting) {
-      return
-    }
-    setDeletePending(true)
-    try {
-      await emotionsApi.remove(deleting.id)
-      notifySuccess(t('settings.emotions.notify.deleted', { name: deleting.name }))
-      setDeleting(null)
-      reload()
-    } catch (cause) {
-      notifyError(cause instanceof Error ? cause.message : t('settings.emotions.notify.delete_error'))
-    } finally {
-      setDeletePending(false)
-    }
   }
 
   const grouped = data ?? {}
@@ -134,8 +123,8 @@ export function EmotionsTab() {
                             <ActionIcon
                               variant="subtle"
                               color="red"
-                              onClick={() => setDeleting(emotion)}
-                              aria-label={t('settings.emotions.delete_aria', { name: emotion.name })}
+                              onClick={() => del.open(emotion)}
+                              aria-label={t('settings.emotions.delete.aria', { name: emotion.name })}
                             >
                               <IconTrash size={20} />
                             </ActionIcon>
@@ -161,30 +150,18 @@ export function EmotionsTab() {
         }}
       />
 
-      <Modal
-        opened={deleting !== null}
-        onClose={() => setDeleting(null)}
-        title={t('settings.emotions.delete_modal.title')}
-        centered
-      >
-        <Stack gap="md">
-          <Text size="sm">
-            <Trans
-              i18nKey="settings.emotions.delete_modal.confirm"
-              values={{ name: deleting?.name ?? '' }}
-              components={{ strong: <strong /> }}
-            />
-          </Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setDeleting(null)}>
-              {t('common.actions.cancel')}
-            </Button>
-            <Button color="red" loading={deletePending} onClick={confirmDelete}>
-              {t('common.actions.delete')}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+      <DeleteEntityModal
+        opened={del.target !== null}
+        mode="cascade"
+        i18nPrefix="settings.emotions.delete"
+        entityName={del.target?.name ?? ''}
+        tradeCount={del.tradeCount}
+        countLoading={del.countLoading}
+        countError={del.countError}
+        deletePending={del.pending}
+        onClose={del.close}
+        onConfirm={del.confirm}
+      />
     </>
   )
 }

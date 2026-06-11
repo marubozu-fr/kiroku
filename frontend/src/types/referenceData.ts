@@ -6,6 +6,11 @@
  * with no transform layer.
  */
 
+/** Number of trades referencing a given asset, tag, or emotion. */
+export interface TradeCount {
+  trade_count: number
+}
+
 export type AssetCategory = 'Forex' | 'Crypto' | 'Stock' | 'ETF' | 'Indices'
 
 export const ASSET_CATEGORIES: readonly AssetCategory[] = [

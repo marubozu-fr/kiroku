@@ -46,6 +46,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     )
   }
 
+  // A 204 No Content carries no body to unwrap (e.g. hard-delete endpoints).
+  if (response.status === 204) {
+    return undefined as T
+  }
+
   let payload: ApiResponse<T>
   try {
     payload = (await response.json()) as ApiResponse<T>

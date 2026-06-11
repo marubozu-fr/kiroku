@@ -6,14 +6,18 @@ import type {
   EmotionInput,
   Tag,
   TagInput,
+  TradeCount,
 } from '@/types/referenceData'
 
 /**
  * API clients for the Settings page reference data.
  *
- * Assets and tags use a soft-delete model: `deactivate` calls DELETE (which
- * flips `is_active` to false) and reactivation is a plain update with
- * `is_active: true`. Emotions are hard-deleted via `remove`.
+ * Activation is toggled with a plain `update` (`is_active: true | false`).
+ * `remove` is a hard delete (HTTP 204): for tags and emotions it cascades
+ * (the entity is detached from any trades referencing it); for assets it is
+ * guarded server-side and refused while trades still reference the asset.
+ * `tradeCount` reports how many trades reference an entity so the UI can pick
+ * the right confirmation modal before deleting.
  */
 
 export const assetsApi = {
@@ -24,7 +28,9 @@ export const assetsApi = {
     id: number,
     body: Partial<AssetInput> & { is_active?: boolean },
   ): Promise<Asset> => api.put<Asset>(`/assets/${id}`, body),
-  deactivate: (id: number): Promise<Asset> => api.delete<Asset>(`/assets/${id}`),
+  remove: (id: number): Promise<void> => api.delete<void>(`/assets/${id}`),
+  tradeCount: (id: number, signal?: AbortSignal): Promise<TradeCount> =>
+    api.get<TradeCount>(`/assets/${id}/trade-count`, signal),
 }
 
 export const tagsApi = {
@@ -34,7 +40,9 @@ export const tagsApi = {
     id: number,
     body: Partial<TagInput> & { is_active?: boolean },
   ): Promise<Tag> => api.put<Tag>(`/tags/${id}`, body),
-  deactivate: (id: number): Promise<Tag> => api.delete<Tag>(`/tags/${id}`),
+  remove: (id: number): Promise<void> => api.delete<void>(`/tags/${id}`),
+  tradeCount: (id: number, signal?: AbortSignal): Promise<TradeCount> =>
+    api.get<TradeCount>(`/tags/${id}/trade-count`, signal),
 }
 
 export const emotionsApi = {
@@ -44,5 +52,7 @@ export const emotionsApi = {
     api.post<Emotion>('/emotions', body),
   update: (id: number, body: Partial<EmotionInput>): Promise<Emotion> =>
     api.put<Emotion>(`/emotions/${id}`, body),
-  remove: (id: number): Promise<Emotion> => api.delete<Emotion>(`/emotions/${id}`),
+  remove: (id: number): Promise<void> => api.delete<void>(`/emotions/${id}`),
+  tradeCount: (id: number, signal?: AbortSignal): Promise<TradeCount> =>
+    api.get<TradeCount>(`/emotions/${id}/trade-count`, signal),
 }

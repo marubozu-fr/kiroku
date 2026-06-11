@@ -361,6 +361,7 @@
   },
   "settings": {
     "title": "Settings",
+    "delete_count_error": "Could not check trade usage. Please try again.",
     "tabs": {
       "general": "General",
       "assets": "Assets",
@@ -382,11 +383,20 @@
         "category": "Category",
         "currency": "Currency",
         "active": "Active",
-        "edit": "Edit"
+        "actions": "Actions"
       },
       "activate_aria": "Activate {{name}}",
       "deactivate_aria": "Deactivate {{name}}",
       "edit_aria": "Edit {{name}}",
+      "delete": {
+        "aria": "Delete {{name}}",
+        "title": "Delete asset",
+        "simple": "Delete {{name}}? This action cannot be undone.",
+        "blockedTitle": "Cannot delete asset",
+        "blocked_one": "Cannot delete {{name}}. This asset is associated with {{count}} trade.",
+        "blocked_other": "Cannot delete {{name}}. This asset is associated with {{count}} trades.",
+        "blockedHint": "Reassign or delete those trades first, then try again."
+      },
       "modal": {
         "add_title": "Add asset",
         "edit_title": "Edit asset"
@@ -409,8 +419,10 @@
         "updated": "{{name}} updated",
         "activated": "{{name}} activated",
         "deactivated": "{{name}} deactivated",
+        "deleted": "{{name}} deleted",
         "save_error": "Could not save asset",
-        "update_error": "Could not update asset"
+        "update_error": "Could not update asset",
+        "delete_error": "Could not delete asset"
       }
     },
     "tags": {
@@ -420,11 +432,20 @@
         "name": "Name",
         "description": "Description",
         "active": "Active",
-        "edit": "Edit"
+        "actions": "Actions"
       },
       "activate_aria": "Activate {{name}}",
       "deactivate_aria": "Deactivate {{name}}",
       "edit_aria": "Edit {{name}}",
+      "delete": {
+        "aria": "Delete {{name}}",
+        "title": "Delete tag",
+        "simple": "Delete {{name}}? This action cannot be undone.",
+        "question": "Delete {{name}}?",
+        "warning_one": "This tag is associated with {{count}} trade. It will be removed from those trades.",
+        "warning_other": "This tag is associated with {{count}} trades. It will be removed from those trades.",
+        "undone": "This action cannot be undone."
+      },
       "modal": {
         "add_title": "Add tag",
         "edit_title": "Edit tag"
@@ -443,8 +464,10 @@
         "updated": "{{name}} updated",
         "activated": "{{name}} activated",
         "deactivated": "{{name}} deactivated",
+        "deleted": "{{name}} deleted",
         "save_error": "Could not save tag",
-        "update_error": "Could not update tag"
+        "update_error": "Could not update tag",
+        "delete_error": "Could not delete tag"
       }
     },
     "emotions": {
@@ -457,7 +480,15 @@
         "actions": "Actions"
       },
       "edit_aria": "Edit {{name}}",
-      "delete_aria": "Delete {{name}}",
+      "delete": {
+        "aria": "Delete {{name}}",
+        "title": "Delete emotion",
+        "simple": "Delete {{name}}? This action cannot be undone.",
+        "question": "Delete {{name}}?",
+        "warning_one": "This emotion is associated with {{count}} trade. It will be removed from those trades.",
+        "warning_other": "This emotion is associated with {{count}} trades. It will be removed from those trades.",
+        "undone": "This action cannot be undone."
+      },
       "modal": {
         "add_title": "Add emotion",
         "edit_title": "Edit emotion"
@@ -483,10 +514,6 @@
         "deleted": "{{name}} deleted",
         "save_error": "Could not save emotion",
         "delete_error": "Could not delete emotion"
-      },
-      "delete_modal": {
-        "title": "Delete emotion",
-        "confirm": "Delete <strong>{{name}}</strong>? This cannot be undone."
       }
     }
   },

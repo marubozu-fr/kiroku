@@ -361,6 +361,7 @@
   },
   "settings": {
     "title": "Definições",
+    "delete_count_error": "Não foi possível verificar a utilização em trades. Por favor, tente novamente.",
     "tabs": {
       "general": "Geral",
       "assets": "Ativos",
@@ -382,11 +383,20 @@
         "category": "Categoria",
         "currency": "Moeda",
         "active": "Ativo",
-        "edit": "Editar"
+        "actions": "Ações"
       },
       "activate_aria": "Ativar {{name}}",
       "deactivate_aria": "Desativar {{name}}",
       "edit_aria": "Editar {{name}}",
+      "delete": {
+        "aria": "Eliminar {{name}}",
+        "title": "Eliminar ativo",
+        "simple": "Eliminar {{name}}? Esta ação não pode ser anulada.",
+        "blockedTitle": "Não é possível eliminar o ativo",
+        "blocked_one": "Não é possível eliminar {{name}}. Este ativo está associado a {{count}} trade.",
+        "blocked_other": "Não é possível eliminar {{name}}. Este ativo está associado a {{count}} trades.",
+        "blockedHint": "Reatribua ou elimine esses trades primeiro e tente novamente."
+      },
       "modal": {
         "add_title": "Adicionar ativo",
         "edit_title": "Editar ativo"
@@ -409,8 +419,10 @@
         "updated": "{{name}} atualizado",
         "activated": "{{name}} ativado",
         "deactivated": "{{name}} desativado",
+        "deleted": "{{name}} eliminado",
         "save_error": "Não foi possível guardar o ativo",
-        "update_error": "Não foi possível atualizar o ativo"
+        "update_error": "Não foi possível atualizar o ativo",
+        "delete_error": "Não foi possível eliminar o ativo"
       }
     },
     "tags": {
@@ -420,11 +432,20 @@
         "name": "Nome",
         "description": "Descrição",
         "active": "Ativo",
-        "edit": "Editar"
+        "actions": "Ações"
       },
       "activate_aria": "Ativar {{name}}",
       "deactivate_aria": "Desativar {{name}}",
       "edit_aria": "Editar {{name}}",
+      "delete": {
+        "aria": "Eliminar {{name}}",
+        "title": "Eliminar tag",
+        "simple": "Eliminar {{name}}? Esta ação não pode ser anulada.",
+        "question": "Eliminar {{name}}?",
+        "warning_one": "Este tag está associado a {{count}} trade. Será removido desses trades.",
+        "warning_other": "Este tag está associado a {{count}} trades. Será removido desses trades.",
+        "undone": "Esta ação não pode ser anulada."
+      },
       "modal": {
         "add_title": "Adicionar tag",
         "edit_title": "Editar tag"
@@ -443,8 +464,10 @@
         "updated": "{{name}} atualizado",
         "activated": "{{name}} ativado",
         "deactivated": "{{name}} desativado",
+        "deleted": "{{name}} eliminado",
         "save_error": "Não foi possível guardar o tag",
-        "update_error": "Não foi possível atualizar o tag"
+        "update_error": "Não foi possível atualizar o tag",
+        "delete_error": "Não foi possível eliminar o tag"
       }
     },
     "emotions": {
@@ -457,7 +480,15 @@
         "actions": "Ações"
       },
       "edit_aria": "Editar {{name}}",
-      "delete_aria": "Eliminar {{name}}",
+      "delete": {
+        "aria": "Eliminar {{name}}",
+        "title": "Eliminar emoção",
+        "simple": "Eliminar {{name}}? Esta ação não pode ser anulada.",
+        "question": "Eliminar {{name}}?",
+        "warning_one": "Esta emoção está associada a {{count}} trade. Será removida desses trades.",
+        "warning_other": "Esta emoção está associada a {{count}} trades. Será removida desses trades.",
+        "undone": "Esta ação não pode ser anulada."
+      },
       "modal": {
         "add_title": "Adicionar emoção",
         "edit_title": "Editar emoção"
@@ -483,10 +514,6 @@
         "deleted": "{{name}} eliminada",
         "save_error": "Não foi possível guardar a emoção",
         "delete_error": "Não foi possível eliminar a emoção"
-      },
-      "delete_modal": {
-        "title": "Eliminar emoção",
-        "confirm": "Eliminar <strong>{{name}}</strong>? Esta ação não pode ser anulada."
       }
     }
   },

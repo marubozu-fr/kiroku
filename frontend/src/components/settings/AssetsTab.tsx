@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { IconPencil, IconPlus } from '@tabler/icons-react'
+import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react'
 import { ActionIcon, Badge, Button, Group, Switch, Table, Text } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
@@ -7,6 +7,8 @@ import { assetsApi } from '@/services/referenceData'
 import type { Asset } from '@/types/referenceData'
 import { AssetModal } from './AssetModal'
 import { DataStates } from './DataStates'
+import { DeleteEntityModal } from './DeleteEntityModal'
+import { useDeleteEntity } from './useDeleteEntity'
 import { notifyError, notifySuccess } from './notify'
 
 export function AssetsTab() {
@@ -15,6 +17,14 @@ export function AssetsTab() {
   const [editing, setEditing] = useState<Asset | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [togglingId, setTogglingId] = useState<number | null>(null)
+
+  const del = useDeleteEntity<Asset>({
+    countFn: assetsApi.tradeCount,
+    deleteFn: assetsApi.remove,
+    onDeleted: reload,
+    successMessage: (asset) => t('settings.assets.notify.deleted', { name: asset.name }),
+    errorMessage: t('settings.assets.notify.delete_error'),
+  })
 
   const openAdd = () => {
     setEditing(null)
@@ -29,13 +39,12 @@ export function AssetsTab() {
   const toggleActive = async (asset: Asset) => {
     setTogglingId(asset.id)
     try {
-      if (asset.is_active) {
-        await assetsApi.deactivate(asset.id)
-        notifySuccess(t('settings.assets.notify.deactivated', { name: asset.name }))
-      } else {
-        await assetsApi.update(asset.id, { is_active: true })
-        notifySuccess(t('settings.assets.notify.activated', { name: asset.name }))
-      }
+      await assetsApi.update(asset.id, { is_active: !asset.is_active })
+      notifySuccess(
+        asset.is_active
+          ? t('settings.assets.notify.deactivated', { name: asset.name })
+          : t('settings.assets.notify.activated', { name: asset.name }),
+      )
       reload()
     } catch (cause) {
       notifyError(cause instanceof Error ? cause.message : t('settings.assets.notify.update_error'))
@@ -77,8 +86,8 @@ export function AssetsTab() {
                 <Table.Th tt="uppercase" fz="xs" c="dimmed">
                   {t('settings.assets.columns.active')}
                 </Table.Th>
-                <Table.Th tt="uppercase" fz="xs" c="dimmed" w={60}>
-                  {t('settings.assets.columns.edit')}
+                <Table.Th tt="uppercase" fz="xs" c="dimmed" w={100}>
+                  {t('settings.assets.columns.actions')}
                 </Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -107,14 +116,24 @@ export function AssetsTab() {
                     />
                   </Table.Td>
                   <Table.Td>
-                    <ActionIcon
-                      variant="subtle"
-                      color="gray"
-                      onClick={() => openEdit(asset)}
-                      aria-label={t('settings.assets.edit_aria', { name: asset.name })}
-                    >
-                      <IconPencil size={20} />
-                    </ActionIcon>
+                    <Group gap="xs" wrap="nowrap">
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        onClick={() => openEdit(asset)}
+                        aria-label={t('settings.assets.edit_aria', { name: asset.name })}
+                      >
+                        <IconPencil size={20} />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        onClick={() => del.open(asset)}
+                        aria-label={t('settings.assets.delete.aria', { name: asset.name })}
+                      >
+                        <IconTrash size={20} />
+                      </ActionIcon>
+                    </Group>
                   </Table.Td>
                 </Table.Tr>
               ))}
@@ -131,6 +150,19 @@ export function AssetsTab() {
           setModalOpen(false)
           reload()
         }}
+      />
+
+      <DeleteEntityModal
+        opened={del.target !== null}
+        mode="guarded"
+        i18nPrefix="settings.assets.delete"
+        entityName={del.target?.name ?? ''}
+        tradeCount={del.tradeCount}
+        countLoading={del.countLoading}
+        countError={del.countError}
+        deletePending={del.pending}
+        onClose={del.close}
+        onConfirm={del.confirm}
       />
     </>
   )

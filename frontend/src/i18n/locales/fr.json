@@ -361,6 +361,7 @@
   },
   "settings": {
     "title": "Paramètres",
+    "delete_count_error": "Impossible de vérifier l'utilisation des trades. Veuillez réessayer.",
     "tabs": {
       "general": "Général",
       "assets": "Actifs",
@@ -382,11 +383,20 @@
         "category": "Catégorie",
         "currency": "Devise",
         "active": "Actif",
-        "edit": "Modifier"
+        "actions": "Actions"
       },
       "activate_aria": "Activer {{name}}",
       "deactivate_aria": "Désactiver {{name}}",
       "edit_aria": "Modifier {{name}}",
+      "delete": {
+        "aria": "Supprimer {{name}}",
+        "title": "Supprimer l'actif",
+        "simple": "Supprimer {{name}} ? Cette action est irréversible.",
+        "blockedTitle": "Impossible de supprimer l'actif",
+        "blocked_one": "Impossible de supprimer {{name}}. Cet actif est associé à {{count}} trade.",
+        "blocked_other": "Impossible de supprimer {{name}}. Cet actif est associé à {{count}} trades.",
+        "blockedHint": "Réassignez ou supprimez ces trades d'abord, puis réessayez."
+      },
       "modal": {
         "add_title": "Ajouter un actif",
         "edit_title": "Modifier l'actif"
@@ -409,8 +419,10 @@
         "updated": "{{name}} mis à jour",
         "activated": "{{name}} activé",
         "deactivated": "{{name}} désactivé",
+        "deleted": "{{name}} supprimé",
         "save_error": "Impossible d'enregistrer l'actif",
-        "update_error": "Impossible de mettre à jour l'actif"
+        "update_error": "Impossible de mettre à jour l'actif",
+        "delete_error": "Impossible de supprimer l'actif"
       }
     },
     "tags": {
@@ -420,11 +432,20 @@
         "name": "Nom",
         "description": "Description",
         "active": "Actif",
-        "edit": "Modifier"
+        "actions": "Actions"
       },
       "activate_aria": "Activer {{name}}",
       "deactivate_aria": "Désactiver {{name}}",
       "edit_aria": "Modifier {{name}}",
+      "delete": {
+        "aria": "Supprimer {{name}}",
+        "title": "Supprimer le tag",
+        "simple": "Supprimer {{name}} ? Cette action est irréversible.",
+        "question": "Supprimer {{name}} ?",
+        "warning_one": "Ce tag est associé à {{count}} trade. Il sera retiré de ces trades.",
+        "warning_other": "Ce tag est associé à {{count}} trades. Il sera retiré de ces trades.",
+        "undone": "Cette action est irréversible."
+      },
       "modal": {
         "add_title": "Ajouter un tag",
         "edit_title": "Modifier le tag"
@@ -443,8 +464,10 @@
         "updated": "{{name}} mis à jour",
         "activated": "{{name}} activé",
         "deactivated": "{{name}} désactivé",
+        "deleted": "{{name}} supprimé",
         "save_error": "Impossible d'enregistrer le tag",
-        "update_error": "Impossible de mettre à jour le tag"
+        "update_error": "Impossible de mettre à jour le tag",
+        "delete_error": "Impossible de supprimer le tag"
       }
     },
     "emotions": {
@@ -457,7 +480,15 @@
         "actions": "Actions"
       },
       "edit_aria": "Modifier {{name}}",
-      "delete_aria": "Supprimer {{name}}",
+      "delete": {
+        "aria": "Supprimer {{name}}",
+        "title": "Supprimer l'émotion",
+        "simple": "Supprimer {{name}} ? Cette action est irréversible.",
+        "question": "Supprimer {{name}} ?",
+        "warning_one": "Cette émotion est associée à {{count}} trade. Elle sera retirée de ces trades.",
+        "warning_other": "Cette émotion est associée à {{count}} trades. Elle sera retirée de ces trades.",
+        "undone": "Cette action est irréversible."
+      },
       "modal": {
         "add_title": "Ajouter une émotion",
         "edit_title": "Modifier l'émotion"
@@ -483,10 +514,6 @@
         "deleted": "{{name}} supprimée",
         "save_error": "Impossible d'enregistrer l'émotion",
         "delete_error": "Impossible de supprimer l'émotion"
-      },
-      "delete_modal": {
-        "title": "Supprimer l'émotion",
-        "confirm": "Supprimer <strong>{{name}}</strong> ? Cette action est irréversible."
       }
     }
   },
