@@ -86,7 +86,30 @@
   },
   "analytics": {
     "title": "Analytics",
-    "placeholder": "Qui appariranno le analisi delle performance."
+    "subtitle": "Analizza le tue performance di trading su tutte le metriche.",
+    "load_error": "Impossibile caricare le analisi",
+    "empty": {
+      "title": "Nessun trade ancora",
+      "description": "Le tue analisi appariranno qui non appena registrerai il tuo primo trade."
+    },
+    "placeholder": {
+      "filters": "Filtri — prossimamente",
+      "charts": "Grafici — prossimamente",
+      "trades": "Tabella dei trade — prossimamente"
+    },
+    "kpi": {
+      "total_trades": "Totale trade",
+      "total_pnl": "Totale P&L",
+      "win_rate": "Win Rate",
+      "profit_factor": "Profit Factor",
+      "avg_pnl": "P&L medio",
+      "avg_win": "Guadagno medio",
+      "avg_loss": "Perdita media",
+      "expectancy": "Expectancy",
+      "avg_duration": "Durata media",
+      "best_worst": "Migliore / Peggiore",
+      "streak": "Winning / Losing Streak"
+    }
   },
   "projections": {
     "title": "Proiezioni",

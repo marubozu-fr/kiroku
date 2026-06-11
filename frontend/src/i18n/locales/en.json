@@ -86,7 +86,30 @@
   },
   "analytics": {
     "title": "Analytics",
-    "placeholder": "Performance analytics will appear here."
+    "subtitle": "Review your trading performance across all metrics.",
+    "load_error": "Could not load analytics",
+    "empty": {
+      "title": "No trades yet",
+      "description": "Your analytics will appear here once you log your first trade."
+    },
+    "placeholder": {
+      "filters": "Filters — coming soon",
+      "charts": "Charts — coming soon",
+      "trades": "Trades table — coming soon"
+    },
+    "kpi": {
+      "total_trades": "Total Trades",
+      "total_pnl": "Total P&L",
+      "win_rate": "Win Rate",
+      "profit_factor": "Profit Factor",
+      "avg_pnl": "Avg P&L",
+      "avg_win": "Avg Win",
+      "avg_loss": "Avg Loss",
+      "expectancy": "Expectancy",
+      "avg_duration": "Avg Duration",
+      "best_worst": "Best / Worst",
+      "streak": "Winning / Losing Streak"
+    }
   },
   "projections": {
     "title": "Projections",
