@@ -55,9 +55,14 @@ async def update(asset_id: int, fields: dict[str, Any], now: str) -> None:
   await database.execute(query, values)
 
 
-async def soft_delete(asset_id: int, now: str) -> None:
-  """Mark an asset inactive without removing the row."""
-  await database.execute(
-    "UPDATE assets SET is_active = 0, updated_at = :now WHERE id = :id",
-    {"now": now, "id": asset_id},
+async def count_trades(asset_id: int) -> int:
+  """Return how many trades reference this asset."""
+  row = await database.fetch_one(
+    "SELECT COUNT(*) AS count FROM trades WHERE asset_id = :id", {"id": asset_id}
   )
+  return row["count"] if row is not None else 0
+
+
+async def delete(asset_id: int) -> None:
+  """Permanently remove an asset row."""
+  await database.execute("DELETE FROM assets WHERE id = :id", {"id": asset_id})
