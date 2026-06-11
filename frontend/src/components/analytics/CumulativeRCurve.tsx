@@ -62,6 +62,24 @@ export function CumulativeRCurve({ data }: CumulativeRCurveProps) {
 
   const TooltipContent = useMemo(() => makeTooltip(), [])
 
+  // Offset (0-1) along the Y-axis domain where cumulative_r crosses 0.
+  // The gradient renders top-to-bottom, so it is green above 0 and red below.
+  const zeroOffset = useMemo(() => {
+    if (data.length === 0) {
+      return 1
+    }
+    const values = data.map((point) => point.cumulative_r)
+    const max = Math.max(...values)
+    const min = Math.min(...values)
+    if (max <= 0) {
+      return 0
+    }
+    if (min >= 0) {
+      return 1
+    }
+    return max / (max - min)
+  }, [data])
+
   if (data.length === 0) {
     return (
       <Card padding="md" radius="md" withBorder>
@@ -89,16 +107,20 @@ export function CumulativeRCurve({ data }: CumulativeRCurveProps) {
           margin={{ top: 4, right: 16, left: 8, bottom: 4 }}
         >
           <defs>
-            <linearGradient id="cumulativeRGradient" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="cumulativeRStroke" x1="0" y1="0" x2="0" y2="1">
+              <stop offset={zeroOffset} stopColor="var(--mantine-color-green-6)" />
+              <stop offset={zeroOffset} stopColor="var(--mantine-color-red-6)" />
+            </linearGradient>
+            <linearGradient id="cumulativeRFill" x1="0" y1="0" x2="0" y2="1">
               <stop
-                offset="5%"
+                offset={zeroOffset}
                 stopColor="var(--mantine-color-green-6)"
                 stopOpacity={0.3}
               />
               <stop
-                offset="95%"
-                stopColor="var(--mantine-color-green-6)"
-                stopOpacity={0}
+                offset={zeroOffset}
+                stopColor="var(--mantine-color-red-6)"
+                stopOpacity={0.3}
               />
             </linearGradient>
           </defs>
@@ -140,9 +162,9 @@ export function CumulativeRCurve({ data }: CumulativeRCurveProps) {
           <Area
             type="monotone"
             dataKey="cumulative_r"
-            stroke="var(--mantine-color-green-6)"
+            stroke="url(#cumulativeRStroke)"
             strokeWidth={2}
-            fill="url(#cumulativeRGradient)"
+            fill="url(#cumulativeRFill)"
             dot={false}
             isAnimationActive={false}
           />
