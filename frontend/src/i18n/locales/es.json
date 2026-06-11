@@ -253,7 +253,9 @@
         "p50": "Proyección P50 (mediana)",
         "p25_p75": "P25–P75",
         "p10_p90": "P10–P90",
-        "goal": "Objetivo"
+        "goal": "Objetivo",
+        "comp_p50": "{{label}} P50",
+        "comp_band": "Selección P25–P75"
       },
       "tooltip": {
         "actual": "Real",
@@ -262,8 +264,26 @@
         "p50": "P50 (mediana)",
         "p25": "P25",
         "p10": "P10",
-        "goal": "Objetivo"
+        "goal": "Objetivo",
+        "comp_p90": "P90",
+        "comp_p75": "P75",
+        "comp_p50": "P50 (mediana)",
+        "comp_p25": "P25",
+        "comp_p10": "P10"
       }
+    },
+    "goal_card": {
+      "label": "Probabilidad de objetivo",
+      "sentence": "{{pct}}% de probabilidad de alcanzar {{target}} en dic."
+    },
+    "comparison": {
+      "toggle": "Mostrar superposición de activos seleccionados",
+      "col_all": "Todos los activos",
+      "col_selected": "Activos seleccionados",
+      "expectancy": "Expectancy",
+      "win_rate": "Win Rate",
+      "median_end": "Mediana a fin de año",
+      "note": "¿Y si solo operaras {{assets}} el resto del año? El abanico muestra la proyección anclada al R acumulado actual."
     },
     "empty": {
       "title": "No hay trades que proyectar aún",

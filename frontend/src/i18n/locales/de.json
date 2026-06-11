@@ -253,7 +253,9 @@
         "p50": "Projektion P50 (Median)",
         "p25_p75": "P25–P75",
         "p10_p90": "P10–P90",
-        "goal": "Ziel"
+        "goal": "Ziel",
+        "comp_p50": "{{label}} P50",
+        "comp_band": "Auswahl P25–P75"
       },
       "tooltip": {
         "actual": "Ist",
@@ -262,8 +264,26 @@
         "p50": "P50 (Median)",
         "p25": "P25",
         "p10": "P10",
-        "goal": "Ziel"
+        "goal": "Ziel",
+        "comp_p90": "P90",
+        "comp_p75": "P75",
+        "comp_p50": "P50 (Median)",
+        "comp_p25": "P25",
+        "comp_p10": "P10"
       }
+    },
+    "goal_card": {
+      "label": "Zielwahrscheinlichkeit",
+      "sentence": "{{pct}}% Chance, {{target}} bis Dez. zu erreichen"
+    },
+    "comparison": {
+      "toggle": "Ausgewählte Assets überlagern",
+      "col_all": "Alle Assets",
+      "col_selected": "Ausgewählte Assets",
+      "expectancy": "Expectancy",
+      "win_rate": "Win Rate",
+      "median_end": "Median-Jahresende",
+      "note": "Was wäre, wenn du nur {{assets}} für den Rest des Jahres gehandelt hättest? Der Fächer zeigt die Projektion, neu verankert am heutigen kumulativen R."
     },
     "empty": {
       "title": "Noch keine Trades zum Projizieren",
