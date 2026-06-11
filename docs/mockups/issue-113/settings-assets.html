@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Settings · Assets · Delete (simple)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▦</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▤</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">◫</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink active" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Settings</h1>
+            <p class="page-subtitle">Manage your assets, tags and emotions.</p>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tabs-list">
+            <button class="tab">General</button>
+            <button class="tab active">Assets</button>
+            <button class="tab">Tags</button>
+            <button class="tab">Emotions</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Assets</h2>
+            <button class="btn light sm">+ New asset</button>
+          </div>
+          <!-- Assets Table: Name | Category | Currency | Active | Actions -->
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Currency</th>
+                  <th>Active</th>
+                  <th class="right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="mono">EUR/USD</td>
+                  <td><span class="badge closed">Forex</span></td>
+                  <td class="mono">USD</td>
+                  <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                  <td class="actions-cell">
+                    <button class="action-icon edit" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.83 2.83 0 0 0-4-4L4 16v4"/><path d="m13.5 6.5 4 4"/></svg></button>
+                    <button class="action-icon delete" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="mono">BTC/USDT</td>
+                  <td><span class="badge tag">Crypto</span></td>
+                  <td class="mono">USDT</td>
+                  <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                  <td class="actions-cell">
+                    <button class="action-icon edit" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.83 2.83 0 0 0-4-4L4 16v4"/><path d="m13.5 6.5 4 4"/></svg></button>
+                    <button class="action-icon delete" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="mono">ES</td>
+                  <td><span class="badge long">Futures</span></td>
+                  <td class="mono">USD</td>
+                  <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                  <td class="actions-cell">
+                    <button class="action-icon edit" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.83 2.83 0 0 0-4-4L4 16v4"/><path d="m13.5 6.5 4 4"/></svg></button>
+                    <button class="action-icon delete" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="mono">NVDA</td>
+                  <td><span class="badge emotion">Stocks</span></td>
+                  <td class="mono">USD</td>
+                  <td><span class="switch"><span class="track"><span class="knob"></span></span></span></td>
+                  <td class="actions-cell">
+                    <button class="action-icon edit" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.83 2.83 0 0 0-4-4L4 16v4"/><path d="m13.5 6.5 4 4"/></svg></button>
+                    <button class="action-icon delete" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== Mantine Modal — ASSET SIMPLE variant (trade_count == 0) ===== -->
+  <!-- Asset "NVDA" has 0 trades → plain confirmation; guard does not trip. -->
+  <div class="modal-overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="m-title">
+      <div class="modal-header">
+        <h3 class="modal-title" id="m-title">Delete asset</h3>
+        <button class="modal-close" title="Close"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <p>Delete <span class="name">NVDA</span>? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn default">Cancel</button>
+        <button class="btn danger">Delete</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
