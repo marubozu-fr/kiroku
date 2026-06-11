@@ -12,8 +12,10 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { AssetBreakdown } from '@/components/analytics/AssetBreakdown'
 import { FilterPanel } from '@/components/analytics/FilterPanel'
 import { StatisticsCards } from '@/components/analytics/StatisticsCards'
+import { TagBreakdown } from '@/components/analytics/TagBreakdown'
 import { useFetch } from '@/hooks/useFetch'
 import { useAnalyticsFilters } from '@/hooks/useAnalyticsFilters'
 import { fetchBreakdowns, fetchStatistics, fetchTrades } from '@/services/analytics'
@@ -139,13 +141,12 @@ export function AnalyticsPage() {
       {/* KPI cards */}
       {hasData && <StatisticsCards statistics={data.statistics.statistics} />}
 
-      {/* Charts placeholder */}
+      {/* Breakdown charts */}
       {hasData && (
-        <Card padding="md" radius="md" withBorder>
-          <Text c="dimmed" size="sm">
-            {t('analytics.placeholder.charts')}
-          </Text>
-        </Card>
+        <SimpleGrid cols={{ base: 1, lg: 2 }}>
+          <AssetBreakdown data={data.breakdowns.by_asset} />
+          <TagBreakdown data={data.breakdowns.by_tag} />
+        </SimpleGrid>
       )}
 
       {/* Trades table placeholder */}
