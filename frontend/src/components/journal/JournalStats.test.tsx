@@ -56,6 +56,24 @@ describe('JournalStats', () => {
     expect(cardValue('Avg P&L')).toBe('+0.50R')
   })
 
+  it('excludes non-live trades from every metric', () => {
+    const trades: TradeSummary[] = [
+      makeTrade({ id: 1, performance_r: 2.0, account_type: 'live' }),
+      makeTrade({ id: 2, performance_r: -1.0, account_type: 'live' }),
+      // Demo and test trades with large R values that must NOT count.
+      makeTrade({ id: 3, performance_r: 5.0, account_type: 'demo' }),
+      makeTrade({ id: 4, performance_r: 8.0, account_type: 'test' }),
+    ]
+
+    renderWithProviders(<JournalStats trades={trades} />)
+
+    // Only the two live trades are counted.
+    expect(cardValue('Total Trades')).toBe('2')
+    expect(cardValue('Total P&L')).toBe('+1.00R')
+    expect(cardValue('Win Rate')).toBe('50%')
+    expect(cardValue('Avg P&L')).toBe('+0.50R')
+  })
+
   it('counts ordinary trades normally when none are missed', () => {
     const trades: TradeSummary[] = [
       makeTrade({ id: 1, performance_r: 3.0 }),

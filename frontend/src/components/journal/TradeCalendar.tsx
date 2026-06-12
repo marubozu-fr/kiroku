@@ -115,8 +115,16 @@ function MonthlyReviewBand({ sum, label }: MonthlyReviewBandProps) {
 export function TradeCalendar({ trades, assetName, selectedYear }: TradeCalendarProps) {
   const { t } = useTranslation()
 
+  // Only `live` trades are shown and counted for now. Demo and test trades are
+  // excluded to avoid trades visible in the grid but absent from stats/reviews.
+  // The follow-up enhancement will add account-type toggles with distinct styling.
+  const liveTrades = useMemo(
+    () => trades.filter((trade) => trade.account_type === 'live'),
+    [trades],
+  )
+
   const [displayMonth, setDisplayMonth] = useState<Dayjs>(() =>
-    defaultDisplayMonth(trades, selectedYear),
+    defaultDisplayMonth(liveTrades, selectedYear),
   )
 
   const currentYear = dayjs().year()
@@ -131,11 +139,11 @@ export function TradeCalendar({ trades, assetName, selectedYear }: TradeCalendar
     selectedYear === currentYear && !displayMonth.isSame(currentMonth, 'month')
 
   const cells = useMemo(() => buildCalendarCells(displayMonth), [displayMonth])
-  const byDate = useMemo(() => groupByDate(trades), [trades])
-  const weeklySums = useMemo(() => weeklyReviewSums(trades), [trades])
+  const byDate = useMemo(() => groupByDate(liveTrades), [liveTrades])
+  const weeklySums = useMemo(() => weeklyReviewSums(liveTrades), [liveTrades])
   const monthSum = useMemo(
-    () => monthlyReviewSum(trades, displayMonth),
-    [trades, displayMonth],
+    () => monthlyReviewSum(liveTrades, displayMonth),
+    [liveTrades, displayMonth],
   )
   const lastTradingDay = useMemo(
     () => lastVisibleDayOfMonth(displayMonth),
@@ -239,7 +247,7 @@ export function TradeCalendar({ trades, assetName, selectedYear }: TradeCalendar
           todayLabel={t('journal.calendar.today')}
         />
         <AgendaView
-          trades={trades}
+          trades={liveTrades}
           byDate={byDate}
           displayMonth={displayMonth}
           weeklySums={weeklySums}
