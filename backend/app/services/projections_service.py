@@ -279,8 +279,11 @@ async def get_projections(
 
   asset_names = _parse_strs(assets_raw)
 
-  # Load trades (start_date applied at the DB level).
-  trades = await trade_repository.list_with_asset(start_date=start_date)
+  # Load trades (start_date applied at the DB level). Projections always use
+  # live trades only — demo/test trades would distort the simulations.
+  trades = await trade_repository.list_with_asset(
+    start_date=start_date, account_type="live"
+  )
 
   # Build pool: non-missed, scored, asset-filtered.
   pool = [

@@ -481,6 +481,40 @@ class TestProjectionsEndpoint:
     assert fa["start_date"] == "2025-01-01"
     assert fa["assets"] == ["EURUSD"]
 
+  def test_non_live_trades_excluded(self) -> None:
+    """Only live trades feed projections — demo/test trades are excluded."""
+    # 15 live trades plus one outsized test trade that would dominate stats.
+    live = _make_db_trades(15)
+    test_trade = {
+      "id": 999,
+      "asset_id": 1,
+      "account_type": "test",
+      "status": "Closed",
+      "missed_opportunity": 0,
+      "performance_r": 100.0,
+      "trade_date": "2025-06-15",
+    }
+    _insert_trades_in_db(live + [test_trade])
+    with TestClient(app) as client:
+      resp = client.get("/api/projections?simulations=200")
+    assert resp.status_code == 200, resp.text
+    stats = resp.json()["data"]["stats"]
+    # 15 live trades only — the test trade must not be counted.
+    assert stats["total_trades"] == 15
+    # The +100R test trade must not appear as the best trade.
+    assert stats["best_trade"] == pytest.approx(1.0)
+
+  def test_only_non_live_trades_insufficient(self) -> None:
+    """A pool of only non-live trades yields too few live trades → 400."""
+    demo = _make_db_trades(15)
+    for t in demo:
+      t["account_type"] = "demo"
+    _insert_trades_in_db(demo)
+    with TestClient(app) as client:
+      resp = client.get("/api/projections?simulations=200")
+    assert resp.status_code == 400, resp.text
+    assert "Insufficient data" in resp.json()["error"]
+
   def test_asset_filter_reduces_pool(self) -> None:
     """An asset filter for a name not in DB → too few trades → 400."""
     _insert_trades_in_db(_make_db_trades(15))
