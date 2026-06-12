@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card, SimpleGrid, Text } from '@mantine/core'
 import type { TradeSummary } from '@/types/trade'
@@ -15,10 +16,18 @@ interface JournalStatsProps {
  * - Total P&L: sum of non-null performance_r, green/red/dimmed.
  * - Win Rate: winners / non-null count, monospace, not colored.
  * - Avg P&L: totalR / non-null count, green/red/dimmed.
+ *
+ * Trades marked `missed_opportunity` are excluded from every metric — they
+ * represent opportunities the user did not take and must not affect P&L or win
+ * rate. The calendar grid still displays them; only these cards filter them out.
  */
 export function JournalStats({ trades }: JournalStatsProps) {
   const { t } = useTranslation()
-  const { totalTrades, totalR, winRate, avgR } = computeStats(trades)
+  const scored = useMemo(
+    () => trades.filter((trade) => !trade.missed_opportunity),
+    [trades],
+  )
+  const { totalTrades, totalR, winRate, avgR } = computeStats(scored)
 
   const winRateDisplay =
     winRate === null ? '—' : `${Math.round(winRate * 100)}%`
