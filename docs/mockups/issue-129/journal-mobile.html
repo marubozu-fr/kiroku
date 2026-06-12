@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Journal · Mobile (Live + Demo + Test)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #129 — Journal MOBILE (≤768px), account-type toggles ON.
+    Wrapped in a ~390px .phone-frame. Shows: navbar -> hamburger drawer,
+    stat cards 4->2 cols (Live only), view SegmentedControl, the account
+    toggles STACKED below it (full width), and the calendar AGENDA list with
+    distinct Demo/Test events.
+  -->
+  <div class="phone-frame">
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <h1 class="page-title">Journal</h1>
+          <div class="right">
+            <div class="field">
+              <select class="input" aria-label="Year">
+                <option selected>2026</option>
+                <option>2025</option>
+              </select>
+            </div>
+            <a class="btn filled" href="#">+ Add</a>
+          </div>
+        </div>
+
+        <!-- Stat cards 4 -> 2x2, Live only -->
+        <div class="metrics-wrap">
+          <div class="metrics">
+            <div class="metric">
+              <div class="lbl">Total Trades</div>
+              <div class="val">47</div>
+            </div>
+            <div class="metric">
+              <div class="lbl">Total P&amp;L</div>
+              <div class="val profit">+38.50R</div>
+            </div>
+            <div class="metric">
+              <div class="lbl">Win Rate</div>
+              <div class="val">63%</div>
+            </div>
+            <div class="metric">
+              <div class="lbl">Avg. P&amp;L</div>
+              <div class="val profit">+0.82R</div>
+            </div>
+          </div>
+          <div class="liveonly-caption">
+            <span class="pill">Live only</span>
+            Excludes Demo &amp; Test.
+          </div>
+        </div>
+
+        <!-- View toolbar: on mobile the toggles STACK below the SegmentedControl
+             (full-width chip row). Live locked-on; Demo/Test opt-in (both ON). -->
+        <div class="view-toolbar acct">
+          <div class="segmented full">
+            <span class="seg active">Calendar</span>
+            <span class="seg">List</span>
+          </div>
+          <div class="acct-toggles" role="group" aria-label="Account types shown">
+            <span class="acct-label">Show:</span>
+            <span class="chip live on" aria-pressed="true">
+              <span class="check">✓</span> Live
+            </span>
+            <span class="chip supp on" role="checkbox" aria-checked="true" tabindex="0">
+              <span class="dot"></span> Demo
+            </span>
+            <span class="chip supp on" role="checkbox" aria-checked="true" tabindex="0">
+              <span class="dot"></span> Test
+            </span>
+          </div>
+        </div>
+
+        <!-- Calendar card -> agenda list on mobile -->
+        <div class="card">
+          <div class="calendar">
+            <div class="cal-nav">
+              <button class="icon-btn" aria-label="Previous month">‹</button>
+              <div class="month-label">June 2026</div>
+              <button class="icon-btn" aria-label="Next month">›</button>
+            </div>
+
+            <!-- Agenda is always visible inside the phone frame -->
+            <div class="cal-agenda" style="display:block">
+              <div class="agenda-day">
+                <div class="agenda-date">Mon, Jun 1</div>
+                <a class="event win" href="/trades/101">10:00 EUR/USD: +5.00R</a>
+                <a class="event nonlive demo win" href="/trades/501"><span class="acct-badge">Demo</span>14:00 US100: +2.00R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Tue, Jun 2</div>
+                <a class="event loss" href="/trades/102">09:15 GBP/USD: -1.00R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Wed, Jun 3</div>
+                <a class="event nonlive test win" href="/trades/601"><span class="acct-badge">Test</span>11:20 BTC/USD: +3.10R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Thu, Jun 4</div>
+                <a class="event win" href="/trades/104">11:30 GOLD: +2.50R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Fri, Jun 5</div>
+                <a class="event win" href="/trades/105">08:00 US100: +1.50R</a>
+                <a class="event loss" href="/trades/106">13:45 BTC/USD: -1.00R</a>
+                <a class="event be" href="/trades/107">16:00 EUR/USD: 0.00R</a>
+                <!-- Weekly review LIVE ONLY -->
+                <span class="review weekly win">Weekly Review: +7.00R</span>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Mon, Jun 8</div>
+                <a class="event win" href="/trades/108">10:00 SPX: +3.00R</a>
+                <a class="event nonlive demo loss" href="/trades/502"><span class="acct-badge">Demo</span>15:30 GOLD: -1.50R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Thu, Jun 11</div>
+                <a class="event be" href="/trades/111">09:30 GOLD: 0.00R</a>
+                <a class="event nonlive test loss" href="/trades/602"><span class="acct-badge">Test</span>16:10 ETH/USD: -2.00R</a>
+              </div>
+              <!-- today = 2026-06-12 -->
+              <div class="agenda-day">
+                <div class="agenda-date today">Fri, Jun 12 · Today</div>
+                <a class="event win" href="/trades/112">11:00 US30: +1.30R</a>
+                <a class="event nonlive demo win" href="/trades/503"><span class="acct-badge">Demo</span>13:15 EUR/USD: +1.80R</a>
+                <span class="review weekly win">Weekly Review: +6.50R</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="event-legend">
+            <span class="lg"><span class="swatch live"></span> Live</span>
+            <span class="lg"><span class="swatch demo"></span> Demo</span>
+            <span class="lg"><span class="swatch test"></span> Test</span>
+            <span class="lg"><span class="swatch missed"></span> Missed</span>
+          </div>
+        </div>
+
+        <div class="note">
+          On phones the account toggles stack full-width below the Calendar/List
+          switch. Demo/Test events keep their muted indigo dotted/dashed
+          treatment + badge in the agenda. Stat cards (2×2) and the weekly review
+          band stay <strong>Live only</strong>.
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Journal · List (Live + Demo + Test)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #129 — Journal LIST view with account-type toggles ON.
+    Adds an "Account" column with a Live/Demo/Test badge. Demo/Test rows are
+    visually muted (indigo inset left accent + reduced opacity) so they read as
+    "doesn't count". Live rows unchanged. Stat cards stay LIVE ONLY.
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink active" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <h1 class="page-title">Journal</h1>
+          <div class="right">
+            <div class="field">
+              <select class="input" aria-label="Year">
+                <option selected>2026</option>
+                <option>2025</option>
+                <option>2024</option>
+              </select>
+            </div>
+            <a class="btn filled" href="#">+ New Trade</a>
+          </div>
+        </div>
+
+        <!-- Stat cards — ALWAYS live only. -->
+        <div class="metrics-wrap">
+          <div class="metrics">
+            <div class="metric">
+              <div class="lbl">Total Trades</div>
+              <div class="val">47</div>
+            </div>
+            <div class="metric">
+              <div class="lbl">Total P&amp;L</div>
+              <div class="val profit">+38.50R</div>
+            </div>
+            <div class="metric">
+              <div class="lbl">Win Rate</div>
+              <div class="val">63%</div>
+            </div>
+            <div class="metric">
+              <div class="lbl">Avg. P&amp;L</div>
+              <div class="val profit">+0.82R</div>
+            </div>
+          </div>
+          <div class="liveonly-caption">
+            <span class="pill">Live only</span>
+            Performance metrics always exclude Demo &amp; Test trades.
+          </div>
+        </div>
+
+        <!-- View toolbar (List active) + account-type toggles (all ON). -->
+        <div class="view-toolbar acct">
+          <div class="segmented">
+            <span class="seg">Calendar</span>
+            <span class="seg active">List</span>
+          </div>
+          <div class="acct-toggles" role="group" aria-label="Account types shown">
+            <span class="acct-label">Show:</span>
+            <span class="chip live on" aria-pressed="true" title="Primary view — always shown">
+              <span class="check">✓</span> Live
+            </span>
+            <span class="chip supp on" role="checkbox" aria-checked="true" tabindex="0">
+              <span class="dot"></span> Demo
+            </span>
+            <span class="chip supp on" role="checkbox" aria-checked="true" tabindex="0">
+              <span class="dot"></span> Test
+            </span>
+          </div>
+        </div>
+
+        <!-- Trades table with an added Account column. -->
+        <div class="card">
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Account</th>
+                  <th>Asset</th>
+                  <th>Direction</th>
+                  <th>Status</th>
+                  <th class="right">Avg Entry</th>
+                  <th class="right">Avg Exit</th>
+                  <th class="right">Risk:Reward</th>
+                  <th class="right">P&amp;L (R)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Live rows unchanged (green/red P&L). Demo/Test rows muted. -->
+                <tr>
+                  <td class="mono">2026-06-30</td>
+                  <td class="mono">11:45</td>
+                  <td class="acct-cell"><span class="badge live">Live</span></td>
+                  <td>GBP/USD</td>
+                  <td><span class="badge short">Short</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">1.3420</td>
+                  <td class="num">1.3389</td>
+                  <td class="num">1:1.3</td>
+                  <td class="num profit">+1.30R</td>
+                </tr>
+                <tr class="row-demo">
+                  <td class="mono">2026-06-29</td>
+                  <td class="mono">14:30</td>
+                  <td class="acct-cell"><span class="badge demo">Demo</span></td>
+                  <td>US30</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">39120</td>
+                  <td class="num">39056</td>
+                  <td class="num">1:0.8</td>
+                  <td class="num loss">-0.80R</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-29</td>
+                  <td class="mono">10:00</td>
+                  <td class="acct-cell"><span class="badge live">Live</span></td>
+                  <td>EUR/USD</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">1.0820</td>
+                  <td class="num">1.0920</td>
+                  <td class="num">1:5.0</td>
+                  <td class="num profit">+5.00R</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-26</td>
+                  <td class="mono">10:30</td>
+                  <td class="acct-cell"><span class="badge live">Live</span></td>
+                  <td>SPX</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">5412.0</td>
+                  <td class="num">5478.0</td>
+                  <td class="num">1:3.0</td>
+                  <td class="num profit">+3.00R</td>
+                </tr>
+                <tr class="row-test">
+                  <td class="mono">2026-06-24</td>
+                  <td class="mono">16:00</td>
+                  <td class="acct-cell"><span class="badge test">Test</span></td>
+                  <td>SPX</td>
+                  <td><span class="badge short">Short</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">5466.0</td>
+                  <td class="num">5479.0</td>
+                  <td class="num">1:1.2</td>
+                  <!-- test P&L desaturated to neutral via .row-test override -->
+                  <td class="num loss">-1.20R</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-24</td>
+                  <td class="mono">13:30</td>
+                  <td class="acct-cell"><span class="badge live">Live</span></td>
+                  <td>GOLD</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">2351.0</td>
+                  <td class="num">2371.0</td>
+                  <td class="num">1:2.0</td>
+                  <td class="num profit">+2.00R</td>
+                </tr>
+                <tr class="row-test">
+                  <td class="mono">2026-06-16</td>
+                  <td class="mono">10:00</td>
+                  <td class="acct-cell"><span class="badge test">Test</span></td>
+                  <td>US100</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">19180</td>
+                  <td class="num">19420</td>
+                  <td class="num">1:4.0</td>
+                  <td class="num profit">+4.00R</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-12</td>
+                  <td class="mono">11:00</td>
+                  <td class="acct-cell"><span class="badge live">Live</span></td>
+                  <td>US30</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">38940</td>
+                  <td class="num">39041</td>
+                  <td class="num">1:1.3</td>
+                  <td class="num profit">+1.30R</td>
+                </tr>
+                <tr class="row-demo">
+                  <td class="mono">2026-06-12</td>
+                  <td class="mono">13:15</td>
+                  <td class="acct-cell"><span class="badge demo">Demo</span></td>
+                  <td>EUR/USD</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">1.0840</td>
+                  <td class="num">1.0858</td>
+                  <td class="num">1:1.8</td>
+                  <td class="num profit">+1.80R</td>
+                </tr>
+                <tr class="row-test">
+                  <td class="mono">2026-06-11</td>
+                  <td class="mono">16:10</td>
+                  <td class="acct-cell"><span class="badge test">Test</span></td>
+                  <td>ETH/USD</td>
+                  <td><span class="badge short">Short</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">3420.0</td>
+                  <td class="num">3489.0</td>
+                  <td class="num">1:2.0</td>
+                  <td class="num loss">-2.00R</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-11</td>
+                  <td class="mono">09:30</td>
+                  <td class="acct-cell"><span class="badge live">Live</span></td>
+                  <td>GOLD</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td><span class="badge breakeven">Breakeven</span></td>
+                  <td class="num">2338.0</td>
+                  <td class="num">2338.0</td>
+                  <td class="num">1:2.0</td>
+                  <td class="num neutral">0.00R</td>
+                </tr>
+                <tr class="row-demo">
+                  <td class="mono">2026-06-08</td>
+                  <td class="mono">15:30</td>
+                  <td class="acct-cell"><span class="badge demo">Demo</span></td>
+                  <td>GOLD</td>
+                  <td><span class="badge short">Short</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">2360.0</td>
+                  <td class="num">2375.0</td>
+                  <td class="num">1:1.5</td>
+                  <td class="num loss">-1.50R</td>
+                </tr>
+                <tr>
+                  <td class="mono">2026-06-08</td>
+                  <td class="mono">10:00</td>
+                  <td class="acct-cell"><span class="badge live">Live</span></td>
+                  <td>SPX</td>
+                  <td><span class="badge long">Long</span></td>
+                  <td><span class="badge closed">Closed</span></td>
+                  <td class="num">5380.0</td>
+                  <td class="num">5446.0</td>
+                  <td class="num">1:3.0</td>
+                  <td class="num profit">+3.00R</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Legend mirrors the calendar so the row treatments are explained. -->
+          <div class="event-legend">
+            <span class="lg"><span class="badge live">Live</span> counts in stats &amp; reviews</span>
+            <span class="lg"><span class="badge demo">Demo</span> excluded · muted row</span>
+            <span class="lg"><span class="badge test">Test</span> excluded · P&amp;L desaturated</span>
+          </div>
+        </div>
+
+        <div class="note">
+          List view gains an <strong>Account</strong> column. With the toggles
+          on, Demo &amp; Test trades appear as muted rows (indigo inset accent +
+          reduced opacity) with a badge; Test rows additionally desaturate their
+          P&amp;L to neutral so they never read as a real win/loss. The
+          <strong>stat cards above remain Live only</strong> — Demo/Test rows are
+          never summed into Total P&amp;L, Win Rate, or Avg. P&amp;L.
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
