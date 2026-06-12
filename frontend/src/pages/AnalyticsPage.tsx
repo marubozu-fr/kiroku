@@ -37,9 +37,9 @@ interface AllAnalyticsData {
 /**
  * Analytics page (route `/analytics`).
  *
- * Fetches statistics, breakdowns, and the first page of trades in parallel.
- * The charts and trades table are delivered by future issues —
- * they are rendered as labelled placeholder slots.
+ * Fetches statistics and breakdowns in parallel, then renders the
+ * statistics cards, asset and tag breakdowns, time heatmap, R distribution,
+ * cumulative R curve, and the trades table.
  */
 export function AnalyticsPage() {
   const { t } = useTranslation()
