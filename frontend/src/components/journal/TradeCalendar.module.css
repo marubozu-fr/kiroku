@@ -171,3 +171,78 @@
   font-size: var(--mantine-font-size-sm);
   line-height: 1.5;
 }
+
+/* ── Non-live (demo/test) event treatment ─────────────────────────────────
+ * Demo and test trades opt into the calendar but must read as "doesn't count":
+ * muted indigo-tinted background, dotted (demo) / dashed (test) left border, an
+ * inline account badge, and faded (demo) / desaturated (test) P&L colours. Live
+ * events are untouched. The indigo hue carries no financial semantic, so it can
+ * never be confused with the amber missed_opportunity status.
+ *
+ * Placed after the grid AND agenda rules so source order lets these win for
+ * both surfaces at equal specificity. */
+
+.nonlive {
+  position: relative;
+  padding-right: 6px;
+  background: light-dark(rgba(116, 143, 252, 0.1), rgba(116, 143, 252, 0.06));
+}
+
+.nonlive:hover {
+  background: light-dark(rgba(116, 143, 252, 0.16), rgba(116, 143, 252, 0.1));
+}
+
+.acctBadge {
+  display: inline-block;
+  font-family: var(--mantine-font-family);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+/* Demo: dotted indigo border, faded but still legible green/red tint. */
+.demo {
+  opacity: 0.78;
+  border-left-style: dotted;
+  border-left-color: var(--mantine-color-indigo-4);
+}
+
+.demo .acctBadge {
+  color: var(--mantine-color-indigo-4);
+  background: rgba(116, 143, 252, 0.18);
+}
+
+.demo.eventProfit {
+  border-left-color: var(--mantine-color-indigo-4);
+  color: light-dark(var(--mantine-color-green-7), var(--mantine-color-green-3));
+}
+
+.demo.eventLoss {
+  border-left-color: var(--mantine-color-indigo-4);
+  color: light-dark(var(--mantine-color-red-7), var(--mantine-color-red-3));
+}
+
+/* Test: dashed gray border, P&L fully desaturated to neutral (no green/red). */
+.test {
+  opacity: 0.6;
+  border-left-style: dashed;
+  border-left-color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-gray-6));
+}
+
+.test.eventProfit,
+.test.eventLoss,
+.test.eventNeutral {
+  border-left-color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-gray-6));
+  color: var(--mantine-color-dimmed);
+}
+
+.test .acctBadge {
+  color: var(--mantine-color-dimmed);
+  background: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.1));
+}

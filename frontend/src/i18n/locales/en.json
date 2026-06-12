@@ -344,7 +344,9 @@
       "total_trades": "Total Trades",
       "total_pnl": "Total P&L",
       "win_rate": "Win Rate",
-      "avg_pnl": "Avg P&L"
+      "avg_pnl": "Avg P&L",
+      "live_only_badge": "Live only",
+      "live_only_caption": "Performance metrics always exclude Demo & Test trades."
     },
     "calendar": {
       "weekly_review": "WEEKLY REVIEW",
@@ -358,6 +360,24 @@
       "title": "No trades for {{year}}",
       "subtitle": "Log your first trade to start filling your journal.",
       "cta": "Log your first trade"
+    },
+    "account_type": {
+      "label": "Show:",
+      "live": "Live",
+      "demo": "Demo",
+      "test": "Test",
+      "live_locked_hint": "Live is always shown"
+    },
+    "list": {
+      "header": {
+        "account": "Account"
+      }
+    },
+    "legend": {
+      "live": "Live (counts in stats & reviews)",
+      "demo": "Demo (excluded)",
+      "test": "Test (excluded)",
+      "missed": "Missed opportunity (status, not an account type)"
     }
   },
   "settings": {

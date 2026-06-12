@@ -1,3 +1,26 @@
 .row {
   cursor: pointer;
 }
+
+/* ── Non-live (demo/test) rows ────────────────────────────────────────────
+ * Demo/test rows read as "doesn't count": a muted indigo-tinted background and
+ * a coloured inset accent on the first cell mirror the calendar event borders.
+ * Live rows are untouched. P&L colour fade/desaturation is handled in the cell
+ * via `accountSignedColor`. */
+
+.rowDemo {
+  background: light-dark(rgba(116, 143, 252, 0.07), rgba(116, 143, 252, 0.05)) !important;
+}
+
+.rowDemo td:first-child {
+  box-shadow: inset 3px 0 0 0 var(--mantine-color-indigo-4);
+}
+
+.rowTest {
+  background: light-dark(rgba(116, 143, 252, 0.04), rgba(116, 143, 252, 0.03)) !important;
+  opacity: 0.72;
+}
+
+.rowTest td:first-child {
+  box-shadow: inset 3px 0 0 0 light-dark(var(--mantine-color-gray-5), var(--mantine-color-gray-6));
+}

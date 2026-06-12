@@ -8,7 +8,7 @@ import {
 } from '@tabler/icons-react'
 import {
   Alert,
-  Box,
+  Badge,
   Button,
   Card,
   Group,
@@ -21,6 +21,8 @@ import {
   ThemeIcon,
   Title,
 } from '@mantine/core'
+import { AccountTypeToggles } from '@/components/journal/AccountTypeToggles'
+import { EventLegend } from '@/components/journal/EventLegend'
 import { JournalStats } from '@/components/journal/JournalStats'
 import { TradeCalendar } from '@/components/journal/TradeCalendar'
 import { TradeTable } from '@/components/journal/TradeTable'
@@ -28,6 +30,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { assetsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
 import { formatAssetLabel } from '@/utils/format'
+import type { AccountType } from '@/types/trade'
 
 type JournalView = 'calendar' | 'list'
 
@@ -46,6 +49,11 @@ export function JournalPage() {
   const assets = useFetch(assetsApi.list)
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
   const [view, setView] = useState<JournalView>('calendar')
+  // Account types rendered in the calendar/list. Live is always on; Demo/Test
+  // are opt-in. Stats and reviews stay live-only regardless of this selection.
+  const [selectedAccountTypes, setSelectedAccountTypes] = useState<Set<AccountType>>(
+    () => new Set<AccountType>(['live']),
+  )
 
   const currentYear = new Date().getFullYear()
   const yearOptions = useMemo(() => {
@@ -170,9 +178,19 @@ export function JournalPage() {
       {/* Main content (stats + view toggle + calendar/list) */}
       {!tradesFetch.loading && tradesFetch.error === null && !isEmpty && effectiveYear !== null && (
         <Stack gap="md">
-          <JournalStats trades={trades} />
+          <Stack gap={6}>
+            <JournalStats trades={trades} />
+            <Group gap={6} align="center">
+              <Badge variant="light" color="blue" size="sm">
+                {t('journal.stats.live_only_badge')}
+              </Badge>
+              <Text size="xs" c="dimmed">
+                {t('journal.stats.live_only_caption')}
+              </Text>
+            </Group>
+          </Stack>
 
-          <Box>
+          <Group justify="space-between" align="center" gap="sm" wrap="wrap">
             <SegmentedControl
               value={view}
               onChange={(v) => setView(v as JournalView)}
@@ -182,10 +200,19 @@ export function JournalPage() {
               ]}
               maw={{ base: '100%', sm: 320 }}
             />
-          </Box>
+            <AccountTypeToggles
+              value={selectedAccountTypes}
+              onChange={setSelectedAccountTypes}
+            />
+          </Group>
 
           {view === 'calendar' ? (
-            <TradeCalendar trades={trades} assetName={assetName} selectedYear={effectiveYear} />
+            <TradeCalendar
+              trades={trades}
+              assetName={assetName}
+              selectedYear={effectiveYear}
+              selectedAccountTypes={selectedAccountTypes}
+            />
           ) : (
             <TradeTable
               trades={trades}
@@ -194,8 +221,11 @@ export function JournalPage() {
               reload={tradesFetch.reload}
               assetName={assetName}
               year={effectiveYear}
+              selectedAccountTypes={selectedAccountTypes}
             />
           )}
+
+          <EventLegend />
         </Stack>
       )}
     </Stack>

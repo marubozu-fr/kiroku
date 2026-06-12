@@ -344,7 +344,9 @@
       "total_trades": "Totale trade",
       "total_pnl": "P&L totale",
       "win_rate": "Win Rate",
-      "avg_pnl": "P&L medio"
+      "avg_pnl": "P&L medio",
+      "live_only_badge": "Solo Live",
+      "live_only_caption": "Le metriche di performance escludono sempre i trade Demo e Test."
     },
     "calendar": {
       "weekly_review": "WEEKLY REVIEW",
@@ -358,6 +360,24 @@
       "title": "Nessun trade per {{year}}",
       "subtitle": "Registra il tuo primo trade per iniziare a compilare il tuo journal.",
       "cta": "Registra il tuo primo trade"
+    },
+    "account_type": {
+      "label": "Mostra:",
+      "live": "Live",
+      "demo": "Demo",
+      "test": "Test",
+      "live_locked_hint": "Live è sempre mostrato"
+    },
+    "list": {
+      "header": {
+        "account": "Conto"
+      }
+    },
+    "legend": {
+      "live": "Live (conta nelle statistiche e revisioni)",
+      "demo": "Demo (escluso)",
+      "test": "Test (escluso)",
+      "missed": "Occasione mancata (stato, non un tipo di conto)"
     }
   },
   "settings": {
