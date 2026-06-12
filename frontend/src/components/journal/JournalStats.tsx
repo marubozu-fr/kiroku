@@ -19,12 +19,16 @@ interface JournalStatsProps {
  *
  * Trades marked `missed_opportunity` are excluded from every metric — they
  * represent opportunities the user did not take and must not affect P&L or win
- * rate. The calendar grid still displays them; only these cards filter them out.
+ * rate. Only `live` trades are counted; demo and test trades are excluded so the
+ * cards measure real performance only.
  */
 export function JournalStats({ trades }: JournalStatsProps) {
   const { t } = useTranslation()
   const scored = useMemo(
-    () => trades.filter((trade) => !trade.missed_opportunity),
+    () =>
+      trades.filter(
+        (trade) => !trade.missed_opportunity && trade.account_type === 'live',
+      ),
     [trades],
   )
   const { totalTrades, totalR, winRate, avgR } = computeStats(scored)

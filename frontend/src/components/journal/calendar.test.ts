@@ -174,6 +174,16 @@ describe('weeklyReviewSums', () => {
     const result = weeklyReviewSums(trades)
     expect(result['2026-06-12']).toBeCloseTo(0.5)
   })
+
+  it('only counts live trades, excluding demo and test', () => {
+    const trades = [
+      trade({ id: 1, trade_date: '2026-06-08T08:00:00.000Z', performance_r: 1.0, account_type: 'live' }),
+      trade({ id: 2, trade_date: '2026-06-09T08:00:00.000Z', performance_r: 5.0, account_type: 'demo' }),
+      trade({ id: 3, trade_date: '2026-06-10T08:00:00.000Z', performance_r: 8.0, account_type: 'test' }),
+    ]
+    const result = weeklyReviewSums(trades)
+    expect(result['2026-06-12']).toBeCloseTo(1.0)
+  })
 })
 
 describe('monthlyReviewSum', () => {
@@ -208,6 +218,16 @@ describe('monthlyReviewSum', () => {
     ]
     // Only June trade should be counted.
     expect(monthlyReviewSum(trades, month)).toBeCloseTo(1.0)
+  })
+
+  it('only counts live trades, excluding demo and test', () => {
+    const month = dayjs('2026-06-01')
+    const trades = [
+      trade({ id: 1, trade_date: '2026-06-10T08:00:00.000Z', performance_r: 1.5, account_type: 'live' }),
+      trade({ id: 2, trade_date: '2026-06-15T08:00:00.000Z', performance_r: 5.0, account_type: 'demo' }),
+      trade({ id: 3, trade_date: '2026-06-20T08:00:00.000Z', performance_r: 8.0, account_type: 'test' }),
+    ]
+    expect(monthlyReviewSum(trades, month)).toBeCloseTo(1.5)
   })
 })
 

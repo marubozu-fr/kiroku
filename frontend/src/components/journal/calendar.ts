@@ -78,11 +78,13 @@ export function groupByDate(trades: TradeSummary[]): Record<string, TradeSummary
  * keyed by the **Friday** date of that week in `YYYY-MM-DD` format.
  *
  * Only weeks that have at least one trade with non-null performance_r
- * are included.
+ * are included. Only `live` trades count — demo and test trades are excluded
+ * so reviews measure real performance only.
  */
 export function weeklyReviewSums(trades: TradeSummary[]): Record<string, number> {
+  const liveTrades = trades.filter((t) => t.account_type === 'live')
   const weekMap: Record<string, number[]> = {}
-  for (const trade of trades) {
+  for (const trade of liveTrades) {
     if (!trade.trade_date || trade.performance_r === null) {
       continue
     }
@@ -106,10 +108,14 @@ export function weeklyReviewSums(trades: TradeSummary[]): Record<string, number>
 /**
  * Computes the sum of all non-null `performance_r` values for the trades
  * belonging to a given month (year + month index, 0-based as in dayjs).
+ *
+ * Only `live` trades count — demo and test trades are excluded so reviews
+ * measure real performance only.
  */
 export function monthlyReviewSum(trades: TradeSummary[], month: Dayjs): number {
+  const liveTrades = trades.filter((t) => t.account_type === 'live')
   let sum = 0
-  for (const trade of trades) {
+  for (const trade of liveTrades) {
     if (!trade.trade_date || trade.performance_r === null) {
       continue
     }

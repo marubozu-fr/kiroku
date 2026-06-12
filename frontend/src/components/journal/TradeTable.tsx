@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { IconAlertTriangle } from '@tabler/icons-react'
@@ -30,11 +31,20 @@ interface TradeTableProps {
 /**
  * Trade journal table. Purely presentational — data is provided via props.
  *
+ * Only `live` trades are listed for now. Demo and test trades are excluded to
+ * stay consistent with the stats cards and calendar reviews; the follow-up
+ * enhancement will add account-type toggles with distinct styling.
+ *
  * Click a row to open the trade detail page.
  */
 export function TradeTable({ trades, loading, error, reload, assetName, year }: TradeTableProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
+
+  const liveTrades = useMemo(
+    () => trades.filter((trade) => trade.account_type === 'live'),
+    [trades],
+  )
 
   if (loading) {
     return (
@@ -63,7 +73,7 @@ export function TradeTable({ trades, loading, error, reload, assetName, year }: 
     )
   }
 
-  if (trades.length === 0) {
+  if (liveTrades.length === 0) {
     return (
       <Center mih={160}>
         <Text c="dimmed" size="sm" ta="center">
@@ -96,7 +106,7 @@ export function TradeTable({ trades, loading, error, reload, assetName, year }: 
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {trades.map((trade) => (
+          {liveTrades.map((trade) => (
             <Table.Tr
               key={trade.id}
               className={classes.row}
