@@ -351,7 +351,8 @@
       "monthly_review": "MONTHLY REVIEW",
       "more": "+{{count}} altri",
       "prev_month": "Mese precedente",
-      "next_month": "Mese successivo"
+      "next_month": "Mese successivo",
+      "today": "Oggi"
     },
     "empty": {
       "title": "Nessun trade per {{year}}",

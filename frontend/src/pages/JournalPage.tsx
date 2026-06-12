@@ -185,7 +185,7 @@ export function JournalPage() {
           </Box>
 
           {view === 'calendar' ? (
-            <TradeCalendar trades={trades} assetName={assetName} />
+            <TradeCalendar trades={trades} assetName={assetName} selectedYear={effectiveYear} />
           ) : (
             <TradeTable
               trades={trades}

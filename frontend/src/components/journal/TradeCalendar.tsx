@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import {
   ActionIcon,
   Box,
+  Button,
   Group,
   Paper,
   Stack,
@@ -29,6 +30,7 @@ dayjs.extend(isoWeek)
 interface TradeCalendarProps {
   trades: TradeSummary[]
   assetName: (id: number | null) => string
+  selectedYear: number
 }
 
 const WEEKDAY_KEYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const
@@ -110,12 +112,23 @@ function MonthlyReviewBand({ sum, label }: MonthlyReviewBandProps) {
  * No external calendar library is used. The grid is CSS `grid-template-columns:
  * repeat(5, 1fr)`.
  */
-export function TradeCalendar({ trades, assetName }: TradeCalendarProps) {
+export function TradeCalendar({ trades, assetName, selectedYear }: TradeCalendarProps) {
   const { t } = useTranslation()
 
   const [displayMonth, setDisplayMonth] = useState<Dayjs>(() =>
-    defaultDisplayMonth(trades),
+    defaultDisplayMonth(trades, selectedYear),
   )
+
+  const currentYear = dayjs().year()
+  const currentMonth = dayjs().startOf('month')
+
+  const prevDisabled = displayMonth.month() === 0
+  const nextDisabled =
+    displayMonth.month() === 11 ||
+    (selectedYear === currentYear && displayMonth.isSame(currentMonth, 'month'))
+
+  const showToday =
+    selectedYear === currentYear && !displayMonth.isSame(currentMonth, 'month')
 
   const cells = useMemo(() => buildCalendarCells(displayMonth), [displayMonth])
   const byDate = useMemo(() => groupByDate(trades), [trades])
@@ -132,11 +145,19 @@ export function TradeCalendar({ trades, assetName }: TradeCalendarProps) {
   const todayStr = dayjs().format('YYYY-MM-DD')
 
   function prevMonth() {
-    setDisplayMonth((m) => m.subtract(1, 'month'))
+    if (!prevDisabled) {
+      setDisplayMonth((m) => m.subtract(1, 'month'))
+    }
   }
 
   function nextMonth() {
-    setDisplayMonth((m) => m.add(1, 'month'))
+    if (!nextDisabled) {
+      setDisplayMonth((m) => m.add(1, 'month'))
+    }
+  }
+
+  function goToToday() {
+    setDisplayMonth(currentMonth)
   }
 
   return (
@@ -149,6 +170,11 @@ export function TradeCalendar({ trades, assetName }: TradeCalendarProps) {
           onNext={nextMonth}
           prevLabel={t('journal.calendar.prev_month')}
           nextLabel={t('journal.calendar.next_month')}
+          prevDisabled={prevDisabled}
+          nextDisabled={nextDisabled}
+          showToday={showToday}
+          onToday={goToToday}
+          todayLabel={t('journal.calendar.today')}
         />
 
         {/* Weekday header row */}
@@ -206,6 +232,11 @@ export function TradeCalendar({ trades, assetName }: TradeCalendarProps) {
           onNext={nextMonth}
           prevLabel={t('journal.calendar.prev_month')}
           nextLabel={t('journal.calendar.next_month')}
+          prevDisabled={prevDisabled}
+          nextDisabled={nextDisabled}
+          showToday={showToday}
+          onToday={goToToday}
+          todayLabel={t('journal.calendar.today')}
         />
         <AgendaView
           trades={trades}
@@ -231,6 +262,11 @@ interface CalendarHeaderProps {
   onNext: () => void
   prevLabel: string
   nextLabel: string
+  prevDisabled: boolean
+  nextDisabled: boolean
+  showToday: boolean
+  onToday: () => void
+  todayLabel: string
 }
 
 function CalendarHeader({
@@ -239,14 +275,26 @@ function CalendarHeader({
   onNext,
   prevLabel,
   nextLabel,
+  prevDisabled,
+  nextDisabled,
+  showToday,
+  onToday,
+  todayLabel,
 }: CalendarHeaderProps) {
   return (
     <Group justify="space-between" className={classes.header}>
-      <ActionIcon variant="default" onClick={onPrev} aria-label={prevLabel}>
+      <ActionIcon variant="default" onClick={onPrev} aria-label={prevLabel} disabled={prevDisabled}>
         <IconChevronLeft size={16} />
       </ActionIcon>
-      <Text fw={700}>{displayMonth.format('MMMM YYYY')}</Text>
-      <ActionIcon variant="default" onClick={onNext} aria-label={nextLabel}>
+      <Group gap="xs">
+        <Text fw={700}>{displayMonth.format('MMMM YYYY')}</Text>
+        {showToday && (
+          <Button variant="subtle" size="xs" onClick={onToday}>
+            {todayLabel}
+          </Button>
+        )}
+      </Group>
+      <ActionIcon variant="default" onClick={onNext} aria-label={nextLabel} disabled={nextDisabled}>
         <IconChevronRight size={16} />
       </ActionIcon>
     </Group>

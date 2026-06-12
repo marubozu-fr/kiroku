@@ -167,19 +167,34 @@ export function computeStats(trades: TradeSummary[]): TradeStats {
 }
 
 /**
- * Returns the most recent month that has at least one trade in the dataset,
- * or the current month when the dataset is empty.
+ * Returns the month to display initially for a given selected year.
+ *
+ * - When `selectedYear` is the current calendar year, returns the current
+ *   month so the user lands on today.
+ * - For a past year, returns the month of the most recent trade whose date
+ *   falls within `selectedYear`. Falls back to January of that year when no
+ *   matching trade exists.
  */
-export function defaultDisplayMonth(trades: TradeSummary[]): Dayjs {
+export function defaultDisplayMonth(trades: TradeSummary[], selectedYear: number): Dayjs {
+  const currentYear = dayjs().year()
+  if (selectedYear === currentYear) {
+    return dayjs().startOf('month')
+  }
+
   let latest: Dayjs | null = null
   for (const trade of trades) {
     if (!trade.trade_date) {
       continue
     }
     const d = dayjs(trade.trade_date)
+    if (d.year() !== selectedYear) {
+      continue
+    }
     if (latest === null || d.isAfter(latest)) {
       latest = d
     }
   }
-  return latest ? latest.startOf('month') : dayjs().startOf('month')
+  return latest
+    ? latest.startOf('month')
+    : dayjs().year(selectedYear).startOf('year')
 }
