@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { Alert, Badge, Button, Center, Skeleton, Stack, Table, Text } from '@mantine/core'
-import type { TradeSummary } from '@/types/trade'
+import type { AccountType, TradeSummary } from '@/types/trade'
 import {
+  ACCOUNT_COLOR,
   DIRECTION_COLOR,
   STATUS_COLOR,
+  accountSignedColor,
   formatLocalDate,
   formatPnl,
-  signedColor,
 } from './format'
 import classes from './TradeTable.module.css'
 
@@ -26,24 +27,41 @@ interface TradeTableProps {
   assetName: (assetId: number | null) => string
   /** The selected year, used in the empty-state message. */
   year: number
+  /** Account types whose trades are rendered in the table. */
+  selectedAccountTypes: Set<AccountType>
+}
+
+/** Returns the muted-row CSS class for a non-live trade, or '' for live. */
+function rowClass(accountType: AccountType): string {
+  if (accountType === 'demo') return classes.rowDemo
+  if (accountType === 'test') return classes.rowTest
+  return ''
 }
 
 /**
  * Trade journal table. Purely presentational — data is provided via props.
  *
- * Only `live` trades are listed for now. Demo and test trades are excluded to
- * stay consistent with the stats cards and calendar reviews; the follow-up
- * enhancement will add account-type toggles with distinct styling.
+ * Live trades are always listed; demo/test trades appear only when their type
+ * is toggled on via `selectedAccountTypes`, rendered with a muted row and an
+ * account badge so they read as "doesn't count". Stats/reviews stay live-only.
  *
  * Click a row to open the trade detail page.
  */
-export function TradeTable({ trades, loading, error, reload, assetName, year }: TradeTableProps) {
+export function TradeTable({
+  trades,
+  loading,
+  error,
+  reload,
+  assetName,
+  year,
+  selectedAccountTypes,
+}: TradeTableProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
-  const liveTrades = useMemo(
-    () => trades.filter((trade) => trade.account_type === 'live'),
-    [trades],
+  const visibleTrades = useMemo(
+    () => trades.filter((trade) => selectedAccountTypes.has(trade.account_type)),
+    [trades, selectedAccountTypes],
   )
 
   if (loading) {
@@ -73,7 +91,7 @@ export function TradeTable({ trades, loading, error, reload, assetName, year }: 
     )
   }
 
-  if (liveTrades.length === 0) {
+  if (visibleTrades.length === 0) {
     return (
       <Center mih={160}>
         <Text c="dimmed" size="sm" ta="center">
@@ -92,6 +110,9 @@ export function TradeTable({ trades, loading, error, reload, assetName, year }: 
               {t('journal.table.header.date')}
             </Table.Th>
             <Table.Th tt="uppercase" fz="xs" c="dimmed">
+              {t('journal.list.header.account')}
+            </Table.Th>
+            <Table.Th tt="uppercase" fz="xs" c="dimmed">
               {t('journal.table.header.asset')}
             </Table.Th>
             <Table.Th tt="uppercase" fz="xs" c="dimmed">
@@ -106,13 +127,18 @@ export function TradeTable({ trades, loading, error, reload, assetName, year }: 
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
-          {liveTrades.map((trade) => (
+          {visibleTrades.map((trade) => (
             <Table.Tr
               key={trade.id}
-              className={classes.row}
+              className={`${classes.row} ${rowClass(trade.account_type)}`.trim()}
               onClick={() => navigate(`/journal/${trade.id}`)}
             >
               <Table.Td ff="monospace">{formatLocalDate(trade.trade_date)}</Table.Td>
+              <Table.Td>
+                <Badge variant="light" color={ACCOUNT_COLOR[trade.account_type]}>
+                  {t(`journal.account_type.${trade.account_type}`)}
+                </Badge>
+              </Table.Td>
               <Table.Td>{assetName(trade.asset_id)}</Table.Td>
               <Table.Td>
                 {trade.direction ? (
@@ -131,7 +157,11 @@ export function TradeTable({ trades, loading, error, reload, assetName, year }: 
                   {trade.status}
                 </Badge>
               </Table.Td>
-              <Table.Td ff="monospace" ta="right" c={signedColor(trade.performance_r)}>
+              <Table.Td
+                ff="monospace"
+                ta="right"
+                c={accountSignedColor(trade.performance_r, trade.account_type)}
+              >
                 {formatPnl(trade.performance_r, trade.risk_per_trade)}
               </Table.Td>
             </Table.Tr>

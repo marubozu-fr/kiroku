@@ -13,7 +13,7 @@ import {
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import dayjs, { type Dayjs } from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
-import type { TradeSummary } from '@/types/trade'
+import type { AccountType, TradeSummary } from '@/types/trade'
 import { formatR } from './format'
 import {
   buildCalendarCells,
@@ -31,6 +31,8 @@ interface TradeCalendarProps {
   trades: TradeSummary[]
   assetName: (id: number | null) => string
   selectedYear: number
+  /** Account types whose trades are rendered in the grid/agenda. */
+  selectedAccountTypes: Set<AccountType>
 }
 
 const WEEKDAY_KEYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const
@@ -46,6 +48,23 @@ function reviewClass(value: number): string {
 function eventClass(performanceR: number | null): string {
   if (performanceR === null || performanceR === 0) return classes.eventNeutral
   return performanceR > 0 ? classes.eventProfit : classes.eventLoss
+}
+
+/**
+ * Returns the extra CSS classes for a non-live (demo/test) trade event. Live
+ * trades get nothing — they keep the unchanged green/red treatment.
+ */
+function accountClass(accountType: AccountType): string {
+  if (accountType === 'demo') return `${classes.nonlive} ${classes.demo}`
+  if (accountType === 'test') return `${classes.nonlive} ${classes.test}`
+  return ''
+}
+
+/** Inline account badge ("Demo"/"Test") shown on non-live events; null for live. */
+function AccountBadge({ accountType }: { accountType: AccountType }) {
+  const { t } = useTranslation()
+  if (accountType === 'live') return null
+  return <span className={classes.acctBadge}>{t(`journal.account_type.${accountType}`)}</span>
 }
 
 /**
@@ -65,9 +84,10 @@ function TradeEvent({ trade, assetName, extraClass }: TradeEventProps) {
   return (
     <Link
       to={`/journal/${trade.id}`}
-      className={`${classes.event} ${eventClass(trade.performance_r)} ${extraClass ?? ''}`}
+      className={`${classes.event} ${eventClass(trade.performance_r)} ${accountClass(trade.account_type)} ${extraClass ?? ''}`}
       title={label}
     >
+      <AccountBadge accountType={trade.account_type} />
       {label}
     </Link>
   )
@@ -112,15 +132,26 @@ function MonthlyReviewBand({ sum, label }: MonthlyReviewBandProps) {
  * No external calendar library is used. The grid is CSS `grid-template-columns:
  * repeat(5, 1fr)`.
  */
-export function TradeCalendar({ trades, assetName, selectedYear }: TradeCalendarProps) {
+export function TradeCalendar({
+  trades,
+  assetName,
+  selectedYear,
+  selectedAccountTypes,
+}: TradeCalendarProps) {
   const { t } = useTranslation()
 
-  // Only `live` trades are shown and counted for now. Demo and test trades are
-  // excluded to avoid trades visible in the grid but absent from stats/reviews.
-  // The follow-up enhancement will add account-type toggles with distinct styling.
+  // `live` trades drive the stats/reviews and the default month — those always
+  // stay live-only regardless of which account types are toggled on.
   const liveTrades = useMemo(
     () => trades.filter((trade) => trade.account_type === 'live'),
     [trades],
+  )
+
+  // Trades actually rendered in the grid/agenda — live plus any opted-in
+  // demo/test types. Styling marks the non-live ones as "doesn't count".
+  const visibleTrades = useMemo(
+    () => trades.filter((trade) => selectedAccountTypes.has(trade.account_type)),
+    [trades, selectedAccountTypes],
   )
 
   const [displayMonth, setDisplayMonth] = useState<Dayjs>(() =>
@@ -139,7 +170,7 @@ export function TradeCalendar({ trades, assetName, selectedYear }: TradeCalendar
     selectedYear === currentYear && !displayMonth.isSame(currentMonth, 'month')
 
   const cells = useMemo(() => buildCalendarCells(displayMonth), [displayMonth])
-  const byDate = useMemo(() => groupByDate(liveTrades), [liveTrades])
+  const byDate = useMemo(() => groupByDate(visibleTrades), [visibleTrades])
   const weeklySums = useMemo(() => weeklyReviewSums(liveTrades), [liveTrades])
   const monthSum = useMemo(
     () => monthlyReviewSum(liveTrades, displayMonth),
@@ -247,7 +278,7 @@ export function TradeCalendar({ trades, assetName, selectedYear }: TradeCalendar
           todayLabel={t('journal.calendar.today')}
         />
         <AgendaView
-          trades={liveTrades}
+          trades={visibleTrades}
           byDate={byDate}
           displayMonth={displayMonth}
           weeklySums={weeklySums}
@@ -444,8 +475,9 @@ function AgendaView({
               <Link
                 key={trade.id}
                 to={`/journal/${trade.id}`}
-                className={`${classes.agendaEvent} ${eventClass(trade.performance_r)}`}
+                className={`${classes.agendaEvent} ${eventClass(trade.performance_r)} ${accountClass(trade.account_type)}`}
               >
+                <AccountBadge accountType={trade.account_type} />
                 {`${dayjs(trade.trade_date).format('HH:mm')} ${assetName(trade.asset_id)}: ${formatR(trade.performance_r)}`}
               </Link>
             ))}

@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import i18n from '@/i18n'
-import type { TradeDirection, TradeStatus } from '@/types/trade'
+import type { AccountType, TradeDirection, TradeStatus } from '@/types/trade'
 
 /**
  * Formatting helpers for the journal table.
@@ -93,4 +93,35 @@ export const STATUS_COLOR: Record<TradeStatus, string> = {
   Closed: 'gray',
   Partial: 'cyan',
   Breakeven: 'gray',
+}
+
+/**
+ * Mantine badge colour for an account type. Live reads as the brand primary
+ * (blue); Demo/Test use the indigo "supplementary" hue and neutral gray so they
+ * read as system tags that carry no financial semantic.
+ */
+export const ACCOUNT_COLOR: Record<AccountType, string> = {
+  live: 'blue',
+  demo: 'indigo',
+  test: 'gray',
+}
+
+/**
+ * Mantine colour token for a trade's P&L, adjusted for account type. Live keeps
+ * the full green/red/dimmed semantic. Demo fades the tint (still legible). Test
+ * strips the colour to neutral — throwaway data loses all P&L emphasis.
+ */
+export function accountSignedColor(
+  value: number | null,
+  accountType: AccountType,
+): string | undefined {
+  if (accountType === 'test') {
+    return 'dimmed'
+  }
+  const base = signedColor(value)
+  if (accountType === 'demo') {
+    if (base === 'green.6') return 'green.4'
+    if (base === 'red.6') return 'red.4'
+  }
+  return base
 }
