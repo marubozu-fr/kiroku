@@ -362,11 +362,9 @@
       "cta": "Ersten Trade erfassen"
     },
     "account_type": {
-      "label": "Anzeigen:",
       "live": "Live",
       "demo": "Demo",
-      "test": "Test",
-      "live_locked_hint": "Live wird immer angezeigt"
+      "test": "Test"
     },
     "list": {
       "header": {

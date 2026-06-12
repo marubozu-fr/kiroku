@@ -362,11 +362,9 @@
       "cta": "Enregistrer votre premier trade"
     },
     "account_type": {
-      "label": "Afficher :",
       "live": "Live",
       "demo": "Demo",
-      "test": "Test",
-      "live_locked_hint": "Live est toujours affiché"
+      "test": "Test"
     },
     "list": {
       "header": {

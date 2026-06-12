@@ -279,10 +279,11 @@ describe('JournalPage account-type toggles', () => {
     await screen.findAllByText(/EUR\/USD/)
 
     const liveChip = screen.getByRole('checkbox', { name: 'Live' })
-    expect(liveChip).toBeDisabled()
     expect(liveChip).toBeChecked()
 
+    // Clicking Live cannot turn it off — handleChange re-adds it.
     fireEvent.click(liveChip)
+    expect(liveChip).toBeChecked()
     // Live trades remain visible.
     expect((await screen.findAllByText(/EUR\/USD/)).length).toBeGreaterThan(0)
   })

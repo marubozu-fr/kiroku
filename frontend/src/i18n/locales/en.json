@@ -362,11 +362,9 @@
       "cta": "Log your first trade"
     },
     "account_type": {
-      "label": "Show:",
       "live": "Live",
       "demo": "Demo",
-      "test": "Test",
-      "live_locked_hint": "Live is always shown"
+      "test": "Test"
     },
     "list": {
       "header": {
