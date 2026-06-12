@@ -24,7 +24,7 @@ function trade(overrides: Partial<TradeSummary> = {}): TradeSummary {
     performance_r: 1.5,
     timeframe_unit: null,
     timeframe_value: null,
-    trade_date: '2026-03-04T08:00:00.000Z',
+    trade_date: '2026-06-04T08:00:00.000Z',
     created_at: null,
     updated_at: null,
     ...overrides,

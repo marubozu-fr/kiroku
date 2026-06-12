@@ -294,25 +294,49 @@ describe('computeStats', () => {
 })
 
 describe('defaultDisplayMonth', () => {
-  it('returns the current month for empty input', () => {
-    const result = defaultDisplayMonth([])
+  it('returns the current month for current year regardless of trades', () => {
+    const currentYear = dayjs().year()
+    // Trades in an older month of the current year — result should still be today's month.
+    const trades = [
+      trade({ id: 1, trade_date: `${currentYear}-01-10T08:00:00.000Z` }),
+      trade({ id: 2, trade_date: `${currentYear}-02-15T08:00:00.000Z` }),
+    ]
+    const result = defaultDisplayMonth(trades, currentYear)
     expect(result.format('YYYY-MM')).toBe(dayjs().format('YYYY-MM'))
   })
 
-  it('returns the month of the most recent trade', () => {
-    const trades = [
-      trade({ id: 1, trade_date: '2026-03-10T08:00:00.000Z' }),
-      trade({ id: 2, trade_date: '2026-06-01T08:00:00.000Z' }),
-      trade({ id: 3, trade_date: '2026-01-15T08:00:00.000Z' }),
-    ]
-    expect(defaultDisplayMonth(trades).format('YYYY-MM')).toBe('2026-06')
+  it('returns current month for current year even with no trades', () => {
+    const currentYear = dayjs().year()
+    const result = defaultDisplayMonth([], currentYear)
+    expect(result.format('YYYY-MM')).toBe(dayjs().format('YYYY-MM'))
   })
 
-  it('skips trades with null trade_date', () => {
+  it('returns the month of the most recent trade for a past year', () => {
+    const trades = [
+      trade({ id: 1, trade_date: '2025-03-10T08:00:00.000Z' }),
+      trade({ id: 2, trade_date: '2025-08-01T08:00:00.000Z' }),
+      trade({ id: 3, trade_date: '2025-01-15T08:00:00.000Z' }),
+    ]
+    expect(defaultDisplayMonth(trades, 2025).format('YYYY-MM')).toBe('2025-08')
+  })
+
+  it('returns January of the selected year when no trades exist for that year', () => {
+    const result = defaultDisplayMonth([], 2024)
+    expect(result.format('YYYY-MM')).toBe('2024-01')
+  })
+
+  it('returns January of the selected year when all trades belong to a different year', () => {
+    const trades = [
+      trade({ id: 1, trade_date: '2026-06-10T08:00:00.000Z' }),
+    ]
+    expect(defaultDisplayMonth(trades, 2024).format('YYYY-MM')).toBe('2024-01')
+  })
+
+  it('skips trades with null trade_date for a past year', () => {
     const trades = [
       trade({ id: 1, trade_date: null }),
-      trade({ id: 2, trade_date: '2026-03-10T08:00:00.000Z' }),
+      trade({ id: 2, trade_date: '2025-03-10T08:00:00.000Z' }),
     ]
-    expect(defaultDisplayMonth(trades).format('YYYY-MM')).toBe('2026-03')
+    expect(defaultDisplayMonth(trades, 2025).format('YYYY-MM')).toBe('2025-03')
   })
 })
