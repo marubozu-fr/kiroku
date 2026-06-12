@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Chip, Group, Text, Tooltip } from '@mantine/core'
+import { Chip, Group } from '@mantine/core'
 import type { AccountType } from '@/types/trade'
 
 interface AccountTypeTogglesProps {
@@ -27,20 +27,15 @@ export function AccountTypeToggles({ value, onChange }: AccountTypeTogglesProps)
 
   return (
     <Group gap="xs" align="center">
-      <Text size="xs" fw={600} c="dimmed" tt="uppercase">
-        {t('journal.account_type.label')}
-      </Text>
       <Chip.Group multiple value={[...value]} onChange={handleChange}>
         <Group gap="xs">
-          <Tooltip label={t('journal.account_type.live_locked_hint')}>
-            <Chip value="live" variant="light" color="blue" disabled>
-              {t('journal.account_type.live')}
-            </Chip>
-          </Tooltip>
-          <Chip value="demo" variant="light" color="indigo">
+          <Chip value="live" variant="light" color="blue">
+            {t('journal.account_type.live')}
+          </Chip>
+          <Chip value="demo" variant="light" color="blue">
             {t('journal.account_type.demo')}
           </Chip>
-          <Chip value="test" variant="light" color="gray">
+          <Chip value="test" variant="light" color="blue">
             {t('journal.account_type.test')}
           </Chip>
         </Group>
