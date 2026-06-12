@@ -64,7 +64,7 @@ export function DashboardPage() {
   // journal page).
   const periodRef = useRef(period)
   const dashboard = useFetch(
-    useCallback((signal: AbortSignal) => fetchDashboard(periodRef.current, 'live', signal), []),
+    useCallback((signal: AbortSignal) => fetchDashboard(periodRef.current, 'all', signal), []),
   )
 
   useEffect(() => {

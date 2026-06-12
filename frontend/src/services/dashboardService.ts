@@ -5,7 +5,8 @@ import type { DashboardData } from '@/types/dashboard'
  * API client for the dashboard.
  *
  * `period` selects the time window (`ytd` | `1y` | `5y` | `all`);
- * `accountType` filters by account (`live` by default, matching the page).
+ * `accountType` filters by account (`all` disables the filter; the page
+ * passes `all` so imported trades of any account type are included).
  */
 export function fetchDashboard(
   period: string,
