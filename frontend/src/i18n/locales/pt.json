@@ -533,6 +533,16 @@
         "deleted": "{{name}} eliminada",
         "save_error": "Não foi possível guardar a emoção",
         "delete_error": "Não foi possível eliminar a emoção"
+      },
+      "onboarding": {
+        "title": "Comece com emoções de trading já preparadas",
+        "description": "Reunimos os estados emocionais, gatilhos mentais e padrões de execução mais comuns entre os traders. Importe-os como ponto de partida — pode sempre adicionar, editar ou remover qualquer um deles mais tarde.",
+        "language_label": "Idioma de importação",
+        "count": "42 emoções em 5 categorias",
+        "import_button": "Importar emoções",
+        "skip": "Ou começar do zero",
+        "notify_success": "{{count}} emoções importadas com sucesso",
+        "notify_error": "Não foi possível importar as emoções"
       }
     }
   },
@@ -681,6 +691,12 @@
         "timeframe_required": "Adicione um timeframe a cada captura",
         "invalid_file": "Alguns ficheiros foram ignorados: apenas JPG, PNG e WebP até 5 MB são permitidos.",
         "upload_error": "O trade foi guardado mas algumas capturas não puderam ser enviadas."
+      },
+      "emotions_nudge": {
+        "message": "Ainda não há emoções configuradas. Importe o nosso conjunto inicial para começar, ou adicione as suas nas Definições.",
+        "import_button": "Importar conjunto inicial",
+        "notify_success": "{{count}} emoções importadas",
+        "notify_error": "Não foi possível importar as emoções"
       }
     },
     "direction": {

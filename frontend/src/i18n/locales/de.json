@@ -533,6 +533,16 @@
         "deleted": "{{name}} gelöscht",
         "save_error": "Emotion konnte nicht gespeichert werden",
         "delete_error": "Emotion konnte nicht gelöscht werden"
+      },
+      "onboarding": {
+        "title": "Starte mit kuratierten Trading-Emotionen",
+        "description": "Wir haben die häufigsten emotionalen Zustände, mentalen Auslöser und Ausführungsmuster von Tradern zusammengestellt. Importiere sie als Ausgangspunkt — du kannst sie später jederzeit ergänzen, bearbeiten oder entfernen.",
+        "language_label": "Importsprache",
+        "count": "42 Emotionen in 5 Kategorien",
+        "import_button": "Emotionen importieren",
+        "skip": "Oder bei null anfangen",
+        "notify_success": "{{count}} Emotionen erfolgreich importiert",
+        "notify_error": "Emotionen konnten nicht importiert werden"
       }
     }
   },
@@ -681,6 +691,12 @@
         "timeframe_required": "Füge jedem Screenshot einen Timeframe hinzu",
         "invalid_file": "Einige Dateien wurden übersprungen: Nur JPG, PNG und WebP bis 5 MB sind erlaubt.",
         "upload_error": "Der Trade wurde gespeichert, aber einige Screenshots konnten nicht hochgeladen werden."
+      },
+      "emotions_nudge": {
+        "message": "Noch keine Emotionen konfiguriert. Importiere unser Starter-Set, um loszulegen, oder füge in den Einstellungen eigene hinzu.",
+        "import_button": "Starter-Set importieren",
+        "notify_success": "{{count}} Emotionen importiert",
+        "notify_error": "Emotionen konnten nicht importiert werden"
       }
     },
     "direction": {

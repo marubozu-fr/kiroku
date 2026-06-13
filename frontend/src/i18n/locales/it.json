@@ -533,6 +533,16 @@
         "deleted": "{{name}} eliminata",
         "save_error": "Impossibile salvare l'emozione",
         "delete_error": "Impossibile eliminare l'emozione"
+      },
+      "onboarding": {
+        "title": "Inizia con emozioni di trading già pronte",
+        "description": "Abbiamo raccolto gli stati emotivi, i trigger mentali e i pattern di esecuzione più comuni tra i trader. Importali come punto di partenza — potrai sempre aggiungerne, modificarne o rimuoverne in seguito.",
+        "language_label": "Lingua di importazione",
+        "count": "42 emozioni in 5 categorie",
+        "import_button": "Importa emozioni",
+        "skip": "Oppure parti da zero",
+        "notify_success": "{{count}} emozioni importate con successo",
+        "notify_error": "Impossibile importare le emozioni"
       }
     }
   },
@@ -681,6 +691,12 @@
         "timeframe_required": "Aggiungi un timeframe a ogni screenshot",
         "invalid_file": "Alcuni file sono stati ignorati: sono ammessi solo JPG, PNG e WebP fino a 5 MB.",
         "upload_error": "Il trade è stato salvato ma alcuni screenshot non sono stati caricati."
+      },
+      "emotions_nudge": {
+        "message": "Nessuna emozione configurata per ora. Importa il nostro set iniziale per iniziare, oppure aggiungi le tue nelle Impostazioni.",
+        "import_button": "Importa set iniziale",
+        "notify_success": "{{count}} emozioni importate",
+        "notify_error": "Impossibile importare le emozioni"
       }
     },
     "direction": {

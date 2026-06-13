@@ -41,7 +41,11 @@ describe('SettingsPage', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Emotions' }))
 
-    expect(await screen.findByText(/no emotions yet/i)).toBeInTheDocument()
+    // With no emotions, the tab shows the onboarding (replacing the plain
+    // empty state).
+    expect(
+      await screen.findByText('Get started with curated trading emotions'),
+    ).toBeInTheDocument()
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
         '/api/emotions/grouped',

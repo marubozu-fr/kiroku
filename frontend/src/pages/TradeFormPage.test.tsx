@@ -1,7 +1,9 @@
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { notifications } from '@mantine/notifications'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { TradeFormPage } from '@/pages/TradeFormPage'
+import { EMOTION_PRESETS } from '@/data/emotionPresets'
 import type { Asset, Emotion, Tag } from '@/types/referenceData'
 import type { TradeDetail } from '@/types/trade'
 import { jsonResponse, renderWithProviders } from '@/test/utils'
@@ -213,6 +215,7 @@ function fillRequired() {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
 
 // ---------------------------------------------------------------------------
@@ -690,5 +693,99 @@ describe('TradeFormPage — inline reference-data creation', () => {
     // The new tag is added AND the previously selected tag survives the spread.
     await waitFor(() => expect(selectedPill('Pullback')).toBeDefined())
     expect(selectedPill('Breakout')).toBeDefined()
+  })
+})
+
+describe('TradeFormPage — emotions nudge (no emotions)', () => {
+  /**
+   * Like `stubApi`, but the grouped-emotions GET starts empty and flips to a
+   * single emotion once the bulk-import POST has been issued, so the nudge can
+   * be observed appearing and then disappearing after import.
+   */
+  function stubApiNoEmotions({ importError = false }: { importError?: boolean } = {}) {
+    let imported = false
+    const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
+      const method = init?.method ?? 'GET'
+
+      if (input.startsWith('/api/assets')) return jsonResponse(assets)
+      if (input.startsWith('/api/tags')) return jsonResponse(tags)
+      if (input.startsWith('/api/emotions/bulk') && method === 'POST') {
+        if (importError) {
+          return jsonResponse(null, { ok: false, status: 500, error: 'boom' })
+        }
+        imported = true
+        return jsonResponse(emotionsGrouped['Emotional State'])
+      }
+      if (input.startsWith('/api/emotions/grouped')) {
+        return jsonResponse(imported ? emotionsGrouped : {})
+      }
+      if (input.startsWith('/api/preferences')) {
+        return jsonResponse({ risk_per_trade_default: 1 })
+      }
+      throw new Error(`Unexpected fetch: ${method} ${input}`)
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  it('shows the nudge Alert when no emotions exist', async () => {
+    stubApiNoEmotions()
+    renderNew()
+
+    expect(
+      await screen.findByText(
+        /No emotions configured yet\. Import our starter set/i,
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Import starter set' }),
+    ).toBeInTheDocument()
+  })
+
+  it('imports the starter set in the current language and hides the nudge', async () => {
+    const fetchMock = stubApiNoEmotions()
+    const showSpy = vi.spyOn(notifications, 'show')
+    renderNew()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Import starter set' }))
+
+    // Assert: the bulk endpoint received all 42 presets (current language = en).
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/emotions/bulk',
+        expect.objectContaining({ method: 'POST' }),
+      ),
+    )
+    const bulkCall = fetchMock.mock.calls.find(([url]) =>
+      url.startsWith('/api/emotions/bulk'),
+    )
+    const body = JSON.parse((bulkCall?.[1] as RequestInit).body as string)
+    expect(body.emotions).toHaveLength(EMOTION_PRESETS.en.length)
+
+    // Assert: once emotions exist, the nudge disappears.
+    await waitFor(() =>
+      expect(
+        screen.queryByText(/No emotions configured yet/i),
+      ).not.toBeInTheDocument(),
+    )
+    expect(showSpy).toHaveBeenCalled()
+  })
+
+  it('shows an error notification when the import fails', async () => {
+    stubApiNoEmotions({ importError: true })
+    const showSpy = vi.spyOn(notifications, 'show')
+    renderNew()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Import starter set' }))
+
+    await waitFor(() =>
+      expect(showSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Failed to import emotions' }),
+      ),
+    )
+    // The nudge remains after a failed import.
+    expect(
+      screen.getByText(/No emotions configured yet/i),
+    ).toBeInTheDocument()
   })
 })

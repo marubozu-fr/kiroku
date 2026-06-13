@@ -50,6 +50,8 @@ export const emotionsApi = {
     api.get<Record<string, Emotion[]>>('/emotions/grouped', signal),
   create: (body: EmotionInput): Promise<Emotion> =>
     api.post<Emotion>('/emotions', body),
+  bulkCreate: (emotions: EmotionInput[]): Promise<Emotion[]> =>
+    api.post<Emotion[]>('/emotions/bulk', { emotions }),
   update: (id: number, body: Partial<EmotionInput>): Promise<Emotion> =>
     api.put<Emotion>(`/emotions/${id}`, body),
   remove: (id: number): Promise<void> => api.delete<void>(`/emotions/${id}`),
