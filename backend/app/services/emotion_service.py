@@ -2,8 +2,8 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 from app.database import database
-from app.errors import NotFoundError
-from app.models.emotion import EmotionCategory, EmotionCreate, EmotionUpdate
+from app.errors import DuplicateError, NotFoundError
+from app.models.emotion import EmotionBulkCreate, EmotionCategory, EmotionCreate, EmotionUpdate
 from app.repositories import emotion_repository
 
 
@@ -67,6 +67,27 @@ async def count_trades(emotion_id: int) -> int:
   if existing is None:
     raise EmotionNotFoundError(f"Emotion {emotion_id} not found")
   return await emotion_repository.count_trades(emotion_id)
+
+
+async def bulk_create_emotions(payload: EmotionBulkCreate) -> list[dict[str, Any]]:
+  """Validate all, check for duplicates vs DB, insert atomically."""
+  names = [e.name for e in payload.emotions]
+  existing = await emotion_repository.get_existing_names(names)
+  if existing:
+    raise DuplicateError(f"Emotion name(s) already exist: {', '.join(existing)}")
+  now = _now()
+  tuples = [
+    (e.name, e.description, e.severity, e.category)
+    for e in payload.emotions
+  ]
+  async with database.transaction():
+    ids = await emotion_repository.create_bulk(tuples, now)
+  results: list[dict[str, Any]] = []
+  for new_id in ids:
+    row = await emotion_repository.get_by_id(new_id)
+    assert row is not None
+    results.append(row)
+  return results
 
 
 async def delete_emotion(emotion_id: int) -> None:

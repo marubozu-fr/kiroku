@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import APIRouter
 
 from app.models.emotion import (
+  EmotionBulkCreate,
   EmotionCategory,
   EmotionCreate,
   EmotionResponse,
@@ -29,6 +30,12 @@ async def grouped_emotions() -> ApiResponse[dict[str, list[EmotionResponse]]]:
   return ApiResponse(
     data={category: [EmotionResponse(**emotion) for emotion in emotions] for category, emotions in grouped.items()}
   )
+
+
+@router.post("/bulk", status_code=201)
+async def bulk_create_emotions(payload: EmotionBulkCreate) -> ApiResponse[list[EmotionResponse]]:
+  emotions = await emotion_service.bulk_create_emotions(payload)
+  return ApiResponse(data=[EmotionResponse(**emotion) for emotion in emotions])
 
 
 @router.get("/{emotion_id}")
