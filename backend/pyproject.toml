@@ -11,6 +11,14 @@ dependencies = [
   "pydantic==2.10.4",
 ]
 
+[dependency-groups]
+dev = [
+  "ruff==0.15.16",
+  "pytest==8.3.4",
+  "pytest-asyncio==0.25.0",
+  "httpx==0.28.1",
+]
+
 [tool.ruff]
 indent-width = 2
 line-length = 120
