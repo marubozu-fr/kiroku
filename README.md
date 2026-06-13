@@ -18,7 +18,7 @@ Kiroku runs entirely on your machine. Log your trades, track your performance in
 
 | Tool | Version | What for |
 |------|---------|----------|
-| [Python](https://www.python.org/downloads/) | 3.12+ | Backend runtime |
+| [Python](https://www.python.org/downloads/) | 3.12–3.13 | Backend runtime |
 | [Node.js](https://nodejs.org/) | 22+ | Frontend tooling |
 | [uv](https://docs.astral.sh/uv/getting-started/installation/) | latest | Python package manager |
 | [pnpm](https://pnpm.io/installation) | 11+ | Node package manager |
@@ -27,7 +27,7 @@ Kiroku runs entirely on your machine. Log your trades, track your performance in
 <summary><strong>macOS</strong> (Homebrew)</summary>
 
 ```bash
-brew install python node uv pnpm
+brew install python@3.13 node uv pnpm
 ```
 </details>
 
