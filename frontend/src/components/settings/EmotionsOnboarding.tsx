@@ -3,27 +3,10 @@ import { IconMoodSmile } from '@tabler/icons-react'
 import { Anchor, Button, Select, Stack, Text, Title } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 import { EMOTION_PRESETS } from '@/data/emotionPresets'
-import { SUPPORTED_LANGUAGES } from '@/i18n'
+import { LANGUAGE_OPTIONS, SUPPORTED_LANGUAGES } from '@/i18n'
 import type { SupportedLanguage } from '@/i18n'
 import { emotionsApi } from '@/services/referenceData'
 import { notifyError, notifySuccess } from './notify'
-
-// Endonyms — language names render in their own language and are not translated
-// per-locale, matching how language pickers conventionally behave (same list as
-// the General settings tab).
-const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
-  en: 'English',
-  fr: 'Français',
-  es: 'Español',
-  it: 'Italiano',
-  de: 'Deutsch',
-  pt: 'Português',
-}
-
-const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((value) => ({
-  value,
-  label: LANGUAGE_NAMES[value],
-}))
 
 interface EmotionsOnboardingProps {
   /** Called after a successful bulk import so the parent can refresh its list. */

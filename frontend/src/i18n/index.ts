@@ -41,6 +41,22 @@ export default i18n
 export const SUPPORTED_LANGUAGES = ['en', 'fr', 'es', 'it', 'de', 'pt'] as const
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number]
 
+// Endonyms — language names render in their own language and are not
+// translated per-locale, matching how language pickers conventionally behave.
+export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
+  en: 'English',
+  fr: 'Français',
+  es: 'Español',
+  it: 'Italiano',
+  de: 'Deutsch',
+  pt: 'Português',
+}
+
+export const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((value) => ({
+  value,
+  label: LANGUAGE_NAMES[value],
+}))
+
 // Locale-aware date formatting. dayjs ships `en` built-in; the other locales
 // load on demand so unused ones never reach the bundle.
 dayjs.extend(localizedFormat)

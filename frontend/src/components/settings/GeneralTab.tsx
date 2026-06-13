@@ -1,20 +1,6 @@
 import { Select, Stack } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
-import { SUPPORTED_LANGUAGES } from '@/i18n'
-
-const LANGUAGE_NAMES: Record<(typeof SUPPORTED_LANGUAGES)[number], string> = {
-  en: 'English',
-  fr: 'Français',
-  es: 'Español',
-  it: 'Italiano',
-  de: 'Deutsch',
-  pt: 'Português',
-}
-
-const LANGUAGE_OPTIONS = SUPPORTED_LANGUAGES.map((value) => ({
-  value,
-  label: LANGUAGE_NAMES[value],
-}))
+import { LANGUAGE_OPTIONS, SUPPORTED_LANGUAGES } from '@/i18n'
 
 export function GeneralTab() {
   const { t, i18n } = useTranslation()
