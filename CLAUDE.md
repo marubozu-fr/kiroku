@@ -73,11 +73,11 @@ kiroku/
 - Never commit directly to `main`.
 
 ## Commands
-- **Backend**: `cd backend && uvicorn app.main:app --reload --port 8000`
+- **Backend**: `cd backend && uv run uvicorn app.main:app --reload --port 8000`
 - **Frontend**: `cd frontend && pnpm dev`
-- **Tests backend**: `cd backend && pytest`
+- **Tests backend**: `cd backend && uv run pytest`
 - **Tests frontend**: `cd frontend && pnpm test`
-- **Lint backend**: `cd backend && ruff check .`
+- **Lint backend**: `cd backend && uv run ruff check .`
 - **Lint frontend**: `cd frontend && pnpm lint`
 
 ## Behavioral Guidelines
