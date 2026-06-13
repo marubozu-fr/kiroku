@@ -490,6 +490,13 @@
       }
     },
     "emotions": {
+      "categories": {
+        "emotional_state": "Emotional State",
+        "mental_triggers": "Mental Triggers",
+        "focus_clarity": "Focus & Clarity",
+        "execution_confidence": "Execution Confidence",
+        "why_this_trade": "Why This Trade?"
+      },
       "add": "Add emotion",
       "empty": "No emotions yet. Add emotions to tag your mental state on each trade.",
       "columns": {

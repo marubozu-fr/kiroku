@@ -74,6 +74,16 @@ export const EMOTION_CATEGORIES: readonly EmotionCategory[] = [
   'Why This Trade?',
 ]
 
+// Maps the English enum values (stored as-is in the database) to i18n keys so
+// category labels render in the user's language. See issue #154.
+export const CATEGORY_I18N_KEYS: Record<EmotionCategory, string> = {
+  'Emotional State': 'settings.emotions.categories.emotional_state',
+  'Mental Triggers': 'settings.emotions.categories.mental_triggers',
+  'Focus & Clarity': 'settings.emotions.categories.focus_clarity',
+  'Execution Confidence': 'settings.emotions.categories.execution_confidence',
+  'Why This Trade?': 'settings.emotions.categories.why_this_trade',
+}
+
 export interface Emotion {
   id: number
   name: string

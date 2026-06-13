@@ -44,7 +44,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { assetsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
 import { formatAssetLabel } from '@/utils/format'
-import { EMOTION_CATEGORIES } from '@/types/referenceData'
+import { CATEGORY_I18N_KEYS, EMOTION_CATEGORIES } from '@/types/referenceData'
 import type { EmotionSeverity } from '@/types/referenceData'
 import type { AccountType, TradeScreenshot } from '@/types/trade'
 import classes from './TradeDetailPage.module.css'
@@ -422,7 +422,7 @@ export function TradeDetailPage() {
                 ).map((category) => (
                   <Stack key={category} gap="xs">
                     <Text size="sm" fw={600} c="dimmed">
-                      {category}
+                      {t(CATEGORY_I18N_KEYS[category])}
                     </Text>
                     <Group gap="xs">
                       {trade.emotions

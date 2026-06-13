@@ -13,7 +13,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { emotionsApi } from '@/services/referenceData'
-import { EMOTION_CATEGORIES } from '@/types/referenceData'
+import { CATEGORY_I18N_KEYS, EMOTION_CATEGORIES } from '@/types/referenceData'
 import type { Emotion, EmotionSeverity } from '@/types/referenceData'
 import { DataStates } from './DataStates'
 import { DeleteEntityModal } from './DeleteEntityModal'
@@ -95,7 +95,7 @@ export function EmotionsTab() {
             (category) => (grouped[category]?.length ?? 0) > 0,
           ).map((category) => (
             <Stack key={category} gap="xs">
-              <Title order={5}>{category}</Title>
+              <Title order={5}>{t(CATEGORY_I18N_KEYS[category])}</Title>
               <Table.ScrollContainer minWidth={600}>
                 <Table striped highlightOnHover fz="sm" verticalSpacing="xs">
                   <Table.Thead>

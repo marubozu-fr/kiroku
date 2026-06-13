@@ -4,6 +4,7 @@ import { useForm } from '@mantine/form'
 import { useTranslation } from 'react-i18next'
 import { emotionsApi } from '@/services/referenceData'
 import {
+  CATEGORY_I18N_KEYS,
   EMOTION_CATEGORIES,
   EMOTION_SEVERITIES,
 } from '@/types/referenceData'
@@ -103,7 +104,10 @@ export function EmotionModal({ opened, emotion, onClose, onSaved }: EmotionModal
             label={t('settings.emotions.form.category_label')}
             placeholder={t('settings.emotions.form.category_placeholder')}
             withAsterisk
-            data={[...EMOTION_CATEGORIES]}
+            data={EMOTION_CATEGORIES.map((category) => ({
+              value: category,
+              label: t(CATEGORY_I18N_KEYS[category]),
+            }))}
             {...form.getInputProps('category')}
           />
           <Select

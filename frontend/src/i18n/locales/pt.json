@@ -490,6 +490,13 @@
       }
     },
     "emotions": {
+      "categories": {
+        "emotional_state": "Estado emocional",
+        "mental_triggers": "Gatilhos mentais",
+        "focus_clarity": "Foco e clareza",
+        "execution_confidence": "Confiança na execução",
+        "why_this_trade": "Porquê este trade?"
+      },
       "add": "Adicionar emoção",
       "empty": "Ainda não há emoções. Adicione emoções para registar o seu estado mental em cada trade.",
       "columns": {
