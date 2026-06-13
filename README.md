@@ -55,7 +55,7 @@ npm install -g pnpm
 ## Quick Start
 
 ```bash
-git clone --branch v0.6.0 --depth 1 https://github.com/marubozu-fr/kiroku.git
+git clone --branch v0.6.1 --depth 1 https://github.com/marubozu-fr/kiroku.git
 cd kiroku
 make dev
 ```
@@ -80,7 +80,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ```bash
 git clone https://github.com/marubozu-fr/kiroku.git
 cd kiroku
-git checkout v0.6.0
+git checkout v0.6.1
 make dev
 ```
 
@@ -90,7 +90,7 @@ Stable versions are listed on the [Releases](https://github.com/marubozu-fr/kiro
 
 ```bash
 git fetch --tags
-git checkout v0.6.0
+git checkout v0.6.1
 make install
 make dev
 ```
