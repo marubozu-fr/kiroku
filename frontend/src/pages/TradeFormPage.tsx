@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   IconAlertTriangle,
   IconArrowLeft,
+  IconInfoCircle,
   IconPlus,
   IconTrash,
   IconUpload,
@@ -43,6 +44,8 @@ import { AssetModal } from '@/components/settings/AssetModal'
 import { EmotionModal } from '@/components/settings/EmotionModal'
 import { notifyError, notifySuccess } from '@/components/settings/notify'
 import { TagModal } from '@/components/settings/TagModal'
+import { EMOTION_PRESETS } from '@/data/emotionPresets'
+import { SUPPORTED_LANGUAGES } from '@/i18n'
 import {
   executionTotals,
   isPositiveNumber,
@@ -128,7 +131,7 @@ function toNumberOrNull(value: number | string): number | null {
  * Routes: /journal/new (create) and /journal/:id/edit (edit).
  */
 export function TradeFormPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { id } = useParams<{ id?: string }>()
   const navigate = useNavigate()
   const isEdit = id !== undefined
@@ -153,6 +156,8 @@ export function TradeFormPage() {
   const [assetModalOpen, setAssetModalOpen] = useState(false)
   const [tagModalOpen, setTagModalOpen] = useState(false)
   const [emotionModalOpen, setEmotionModalOpen] = useState(false)
+  // In-flight flag for the trade-form starter-set import nudge (#149).
+  const [emotionsImporting, setEmotionsImporting] = useState(false)
   // Screenshots staged client-side with their timeframe + label; uploaded
   // after the trade is saved. On edit, existing screenshots are shown and may
   // be marked for deletion (applied on submit) — their metadata is read-only.
@@ -441,6 +446,25 @@ export function TradeFormPage() {
     setEmotionModalOpen(false)
     emotions.reload()
     form.setFieldValue('emotion_ids', [...form.values.emotion_ids, String(emotion.id)])
+  }
+
+  // Trade-form nudge (#149): import the curated starter set in the current
+  // Kiroku language (no picker — the fast path), then refresh the MultiSelect.
+  const handleImportStarterEmotions = async () => {
+    const language =
+      SUPPORTED_LANGUAGES.find((lang) => i18n.language?.startsWith(lang)) ?? 'en'
+    setEmotionsImporting(true)
+    try {
+      const created = await emotionsApi.bulkCreate(EMOTION_PRESETS[language])
+      notifySuccess(
+        t('trade.form.emotions_nudge.notify_success', { count: created.length }),
+      )
+      emotions.reload()
+    } catch {
+      notifyError(t('trade.form.emotions_nudge.notify_error'))
+    } finally {
+      setEmotionsImporting(false)
+    }
   }
 
   const handleSubmit = form.onSubmit(async (values) => {
@@ -836,6 +860,25 @@ export function TradeFormPage() {
                     <IconPlus size={16} />
                   </ActionIcon>
                 </Group>
+                {emotionOptions.length === 0 && (
+                  <Alert
+                    variant="light"
+                    color="blue"
+                    icon={<IconInfoCircle size={18} />}
+                  >
+                    <Stack gap="xs" align="flex-start">
+                      <Text size="sm">{t('trade.form.emotions_nudge.message')}</Text>
+                      <Button
+                        variant="light"
+                        size="xs"
+                        onClick={handleImportStarterEmotions}
+                        loading={emotionsImporting}
+                      >
+                        {t('trade.form.emotions_nudge.import_button')}
+                      </Button>
+                    </Stack>
+                  </Alert>
+                )}
               </Stack>
             </Card>
           </Grid.Col>

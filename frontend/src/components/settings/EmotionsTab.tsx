@@ -18,6 +18,7 @@ import type { Emotion, EmotionSeverity } from '@/types/referenceData'
 import { DataStates } from './DataStates'
 import { DeleteEntityModal } from './DeleteEntityModal'
 import { EmotionModal } from './EmotionModal'
+import { EmotionsOnboarding } from './EmotionsOnboarding'
 import { useDeleteEntity } from './useDeleteEntity'
 
 // Severity colours per docs/DESIGN_SYSTEM.md and issue #10.
@@ -32,6 +33,9 @@ export function EmotionsTab() {
   const { data, loading, error, reload } = useFetch(emotionsApi.grouped)
   const [editing, setEditing] = useState<Emotion | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  // Dismissing onboarding is component-local: a fresh mount re-offers it while
+  // the list is still empty. No persistence needed (per design).
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false)
 
   const del = useDeleteEntity<Emotion>({
     countFn: emotionsApi.tradeCount,
@@ -56,6 +60,20 @@ export function EmotionsTab() {
     (sum, items) => sum + items.length,
     0,
   )
+
+  // While empty (and not yet dismissed), the onboarding replaces the standard
+  // empty state and the "+ New emotion" button so it is the single focal CTA.
+  const showOnboarding =
+    !loading && !error && totalEmotions === 0 && !onboardingDismissed
+
+  if (showOnboarding) {
+    return (
+      <EmotionsOnboarding
+        onImported={reload}
+        onSkip={() => setOnboardingDismissed(true)}
+      />
+    )
+  }
 
   return (
     <>

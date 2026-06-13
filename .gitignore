@@ -41,7 +41,7 @@ build/
 .claude/settings.local.json
 
 # SQLite database files and user data (not committed)
-data/
+/data/
 backend/data/
 *.db
 *.db-journal

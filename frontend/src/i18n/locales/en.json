@@ -533,6 +533,16 @@
         "deleted": "{{name}} deleted",
         "save_error": "Could not save emotion",
         "delete_error": "Could not delete emotion"
+      },
+      "onboarding": {
+        "title": "Get started with curated trading emotions",
+        "description": "We've assembled the most common emotional states, mental triggers, and execution patterns that traders experience. Import them as a starting point — you can always add, edit, or remove any of them later.",
+        "language_label": "Import language",
+        "count": "42 emotions across 5 categories",
+        "import_button": "Import emotions",
+        "skip": "Or start from scratch",
+        "notify_success": "{{count}} emotions imported successfully",
+        "notify_error": "Failed to import emotions"
       }
     }
   },
@@ -681,6 +691,12 @@
         "timeframe_required": "Add a timeframe to each screenshot",
         "invalid_file": "Some files were skipped: only JPG, PNG and WebP up to 5 MB are allowed.",
         "upload_error": "The trade was saved but some screenshots could not be uploaded."
+      },
+      "emotions_nudge": {
+        "message": "No emotions configured yet. Import our starter set to get started, or add your own in Settings.",
+        "import_button": "Import starter set",
+        "notify_success": "{{count}} emotions imported",
+        "notify_error": "Failed to import emotions"
       }
     },
     "direction": {
