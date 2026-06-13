@@ -257,6 +257,108 @@ def test_trade_count_not_found() -> None:
   assert "not found" in body["error"].lower()
 
 
+def test_bulk_create_happy_path() -> None:
+  payload = {
+    "emotions": [
+      {"name": "Greed", "description": "Wanting more", "severity": "Bad", "category": "Mental Triggers"},
+      {"name": "Calm", "description": None, "severity": "Good", "category": "Focus & Clarity"},
+      {"name": "Hesitation", "description": "Second-guessing", "severity": "Warning",
+       "category": "Execution Confidence"},
+    ]
+  }
+  with TestClient(app) as client:
+    response = client.post("/api/emotions/bulk", json=payload)
+
+  assert response.status_code == 201
+  body = response.json()
+  assert body["error"] is None
+  data = body["data"]
+  assert len(data) == 3
+  # Order must be preserved
+  assert data[0]["name"] == "Greed"
+  assert data[1]["name"] == "Calm"
+  assert data[2]["name"] == "Hesitation"
+  # Each item must have id and timestamps
+  for item in data:
+    assert item["id"] > 0
+    assert item["created_at"] is not None
+    assert item["updated_at"] is not None
+  # Null description passes through
+  assert data[1]["description"] is None
+
+
+def test_bulk_create_single_item() -> None:
+  payload = {
+    "emotions": [
+      {"name": "Overconfidence", "severity": "Bad", "category": "Emotional State"},
+    ]
+  }
+  with TestClient(app) as client:
+    response = client.post("/api/emotions/bulk", json=payload)
+
+  assert response.status_code == 201
+  data = response.json()["data"]
+  assert len(data) == 1
+  assert data[0]["name"] == "Overconfidence"
+
+
+def test_bulk_create_invalid_item_rejects_all() -> None:
+  payload = {
+    "emotions": [
+      {"name": "Valid one", "severity": "Good", "category": "Emotional State"},
+      {"name": "Bad item", "severity": "NotASeverity", "category": "Emotional State"},
+    ]
+  }
+  with TestClient(app) as client:
+    response = client.post("/api/emotions/bulk", json=payload)
+    assert response.status_code == 422
+    assert response.json()["data"] is None
+    # Nothing should have been inserted
+    all_emotions = client.get("/api/emotions").json()["data"]
+  assert all_emotions == []
+
+
+def test_bulk_create_duplicate_vs_db_returns_409() -> None:
+  with TestClient(app) as client:
+    _create(client, name="Existing emotion")
+    payload = {
+      "emotions": [
+        {"name": "New emotion", "severity": "Good", "category": "Emotional State"},
+        {"name": "Existing emotion", "severity": "Bad", "category": "Mental Triggers"},
+      ]
+    }
+    response = client.post("/api/emotions/bulk", json=payload)
+
+  assert response.status_code == 409
+  body = response.json()
+  assert body["data"] is None
+  assert "Existing emotion" in body["error"]
+
+
+def test_bulk_create_duplicate_names_in_batch_returns_422() -> None:
+  payload = {
+    "emotions": [
+      {"name": "Twin", "severity": "Good", "category": "Emotional State"},
+      {"name": "Twin", "severity": "Bad", "category": "Mental Triggers"},
+    ]
+  }
+  with TestClient(app) as client:
+    response = client.post("/api/emotions/bulk", json=payload)
+
+  assert response.status_code == 422
+  body = response.json()
+  assert body["data"] is None
+  assert "Twin" in body["error"]
+
+
+def test_bulk_create_empty_array_returns_422() -> None:
+  with TestClient(app) as client:
+    response = client.post("/api/emotions/bulk", json={"emotions": []})
+
+  assert response.status_code == 422
+  assert response.json()["data"] is None
+
+
 def test_delete_emotion_cascades_from_trades() -> None:
   with TestClient(app) as client:
     keep_id = _create(client, name="Keep me").json()["data"]["id"]

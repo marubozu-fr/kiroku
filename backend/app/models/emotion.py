@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class EmotionSeverity(str, Enum):
@@ -55,6 +55,28 @@ class EmotionResponse(BaseModel):
   category: EmotionCategory
   created_at: Optional[str] = None
   updated_at: Optional[str] = None
+
+
+class EmotionBulkCreate(BaseModel):
+  """Request body for bulk-creating emotions (up to 42 items)."""
+
+  emotions: list[EmotionCreate]
+
+  @field_validator("emotions")
+  @classmethod
+  def at_least_one(cls, v: list[EmotionCreate]) -> list[EmotionCreate]:
+    if not v:
+      raise ValueError("At least one emotion is required")
+    names = [e.name for e in v]
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    for name in names:
+      if name in seen:
+        duplicates.append(name)
+      seen.add(name)
+    if duplicates:
+      raise ValueError(f"Duplicate names in batch: {', '.join(duplicates)}")
+    return v
 
 
 class EmotionTradeCount(BaseModel):

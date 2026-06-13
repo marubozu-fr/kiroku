@@ -63,6 +63,35 @@ async def count_trades(emotion_id: int) -> int:
   return row["count"] if row is not None else 0
 
 
+async def get_existing_names(names: list[str]) -> list[str]:
+  """Return the subset of given names that already exist in the emotions table."""
+  placeholders = ", ".join(f":n{i}" for i in range(len(names)))
+  query = f"SELECT name FROM emotions WHERE name IN ({placeholders})"
+  values = {f"n{i}": name for i, name in enumerate(names)}
+  rows = await database.fetch_all(query, values)
+  return [row["name"] for row in rows]
+
+
+async def create_bulk(emotions: list[tuple], now: str) -> list[int]:
+  """Insert multiple emotions in a single transaction. Returns list of new ids."""
+  query = """
+    INSERT INTO emotions (name, description, severity, category, created_at, updated_at)
+    VALUES (:name, :description, :severity, :category, :now, :now)
+  """
+  ids: list[int] = []
+  for name, description, severity, category in emotions:
+    values = {
+      "name": name,
+      "description": description,
+      "severity": severity,
+      "category": category,
+      "now": now,
+    }
+    new_id = await database.execute(query, values)
+    ids.append(new_id)
+  return ids
+
+
 async def delete(emotion_id: int) -> None:
   """Remove the emotion's trade associations, then delete the emotion row.
 
