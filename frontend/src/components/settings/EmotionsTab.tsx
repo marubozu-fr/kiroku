@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { emotionsApi } from '@/services/referenceData'
 import { EMOTION_CATEGORIES } from '@/types/referenceData'
-import type { Emotion, EmotionSeverity } from '@/types/referenceData'
+import type { Emotion, EmotionCategory, EmotionSeverity } from '@/types/referenceData'
 import { DataStates } from './DataStates'
 import { DeleteEntityModal } from './DeleteEntityModal'
 import { EmotionModal } from './EmotionModal'
@@ -26,6 +26,16 @@ const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
   Good: 'green',
   Warning: 'orange',
   Bad: 'red',
+}
+
+// Maps the English enum values (stored as-is in the database) to i18n keys so
+// the section headings render in the user's language. See issue #154.
+const CATEGORY_I18N_KEYS: Record<EmotionCategory, string> = {
+  'Emotional State': 'settings.emotions.categories.emotional_state',
+  'Mental Triggers': 'settings.emotions.categories.mental_triggers',
+  'Focus & Clarity': 'settings.emotions.categories.focus_clarity',
+  'Execution Confidence': 'settings.emotions.categories.execution_confidence',
+  'Why This Trade?': 'settings.emotions.categories.why_this_trade',
 }
 
 export function EmotionsTab() {
@@ -95,7 +105,7 @@ export function EmotionsTab() {
             (category) => (grouped[category]?.length ?? 0) > 0,
           ).map((category) => (
             <Stack key={category} gap="xs">
-              <Title order={5}>{category}</Title>
+              <Title order={5}>{t(CATEGORY_I18N_KEYS[category])}</Title>
               <Table.ScrollContainer minWidth={600}>
                 <Table striped highlightOnHover fz="sm" verticalSpacing="xs">
                   <Table.Thead>

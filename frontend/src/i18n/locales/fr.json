@@ -490,6 +490,13 @@
       }
     },
     "emotions": {
+      "categories": {
+        "emotional_state": "État émotionnel",
+        "mental_triggers": "Déclencheurs mentaux",
+        "focus_clarity": "Concentration et clarté",
+        "execution_confidence": "Confiance d'exécution",
+        "why_this_trade": "Pourquoi ce trade ?"
+      },
       "add": "Ajouter une émotion",
       "empty": "Aucune émotion pour l'instant. Ajoutez des émotions pour qualifier votre état mental sur chaque trade.",
       "columns": {
