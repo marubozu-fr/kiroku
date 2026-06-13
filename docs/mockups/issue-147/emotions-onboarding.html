@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Settings · Emotions onboarding empty state</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #147 — Settings > Emotions tab ONBOARDING empty state (entry point 1).
+    Shown when totalEmotions === 0. This REPLACES the plain DataStates
+    "No emotions yet" Center/Text empty state — it is NOT a modal/overlay, it
+    sits inline in the tab body where the empty state was.
+
+    Content (per issue): dimmed icon, title, description, a language Select
+    (defaults to the user's current Kiroku language) ABOVE the import button,
+    an import-count line, a filled "Import emotions" CTA, and a secondary
+    "Or start from scratch" text link that dismisses onboarding and reveals the
+    standard empty state + "+ New emotion" button (shown in the 2nd block below).
+
+    No new colors: CTA uses --primary, icon/secondary copy use --dimmed,
+    surfaces use the existing dark tokens. Maps 1:1 to Mantine (see README).
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink active" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <h1 class="page-title">Settings</h1>
+        </div>
+
+        <!-- Settings tabs (Mantine Tabs). "Emotions" active. -->
+        <div class="tabs">
+          <span class="tab">Assets</span>
+          <span class="tab">Tags</span>
+          <span class="tab active">Emotions</span>
+          <span class="tab">Preferences</span>
+        </div>
+
+        <!-- ================================================================
+             STATE A (default): ONBOARDING empty state.
+             Note the "+ New emotion" page button is INTENTIONALLY hidden here
+             so the onboarding is the single focal CTA. (The button returns in
+             State B after "start from scratch".)
+             ================================================================ -->
+        <div class="card">
+          <div class="onboarding">
+            <div class="ob-icon" aria-hidden="true">☺</div>
+            <h2 class="ob-title">Get started with curated trading emotions</h2>
+            <p class="ob-desc">
+              We&rsquo;ve assembled the most common emotional states, mental
+              triggers, and execution patterns that traders experience. Import
+              them as a starting point &mdash; you can always add, edit, or
+              remove any of them later.
+            </p>
+
+            <!-- Language Select — ABOVE the import button. Defaults to the
+                 user's current Kiroku language (English shown selected). -->
+            <div class="ob-lang field">
+              <label for="ob-lang">Import language</label>
+              <select class="input" id="ob-lang">
+                <option selected>English</option>
+                <option>Français</option>
+                <option>Español</option>
+                <option>Italiano</option>
+                <option>Deutsch</option>
+                <option>Português</option>
+              </select>
+            </div>
+
+            <!-- Import count — informational, below the selector. -->
+            <div class="ob-count">
+              <strong>42 emotions</strong> across <strong>5 categories</strong>
+            </div>
+
+            <!-- Primary CTA (filled, brand accent). -->
+            <button class="btn filled ob-cta" type="button">Import emotions</button>
+
+            <!-- Secondary text link — dismisses onboarding (-> State B). -->
+            <button class="ob-skip" type="button">Or start from scratch</button>
+          </div>
+        </div>
+
+        <div class="note">
+          This onboarding block <strong>replaces</strong> the plain
+          <code>DataStates</code> empty state while <code>totalEmotions === 0</code>.
+          Choosing a language then <strong>Import emotions</strong> bulk-imports
+          the 42-emotion starter set and the tab switches to the populated
+          grouped table. <strong>Or start from scratch</strong> dismisses the
+          onboarding and shows the standard empty state below.
+        </div>
+
+        <!-- ================================================================
+             STATE B (after "Or start from scratch"): standard empty state.
+             The page-level "+ New emotion" button returns (top-right, as in
+             EmotionsTab), and the body falls back to the plain DataStates
+             Center/Text empty message. Shown here for reference.
+             ================================================================ -->
+        <div class="page-header" style="justify-content:flex-end">
+          <a class="btn filled" href="#">+ New emotion</a>
+        </div>
+        <div class="card">
+          <div class="plain-empty">No emotions yet. Create your first one.</div>
+        </div>
+        <div class="note">
+          State B (reference) — what the tab looks like once onboarding is
+          dismissed: the existing <code>DataStates</code> empty state plus the
+          standard <strong>+ New emotion</strong> button.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ====================================================================
+       MOBILE variant (&lt; sm / 768px), ~390px frame.
+       The onboarding column is already narrow/centered; the language Select
+       and CTA go full-width and stay tappable. Same content, no layout change
+       beyond width.
+       ==================================================================== -->
+  <div class="phone-frame" style="margin-top:32px">
+    <main class="main">
+      <div class="content">
+        <div class="page-header">
+          <h1 class="page-title">Settings</h1>
+        </div>
+        <div class="tabs">
+          <span class="tab">Tags</span>
+          <span class="tab active">Emotions</span>
+          <span class="tab">Prefs</span>
+        </div>
+        <div class="card">
+          <div class="onboarding" style="padding:20px 12px">
+            <div class="ob-icon" aria-hidden="true">☺</div>
+            <h2 class="ob-title">Get started with curated trading emotions</h2>
+            <p class="ob-desc">
+              We&rsquo;ve assembled the most common emotional states, mental
+              triggers, and execution patterns that traders experience. Import
+              them as a starting point &mdash; add, edit, or remove later.
+            </p>
+            <div class="ob-lang field" style="max-width:none">
+              <label for="ob-lang-m">Import language</label>
+              <select class="input" id="ob-lang-m">
+                <option selected>English</option>
+                <option>Français</option>
+                <option>Español</option>
+                <option>Italiano</option>
+                <option>Deutsch</option>
+                <option>Português</option>
+              </select>
+            </div>
+            <div class="ob-count">
+              <strong>42 emotions</strong> across <strong>5 categories</strong>
+            </div>
+            <button class="btn filled ob-cta" type="button" style="width:100%;justify-content:center">Import emotions</button>
+            <button class="ob-skip" type="button">Or start from scratch</button>
+          </div>
+        </div>
+        <div class="note">
+          Mobile (&lt; 768px): the language Select and CTA span full width; the
+          onboarding stays a single centered column.
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

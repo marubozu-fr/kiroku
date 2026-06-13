@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Trade form · Emotions import nudge</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #147 — Trade form EMOTIONS NUDGE (entry point 2).
+    Shown when emotionOptions.length === 0. A lightweight Mantine Alert
+    (variant="light" color="blue", compact) placed BELOW the emotion
+    MultiSelect field and BEFORE the Notes section, so it never disrupts the
+    form flow. No language picker here (keep it fast) — import runs in the
+    user's current Kiroku language. After import the Alert disappears and the
+    MultiSelect populates.
+
+    Context shown: the existing emotion MultiSelect + "+" ActionIcon group
+    (from TradeFormPage), the nudge, then the Notes section.
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▤</span> Dashboard</a>
+      <a class="navlink active" href="#"><span class="ic">▦</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">⚖</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <h1 class="page-title">New Trade</h1>
+          <div class="right">
+            <a class="btn default" href="#">Cancel</a>
+            <a class="btn filled" href="#">Create trade</a>
+          </div>
+        </div>
+
+        <!-- Configuration card (left column of the form). Only the lower part
+             is shown for focus: Tags MultiSelect, then Emotions MultiSelect +
+             "+" ActionIcon, then the NUDGE, then (conceptually) the rest. -->
+        <div class="card form-col">
+          <div class="card-header"><h3 class="card-title">Configuration</h3></div>
+
+          <!-- Tags MultiSelect + "+" (populated — for context) -->
+          <div class="field" style="margin-bottom:16px">
+            <label>Tags</label>
+            <div class="field-row">
+              <div class="field">
+                <input class="input" value="Breakout, News" readonly />
+              </div>
+              <button class="icon-btn" aria-label="Add tag" title="Add tag">+</button>
+            </div>
+          </div>
+
+          <!-- Emotions MultiSelect + "+" (EMPTY → disabled, dimmed) -->
+          <div class="field">
+            <label>Emotions</label>
+            <div class="field-row">
+              <div class="field">
+                <div class="multiselect empty">No emotions configured</div>
+              </div>
+              <button class="icon-btn" aria-label="Add emotion" title="Add emotion">+</button>
+            </div>
+          </div>
+
+          <!-- ============== THE NUDGE (Alert, below the MultiSelect) ======
+               Mantine Alert variant="light" color="blue", compact. Sits BELOW
+               the emotion field, BEFORE Notes. Info icon + message + inline
+               "Import starter set" button. -->
+          <div class="alert" role="status" style="margin-top:10px">
+            <span class="al-icon" aria-hidden="true">ⓘ</span>
+            <div class="al-body">
+              <div class="al-msg">
+                No emotions configured yet. Import our starter set to get
+                started, or add your own in Settings.
+              </div>
+              <div class="al-actions">
+                <button class="btn light xs" type="button">Import starter set</button>
+              </div>
+            </div>
+          </div>
+          <!-- =============================================================== -->
+        </div>
+
+        <!-- Notes section (comes AFTER the nudge — the nudge must not push the
+             form flow around; it's a compact inline band). -->
+        <div class="card form-col">
+          <div class="card-header"><h3 class="card-title">Notes</h3></div>
+          <div class="field">
+            <label>Notes</label>
+            <textarea class="input" rows="3" placeholder="What was your plan? How did you execute?"></textarea>
+          </div>
+        </div>
+
+        <div class="note">
+          The nudge is a compact <code>Alert variant="light" color="blue"</code>
+          shown only when <code>emotionOptions.length === 0</code>. It sits
+          between the emotion <code>MultiSelect</code> and the Notes section.
+          <strong>Import starter set</strong> bulk-imports in the user&rsquo;s
+          current Kiroku language (no picker — fast path); afterwards the Alert
+          unmounts and the <code>MultiSelect</code> becomes enabled and
+          populated. The inline <strong>+</strong> (open EmotionModal) is
+          unchanged.
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ====================================================================
+       MOBILE variant (&lt; sm / 768px), ~390px frame.
+       The Configuration card spans full width; the Alert actions stack so the
+       "Import starter set" button is full-width and tappable.
+       ==================================================================== -->
+  <div class="phone-frame" style="margin-top:32px">
+    <main class="main">
+      <div class="content">
+        <div class="page-header">
+          <h1 class="page-title">New Trade</h1>
+        </div>
+        <div class="card form-col" style="max-width:none">
+          <div class="card-header"><h3 class="card-title">Configuration</h3></div>
+          <div class="field">
+            <label>Emotions</label>
+            <div class="field-row">
+              <div class="field">
+                <div class="multiselect empty">No emotions configured</div>
+              </div>
+              <button class="icon-btn" aria-label="Add emotion">+</button>
+            </div>
+          </div>
+          <div class="alert" role="status" style="margin-top:10px">
+            <span class="al-icon" aria-hidden="true">ⓘ</span>
+            <div class="al-body">
+              <div class="al-msg">
+                No emotions configured yet. Import our starter set to get
+                started, or add your own in Settings.
+              </div>
+              <div class="al-actions">
+                <button class="btn light xs" type="button" style="width:100%;justify-content:center">Import starter set</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card form-col" style="max-width:none">
+          <div class="card-header"><h3 class="card-title">Notes</h3></div>
+          <div class="field">
+            <label>Notes</label>
+            <textarea class="input" rows="3" placeholder="What was your plan?"></textarea>
+          </div>
+        </div>
+        <div class="note">
+          Mobile (&lt; 768px): the Alert&rsquo;s import button goes full-width
+          below the message; the form remains a single column.
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
