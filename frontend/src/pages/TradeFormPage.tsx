@@ -56,7 +56,7 @@ import { useFetch } from '@/hooks/useFetch'
 import { preferencesApi } from '@/services/preferences'
 import { assetsApi, emotionsApi, tagsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
-import { ASSET_CATEGORIES, EMOTION_CATEGORIES } from '@/types/referenceData'
+import { ASSET_CATEGORIES, CATEGORY_I18N_KEYS, EMOTION_CATEGORIES } from '@/types/referenceData'
 import type { Asset, Emotion, EmotionSeverity, Tag } from '@/types/referenceData'
 import type {
   AccountType,
@@ -309,13 +309,13 @@ export function TradeFormPage() {
   const emotionOptions = useMemo(
     () =>
       EMOTION_CATEGORIES.map((category) => ({
-        group: category,
+        group: t(CATEGORY_I18N_KEYS[category]),
         items: (emotions.data?.[category] ?? []).map((emotion) => ({
           value: String(emotion.id),
           label: emotion.name,
         })),
       })).filter((group) => group.items.length > 0),
-    [emotions.data],
+    [emotions.data, t],
   )
 
   const emotionById = useMemo(() => {
