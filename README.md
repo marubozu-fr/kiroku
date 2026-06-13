@@ -86,6 +86,18 @@ make dev
 
 Stable versions are listed on the [Releases](https://github.com/marubozu-fr/kiroku/releases) page.
 
+## Updating
+
+```bash
+git pull
+make install
+make dev
+```
+
+Your data (trades, screenshots, settings) is stored in `backend/data/` which
+is not tracked by git — updates never touch your data. Schema migrations, if
+any, are applied automatically on startup.
+
 ## Custom hostname (optional)
 
 Access Kiroku at `http://kiroku:5173` instead of `http://localhost:5173`.
