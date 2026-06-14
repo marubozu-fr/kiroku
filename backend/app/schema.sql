@@ -109,7 +109,10 @@ CREATE INDEX IF NOT EXISTS idx_trade_screenshots_trade_id ON trade_screenshots(t
 -- the row exists, so this stays idempotent across startups.
 CREATE TABLE IF NOT EXISTS user_preferences (
   id INTEGER PRIMARY KEY CHECK (id = 1),
-  risk_per_trade_default REAL NOT NULL DEFAULT 1.0
+  risk_per_trade_default REAL NOT NULL DEFAULT 1.0,
+  news_enabled BOOLEAN NOT NULL DEFAULT 1,
+  news_currencies TEXT NOT NULL DEFAULT '["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "NZD"]',
+  news_min_impact TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (news_min_impact IN ('HIGH', 'MEDIUM', 'LOW'))
 );
 
 INSERT OR IGNORE INTO user_preferences (id, risk_per_trade_default) VALUES (1, 1.0);

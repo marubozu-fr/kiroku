@@ -18,6 +18,7 @@ from app.routers import (
   assets,
   dashboard,
   emotions,
+  news,
   preferences,
   projections,
   screenshots,
@@ -100,6 +101,7 @@ app.include_router(preferences.router)
 app.include_router(dashboard.router)
 app.include_router(analytics.router)
 app.include_router(projections.router)
+app.include_router(news.router)
 
 
 @app.get("/api/health")

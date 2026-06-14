@@ -190,6 +190,49 @@ def test_migration_account_type_is_idempotent(
   assert "account_type" in columns
 
 
+def test_migration_adds_news_preference_columns(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  # A legacy user_preferences table created before the news settings (issue
+  # #159) must gain the three news columns, back-filled to their defaults.
+  db_path = tmp_path / "kiroku.db"
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+
+  connection = sqlite3.connect(db_path)
+  # A current trades table so the unrelated trades migrations are no-ops and
+  # only the user_preferences step is exercised.
+  connection.execute(
+    "CREATE TABLE trades (id INTEGER PRIMARY KEY, status TEXT NOT NULL, "
+    "account_type TEXT NOT NULL DEFAULT 'live')"
+  )
+  connection.execute(
+    "CREATE TABLE user_preferences ("
+    "id INTEGER PRIMARY KEY CHECK (id = 1), "
+    "risk_per_trade_default REAL NOT NULL DEFAULT 1.0)"
+  )
+  connection.execute("INSERT INTO user_preferences (id) VALUES (1)")
+  connection.commit()
+  connection.close()
+
+  asyncio.run(apply_migrations())
+  # Idempotent: a second run must not raise on the now-current table.
+  asyncio.run(apply_migrations())
+
+  connection = sqlite3.connect(db_path)
+  columns = {
+    row[1] for row in connection.execute("PRAGMA table_info(user_preferences)").fetchall()
+  }
+  row = connection.execute(
+    "SELECT news_enabled, news_currencies, news_min_impact FROM user_preferences WHERE id = 1"
+  ).fetchone()
+  connection.close()
+
+  assert {"news_enabled", "news_currencies", "news_min_impact"} <= columns
+  assert row[0] == 1
+  assert row[1] == '["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "NZD"]'
+  assert row[2] == "MEDIUM"
+
+
 def test_pool_enforces_foreign_keys(
   tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
