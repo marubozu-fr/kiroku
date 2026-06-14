@@ -246,3 +246,166 @@
   color: var(--mantine-color-dimmed);
   background: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.1));
 }
+
+/* ── News event pill (single event on a day) ──────────────────────────────
+ * Non-clickable, positioned ABOVE trade events. Uses an independent impact
+ * color ramp (red.7/orange.6/dark.3) — never the P&L green/red. */
+
+.newsEvent {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  line-height: 1.3;
+  padding: 2px 5px;
+  border-radius: 2px;
+  border-left: 3px solid var(--mantine-color-dark-3);
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  cursor: default;
+}
+
+.newsEvent .newsIcon {
+  flex-shrink: 0;
+  opacity: 0.8;
+  display: inline-flex;
+  align-items: center;
+}
+
+.newsEvent .newsTime {
+  color: var(--mantine-color-dimmed);
+  flex-shrink: 0;
+}
+
+.newsEvent .newsTitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.newsEventHigh {
+  border-left-color: var(--mantine-color-red-7);
+}
+
+.newsEventMedium {
+  border-left-color: var(--mantine-color-orange-6);
+}
+
+.newsEventLow {
+  border-left-color: var(--mantine-color-dark-3);
+}
+
+/* ── News indicator badge (2+ events on a day) ────────────────────────────
+ * Compact glyph + count, tinted by highest impact. Anchors a HoverCard. */
+
+.newsIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  padding: 2px 7px 2px 5px;
+  border-radius: 2px;
+  border-left: 3px solid var(--mantine-color-dark-3);
+  background: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  cursor: default;
+}
+
+.newsIndicator:focus-visible {
+  outline: 2px solid var(--mantine-color-blue-6);
+  outline-offset: 2px;
+}
+
+.newsIndicator.newsEventHigh {
+  border-left-color: var(--mantine-color-red-7);
+  background: rgba(224, 49, 49, 0.10);
+}
+
+.newsIndicator.newsEventMedium {
+  border-left-color: var(--mantine-color-orange-6);
+  background: rgba(247, 103, 7, 0.10);
+}
+
+/* ── HoverCard dropdown content ───────────────────────────────────────────
+ * Mantine HoverCard provides surface/border/shadow; this adds sizing only. */
+
+.newsHoverCard {
+  width: 280px;
+  padding: var(--mantine-spacing-xs);
+}
+
+/* ── Currency group header inside HoverCard ───────────────────────────────*/
+
+.newsCurrencyGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 700;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+}
+
+.newsCurrencyGroup .currencyCount {
+  font-size: 10px;
+  color: var(--mantine-color-dimmed);
+  font-weight: 600;
+  font-family: var(--mantine-font-family-monospace);
+}
+
+/* ── Event rows inside HoverCard ─────────────────────────────────────────*/
+
+.newsRow {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  padding: 3px 0;
+}
+
+.newsRowTime {
+  color: var(--mantine-color-dimmed);
+}
+
+.newsRowTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.impactDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: var(--mantine-color-dark-3);
+}
+
+.impactDotHigh {
+  background: var(--mantine-color-red-7);
+}
+
+.impactDotMedium {
+  background: var(--mantine-color-orange-6);
+}
+
+.impactDotLow {
+  background: var(--mantine-color-dark-3);
+}
+
+/* ── Mobile agenda — news pill wraps text ─────────────────────────────────*/
+
+.agendaNewsEvent {
+  white-space: normal;
+}
+
+.agendaNewsEvent .newsTitle {
+  white-space: normal;
+}

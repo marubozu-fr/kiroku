@@ -354,7 +354,11 @@
       "more": "+{{count}} mais",
       "prev_month": "Mês anterior",
       "next_month": "Próximo mês",
-      "today": "Hoje"
+      "today": "Hoje",
+      "news": {
+        "events_count": "{{count}} eventos económicos",
+        "no_news": "Sem eventos económicos"
+      }
     },
     "empty": {
       "title": "Sem trades para {{year}}",

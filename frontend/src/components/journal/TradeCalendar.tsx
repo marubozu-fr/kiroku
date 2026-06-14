@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -6,14 +6,21 @@ import {
   Box,
   Button,
   Group,
+  HoverCard,
   Paper,
   Stack,
   Text,
 } from '@mantine/core'
-import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
+import {
+  IconCalendarEvent,
+  IconChevronLeft,
+  IconChevronRight,
+} from '@tabler/icons-react'
 import dayjs, { type Dayjs } from 'dayjs'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import type { AccountType, TradeSummary } from '@/types/trade'
+import type { NewsEvent, NewsImpact } from '@/types/news'
+import { newsApi } from '@/services/news'
 import { formatR } from './format'
 import {
   buildCalendarCells,
@@ -58,6 +65,30 @@ function accountClass(accountType: AccountType): string {
   if (accountType === 'demo') return `${classes.nonlive} ${classes.demo}`
   if (accountType === 'test') return `${classes.nonlive} ${classes.test}`
   return ''
+}
+
+/* ── News impact helpers ─────────────────────────────────────────────────── */
+
+const IMPACT_RANK: Record<NewsImpact, number> = {
+  HIGH: 3,
+  MEDIUM: 2,
+  LOW: 1,
+  NONE: 0,
+}
+
+/** Returns the impact level with the highest rank among the provided events. */
+function highestImpact(events: NewsEvent[]): NewsImpact {
+  return events.reduce<NewsImpact>(
+    (best, ev) => (IMPACT_RANK[ev.impact] > IMPACT_RANK[best] ? ev.impact : best),
+    'NONE',
+  )
+}
+
+/** Returns the CSS class for a news element based on its impact level. */
+function newsImpactClass(impact: NewsImpact): string {
+  if (impact === 'HIGH') return classes.newsEventHigh
+  if (impact === 'MEDIUM') return classes.newsEventMedium
+  return classes.newsEventLow
 }
 
 /** Inline account badge ("Demo"/"Test") shown on non-live events; null for live. */
@@ -125,6 +156,131 @@ function MonthlyReviewBand({ sum, label }: MonthlyReviewBandProps) {
   )
 }
 
+/* ── News sub-components ─────────────────────────────────────────────────── */
+
+interface NewsEventPillProps {
+  event: NewsEvent
+  /** When true (mobile agenda) the currency code is prepended to the title. */
+  withCurrency?: boolean
+}
+
+/**
+ * A single news event pill. Non-clickable, styled by impact.
+ * Used for single-event days on the desktop grid, and for every news event
+ * in the mobile agenda.
+ */
+function NewsEventPill({ event, withCurrency }: NewsEventPillProps) {
+  const time = dayjs(event.date).format('HH:mm')
+  const title = withCurrency ? `${event.currency} · ${event.title}` : event.title
+  const impact = event.impact === 'NONE' ? 'LOW' : event.impact
+  const nativeTitle = `${time} ${event.title} (${event.currency}, ${impact})`
+
+  const pillClass = [
+    classes.newsEvent,
+    newsImpactClass(event.impact),
+    withCurrency ? classes.agendaNewsEvent : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  return (
+    <Box className={pillClass} title={nativeTitle}>
+      <span className={classes.newsIcon}>
+        <IconCalendarEvent size={12} />
+      </span>
+      <span className={classes.newsTime}>{time}</span>
+      <span className={classes.newsTitle}>{title}</span>
+    </Box>
+  )
+}
+
+interface NewsIndicatorProps {
+  events: NewsEvent[]
+}
+
+/**
+ * A compact indicator badge shown when 2+ news events exist on a day.
+ * Opens a HoverCard listing events grouped by currency.
+ */
+function NewsIndicator({ events }: NewsIndicatorProps) {
+  const { t } = useTranslation()
+  const count = events.length
+  const topImpact = highestImpact(events)
+
+  // Build currency groups: iterate events sorted by time, group by currency,
+  // preserve first-seen order.
+  const sortedEvents = [...events].sort((a, b) => a.date.localeCompare(b.date))
+  const currencyOrder: string[] = []
+  const currencyGroups: Record<string, NewsEvent[]> = {}
+  for (const ev of sortedEvents) {
+    if (!(ev.currency in currencyGroups)) {
+      currencyOrder.push(ev.currency)
+      currencyGroups[ev.currency] = []
+    }
+    currencyGroups[ev.currency].push(ev)
+  }
+
+  const indicatorClass = [
+    classes.newsIndicator,
+    newsImpactClass(topImpact),
+  ].join(' ')
+
+  return (
+    <HoverCard
+      position="bottom-start"
+      withinPortal
+      shadow="md"
+      openDelay={150}
+      closeDelay={100}
+    >
+      <HoverCard.Target>
+        <Box
+          className={indicatorClass}
+          tabIndex={0}
+          role="button"
+          aria-label={t('journal.calendar.news.events_count', { count })}
+        >
+          <IconCalendarEvent size={13} />
+          <span>{count}</span>
+        </Box>
+      </HoverCard.Target>
+
+      <HoverCard.Dropdown className={classes.newsHoverCard}>
+        {currencyOrder.map((currency) => {
+          const groupEvents = currencyGroups[currency]
+          return (
+            <div key={currency}>
+              <div className={classes.newsCurrencyGroup}>
+                <span>{currency}</span>
+                <span className={classes.currencyCount}>({groupEvents.length})</span>
+              </div>
+              {groupEvents.map((ev) => {
+                const dotClass = [
+                  classes.impactDot,
+                  ev.impact === 'HIGH'
+                    ? classes.impactDotHigh
+                    : ev.impact === 'MEDIUM'
+                      ? classes.impactDotMedium
+                      : classes.impactDotLow,
+                ].join(' ')
+                return (
+                  <div key={ev.id} className={classes.newsRow}>
+                    <span className={classes.newsRowTime}>
+                      {dayjs(ev.date).format('HH:mm')}
+                    </span>
+                    <span className={classes.newsRowTitle}>{ev.title}</span>
+                    <Box className={dotClass} />
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+      </HoverCard.Dropdown>
+    </HoverCard>
+  )
+}
+
 /**
  * Custom trading calendar — Mon–Fri grid with trade events, weekly and
  * monthly review bands.
@@ -157,6 +313,73 @@ export function TradeCalendar({
   const [displayMonth, setDisplayMonth] = useState<Dayjs>(() =>
     defaultDisplayMonth(liveTrades, selectedYear),
   )
+
+  // ── News state: keyed by 'YYYY-MM', populated lazily per-month ──────────
+  const [newsByMonth, setNewsByMonth] = useState<Record<string, NewsEvent[]>>({})
+
+  useEffect(() => {
+    const monthKey = displayMonth.format('YYYY-MM')
+    if (newsByMonth[monthKey] !== undefined) return
+
+    const controller = new AbortController()
+    const { signal } = controller
+
+    const start = displayMonth.startOf('month').format('YYYY-MM-DD')
+    const end = displayMonth.endOf('month').format('YYYY-MM-DD')
+
+    async function fetchNews() {
+      try {
+        let status
+        try {
+          status = await newsApi.status(signal)
+        } catch (err) {
+          if ((err as { name?: string }).name === 'AbortError') return
+          // Status fetch failed — proceed to list without syncing.
+          status = { is_stale: false, last_sync: null }
+        }
+
+        if (status.is_stale) {
+          try {
+            await newsApi.sync()
+          } catch {
+            // Sync failure is non-critical — continue to list.
+          }
+        }
+
+        const events = await newsApi.list(start, end, signal)
+        setNewsByMonth((prev) => ({ ...prev, [monthKey]: events }))
+      } catch (err) {
+        if ((err as { name?: string }).name === 'AbortError') return
+        // News is non-critical — log and leave the month empty.
+        console.error('[TradeCalendar] Failed to load news for', monthKey, err)
+        setNewsByMonth((prev) => ({ ...prev, [monthKey]: [] }))
+      }
+    }
+
+    void fetchNews()
+
+    return () => {
+      controller.abort()
+    }
+    // Only re-run when the month changes; newsByMonth cache is read inside.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayMonth])
+
+  // Group news by LOCAL date, sorted by time ascending.
+  const newsByDate = useMemo<Record<string, NewsEvent[]>>(() => {
+    const newsForMonth = newsByMonth[displayMonth.format('YYYY-MM')] ?? []
+    const map: Record<string, NewsEvent[]> = {}
+    for (const ev of newsForMonth) {
+      const dateStr = dayjs(ev.date).format('YYYY-MM-DD')
+      if (!map[dateStr]) map[dateStr] = []
+      map[dateStr].push(ev)
+    }
+    // Sort each day's events by date string (ISO, so lexicographic = chronological).
+    for (const dateStr of Object.keys(map)) {
+      map[dateStr].sort((a, b) => a.date.localeCompare(b.date))
+    }
+    return map
+  }, [newsByMonth, displayMonth])
 
   const currentYear = dayjs().year()
   const currentMonth = dayjs().startOf('month')
@@ -236,6 +459,7 @@ export function TradeCalendar({
           {cells.map((cell) => {
             const dateStr = cell.date.format('YYYY-MM-DD')
             const dayTrades = byDate[dateStr] ?? []
+            const dayNews = newsByDate[dateStr] ?? []
             const isFriday = cell.date.day() === 5
             const isToday = dateStr === todayStr
             const weekSumForFriday = isFriday ? weeklySums[dateStr] : undefined
@@ -248,6 +472,7 @@ export function TradeCalendar({
                 inCurrentMonth={cell.inCurrentMonth}
                 isToday={isToday}
                 trades={dayTrades}
+                newsEvents={dayNews}
                 assetName={assetName}
                 weeklySum={
                   weekSumForFriday !== undefined && cell.inCurrentMonth
@@ -280,6 +505,7 @@ export function TradeCalendar({
         <AgendaView
           trades={visibleTrades}
           byDate={byDate}
+          newsByDate={newsByDate}
           displayMonth={displayMonth}
           weeklySums={weeklySums}
           monthSum={monthSum}
@@ -345,6 +571,7 @@ interface DayCellProps {
   inCurrentMonth: boolean
   isToday: boolean
   trades: TradeSummary[]
+  newsEvents: NewsEvent[]
   assetName: (id: number | null) => string
   weeklySum?: number
   monthlySum?: number
@@ -359,6 +586,7 @@ function DayCell({
   inCurrentMonth,
   isToday,
   trades,
+  newsEvents,
   assetName,
   weeklySum,
   monthlySum,
@@ -382,6 +610,14 @@ function DayCell({
       <Text size="xs" c="dimmed" className={classes.dayNumber}>
         {dayNumber}
       </Text>
+
+      {/* News events rendered ABOVE trades */}
+      {newsEvents.length === 1 && (
+        <NewsEventPill event={newsEvents[0]} />
+      )}
+      {newsEvents.length >= 2 && (
+        <NewsIndicator events={newsEvents} />
+      )}
 
       {visible.map((trade) => (
         <TradeEvent key={trade.id} trade={trade} assetName={assetName} />
@@ -407,6 +643,7 @@ function DayCell({
 interface AgendaViewProps {
   trades: TradeSummary[]
   byDate: Record<string, TradeSummary[]>
+  newsByDate: Record<string, NewsEvent[]>
   displayMonth: Dayjs
   weeklySums: Record<string, number>
   monthSum: number | null
@@ -422,6 +659,7 @@ interface AgendaViewProps {
  */
 function AgendaView({
   byDate,
+  newsByDate,
   displayMonth,
   weeklySums,
   monthSum,
@@ -430,10 +668,17 @@ function AgendaView({
   weeklyReviewLabel,
   monthlyReviewLabel,
 }: AgendaViewProps) {
-  // Collect all active dates (have trades or a review) within the displayed month.
+  // Collect all active dates (have trades, news, or a review) within the displayed month.
   const activeDates = useMemo(() => {
     const dateSet = new Set<string>()
     for (const dateStr of Object.keys(byDate)) {
+      const d = dayjs(dateStr)
+      if (d.year() === displayMonth.year() && d.month() === displayMonth.month()) {
+        dateSet.add(dateStr)
+      }
+    }
+    // Also include days that have only news events within the displayed month.
+    for (const dateStr of Object.keys(newsByDate)) {
       const d = dayjs(dateStr)
       if (d.year() === displayMonth.year() && d.month() === displayMonth.month()) {
         dateSet.add(dateStr)
@@ -450,7 +695,7 @@ function AgendaView({
       dateSet.add(lastTradingDay)
     }
     return Array.from(dateSet).sort()
-  }, [byDate, displayMonth, weeklySums, lastTradingDay])
+  }, [byDate, newsByDate, displayMonth, weeklySums, lastTradingDay])
 
   if (activeDates.length === 0) {
     return null
@@ -461,6 +706,7 @@ function AgendaView({
       {activeDates.map((dateStr) => {
         const d = dayjs(dateStr)
         const dayTrades = byDate[dateStr] ?? []
+        const dayNews = newsByDate[dateStr] ?? []
         const isFriday = d.day() === 5
         const weeklySum = isFriday ? weeklySums[dateStr] : undefined
         const isLastTradingDay = dateStr === lastTradingDay
@@ -470,6 +716,11 @@ function AgendaView({
             <Text size="sm" fw={600} c="dimmed">
               {d.format('ddd D')}
             </Text>
+
+            {/* News events rendered BEFORE trades in the agenda (inline, no HoverCard) */}
+            {dayNews.map((ev) => (
+              <NewsEventPill key={ev.id} event={ev} withCurrency />
+            ))}
 
             {dayTrades.map((trade) => (
               <Link
