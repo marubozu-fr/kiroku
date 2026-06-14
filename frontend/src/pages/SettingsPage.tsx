@@ -1,6 +1,7 @@
 import {
   IconChartCandle,
   IconMoodSmile,
+  IconNews,
   IconSettings,
   IconTags,
 } from '@tabler/icons-react'
@@ -9,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { AssetsTab } from '@/components/settings/AssetsTab'
 import { EmotionsTab } from '@/components/settings/EmotionsTab'
 import { GeneralTab } from '@/components/settings/GeneralTab'
+import { NewsTab } from '@/components/settings/NewsTab'
 import { TagsTab } from '@/components/settings/TagsTab'
 
 export function SettingsPage() {
@@ -30,6 +32,9 @@ export function SettingsPage() {
           <Tabs.Tab value="emotions" leftSection={<IconMoodSmile size={20} />}>
             {t('settings.tabs.emotions')}
           </Tabs.Tab>
+          <Tabs.Tab value="news" leftSection={<IconNews size={20} />}>
+            {t('settings.tabs.news')}
+          </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="general" pt="md" keepMounted={false}>
@@ -43,6 +48,9 @@ export function SettingsPage() {
         </Tabs.Panel>
         <Tabs.Panel value="emotions" pt="md" keepMounted={false}>
           <EmotionsTab />
+        </Tabs.Panel>
+        <Tabs.Panel value="news" pt="md" keepMounted={false}>
+          <NewsTab />
         </Tabs.Panel>
       </Tabs>
     </Stack>

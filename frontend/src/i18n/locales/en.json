@@ -385,7 +385,8 @@
       "general": "General",
       "assets": "Assets",
       "tags": "Tags",
-      "emotions": "Emotions"
+      "emotions": "Emotions",
+      "news": "News"
     },
     "general": {
       "language_label": "Language",
@@ -551,6 +552,27 @@
         "notify_success": "{{count}} emotions imported successfully",
         "notify_error": "Failed to import emotions"
       }
+    },
+    "news": {
+      "title": "Economic news",
+      "enabled": "Show economic news on calendar",
+      "enabled_description": "Display economic events (CPI, NFP, FOMC…) on the journal calendar.",
+      "currencies": "Currencies",
+      "currencies_description": "Only show events for the selected currencies.",
+      "select_all": "Select all",
+      "select_none": "None",
+      "min_impact": "Minimum impact level",
+      "min_impact_description": "Hide events below the selected impact.",
+      "impact_high": "High only",
+      "impact_medium": "High + Medium",
+      "impact_all": "All",
+      "last_sync": "Last synced: {{time}}",
+      "sync_now": "Sync now",
+      "syncing": "Syncing…",
+      "sync_success": "Synced {{count}} events",
+      "sync_error": "Sync failed, please try again",
+      "never_synced": "Never synced",
+      "save_error": "Could not save news settings"
     }
   },
   "trade": {
