@@ -10,7 +10,6 @@ import {
   Alert,
   Badge,
   Button,
-  Card,
   Group,
   Select,
   SegmentedControl,
@@ -18,7 +17,6 @@ import {
   Skeleton,
   Stack,
   Text,
-  ThemeIcon,
   Title,
 } from '@mantine/core'
 import { AccountTypeToggles } from '@/components/journal/AccountTypeToggles'
@@ -155,58 +153,64 @@ export function JournalPage() {
         </Alert>
       )}
 
-      {/* Empty state */}
-      {isEmpty && effectiveYear !== null && (
-        <Card padding="xl" radius="md" withBorder>
-          <Stack align="center" gap="md">
-            <ThemeIcon size={64} radius="xl" variant="light" color="gray">
-              <IconCalendarOff size={32} />
-            </ThemeIcon>
-            <Text fw={600} size="lg">
-              {t('journal.empty.title', { year: effectiveYear })}
-            </Text>
-            <Text c="dimmed" size="sm" ta="center">
-              {t('journal.empty.subtitle')}
-            </Text>
-            <Button onClick={() => navigate('/journal/new')}>
-              {t('journal.empty.cta')}
-            </Button>
-          </Stack>
-        </Card>
-      )}
-
-      {/* Main content (stats + view toggle + calendar/list) */}
-      {!tradesFetch.loading && tradesFetch.error === null && !isEmpty && effectiveYear !== null && (
+      {/* Main content. The calendar always renders — even with zero trades —
+          so economic news events stay visible before any trade is logged.
+          When the year is empty we show a subtle banner instead of replacing
+          the calendar, and force the calendar view (the list would be empty). */}
+      {!tradesFetch.loading && tradesFetch.error === null && effectiveYear !== null && (
         <Stack gap="md">
-          <Stack gap={6}>
-            <JournalStats trades={trades} />
-            <Group gap={6} align="center">
-              <Badge variant="light" color="blue" size="sm">
-                {t('journal.stats.live_only_badge')}
-              </Badge>
-              <Text size="xs" c="dimmed">
-                {t('journal.stats.live_only_caption')}
-              </Text>
-            </Group>
-          </Stack>
+          {isEmpty ? (
+            <Alert
+              color="blue"
+              variant="light"
+              icon={<IconCalendarOff size={20} />}
+              title={t('journal.empty.title', { year: effectiveYear })}
+            >
+              <Group justify="space-between" align="center" gap="sm" wrap="wrap">
+                <Text size="sm">{t('journal.empty.subtitle')}</Text>
+                <Button
+                  size="xs"
+                  variant="light"
+                  leftSection={<IconPlus size={16} />}
+                  onClick={() => navigate('/journal/new')}
+                >
+                  {t('journal.empty.cta')}
+                </Button>
+              </Group>
+            </Alert>
+          ) : (
+            <>
+              <Stack gap={6}>
+                <JournalStats trades={trades} />
+                <Group gap={6} align="center">
+                  <Badge variant="light" color="blue" size="sm">
+                    {t('journal.stats.live_only_badge')}
+                  </Badge>
+                  <Text size="xs" c="dimmed">
+                    {t('journal.stats.live_only_caption')}
+                  </Text>
+                </Group>
+              </Stack>
 
-          <Group justify="space-between" align="center" gap="sm" wrap="wrap">
-            <SegmentedControl
-              value={view}
-              onChange={(v) => setView(v as JournalView)}
-              data={[
-                { label: t('journal.view.calendar'), value: 'calendar' },
-                { label: t('journal.view.list'), value: 'list' },
-              ]}
-              maw={{ base: '100%', sm: 320 }}
-            />
-            <AccountTypeToggles
-              value={selectedAccountTypes}
-              onChange={setSelectedAccountTypes}
-            />
-          </Group>
+              <Group justify="space-between" align="center" gap="sm" wrap="wrap">
+                <SegmentedControl
+                  value={view}
+                  onChange={(v) => setView(v as JournalView)}
+                  data={[
+                    { label: t('journal.view.calendar'), value: 'calendar' },
+                    { label: t('journal.view.list'), value: 'list' },
+                  ]}
+                  maw={{ base: '100%', sm: 320 }}
+                />
+                <AccountTypeToggles
+                  value={selectedAccountTypes}
+                  onChange={setSelectedAccountTypes}
+                />
+              </Group>
+            </>
+          )}
 
-          {view === 'calendar' ? (
+          {isEmpty || view === 'calendar' ? (
             <TradeCalendar
               trades={trades}
               assetName={assetName}
