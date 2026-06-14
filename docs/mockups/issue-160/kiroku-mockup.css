@@ -1,0 +1,909 @@
+/*
+ * Kiroku — Issue #65 mockup stylesheet (Journal calendar + year statistics).
+ *
+ * Base tokens/components copied verbatim from docs/mockups/issue-49 so the two
+ * mockups look like the same app; calendar-specific styles are ADDED below the
+ * "ISSUE #65 ADDITIONS" banner. This folder is self-contained (no cross-folder
+ * imports).
+ *
+ * These CSS variables mirror Mantine's built-in dark theme. In the real app
+ * these come from Mantine tokens (var(--mantine-color-*)) — never hardcoded.
+ * Engineers translate the classes below 1:1 to Mantine components (see README).
+ *
+ * Semantic colors per docs/DESIGN_SYSTEM.md:
+ *   profit = green.6, loss = red.6, neutral = dimmed, form errors = orange.
+ *   Direction badges use NON-semantic hues (Long=teal, Short=grape) so they
+ *   never collide with P&L green/red.
+ */
+
+:root {
+  /* Mantine dark surface scale (dark.7 body, dark.6 cards, dark.5 inputs/borders) */
+  --body-bg: #1a1b1e;          /* dark.7 */
+  --card-bg: #25262b;          /* dark.6 */
+  --input-bg: #2c2e33;         /* dark.5 */
+  --border: #373a40;           /* dark.4 */
+  --border-strong: #5c5f66;    /* dark.3 */
+
+  /* Text */
+  --text: #c1c2c5;            /* dark.0 */
+  --text-bright: #f1f3f5;     /* near white headings */
+  --dimmed: #909296;          /* Mantine dimmed */
+
+  /* Brand / primary (Mantine blue.6 default primary) */
+  --primary: #228be6;
+  --primary-hover: #1c7ed6;
+
+  /* Semantic — financial only */
+  --profit: #40c057;          /* green.6 */
+  --loss: #fa5252;            /* red.6 */
+  --orange: #fd7e14;          /* form errors / Warning severity */
+
+  /* Non-semantic badge hues */
+  --teal: #12b886;            /* Long direction */
+  --grape: #be4bdb;           /* Short direction */
+  --blue: #228be6;            /* Open status */
+  --yellow: #fab005;          /* Partial status */
+  --gray: #868e96;            /* Closed / Breakeven */
+
+  /* Mantine spacing scale */
+  --sp-xs: 10px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 20px;
+  --sp-xl: 32px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--body-bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---- App shell stand-in (AppShell) ---- */
+.shell { display: flex; min-height: 100vh; }
+
+.navbar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  padding: var(--sp-md) var(--sp-sm);
+}
+.navbar .brand {
+  font-size: 18px; font-weight: 700; color: var(--text-bright);
+  padding: var(--sp-xs) var(--sp-sm); margin-bottom: var(--sp-md);
+}
+.navbar .brand .sub { color: var(--dimmed); font-weight: 400; font-size: 13px; }
+.navlink {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  padding: var(--sp-xs) var(--sp-sm); border-radius: var(--radius-sm);
+  color: var(--text); margin-bottom: 2px; font-size: 14px;
+}
+.navlink.active { background: rgba(34, 139, 230, 0.15); color: #74c0fc; }
+.navlink .ic { width: 20px; text-align: center; opacity: 0.85; }
+
+.main { flex: 1; padding: var(--sp-md); }
+.content { max-width: 1400px; margin: 0 auto; }
+
+/* ---- Page header row (Group justify=space-between) ---- */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-md); margin-bottom: var(--sp-md); flex-wrap: wrap;
+}
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-bright); margin: 0; }
+.page-header .right { display: flex; align-items: center; gap: var(--sp-sm); }
+
+/* ---- Card (Mantine Card padding=md radius=md) ---- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.card:last-child { margin-bottom: 0; }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-sm);
+}
+.card-title { font-size: 15px; font-weight: 600; color: var(--text-bright); margin: 0; }
+
+/* ---- Form field (Select label above) ---- */
+.field { margin-bottom: 0; }
+.field > label {
+  display: block; font-size: 13px; font-weight: 500;
+  margin-bottom: 4px; color: var(--text);
+}
+.input,
+select.input {
+  width: 100%; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text-bright); padding: 7px 10px; font-size: 14px;
+  font-family: var(--sans);
+}
+.input:focus { outline: none; border-color: var(--primary); }
+
+/* ---- SegmentedControl ---- */
+.segmented {
+  display: inline-flex; background: var(--input-bg);
+  border-radius: var(--radius-sm); padding: 3px; gap: 2px;
+}
+.segmented.full { width: 100%; }
+.segmented .seg {
+  flex: 1; text-align: center; padding: 6px 16px; border-radius: 3px;
+  font-size: 14px; font-weight: 500; color: var(--dimmed); cursor: pointer;
+  user-select: none; display: inline-flex; align-items: center;
+  justify-content: center; gap: 6px;
+}
+.segmented .seg.active {
+  background: var(--card-bg); color: var(--text-bright);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* ---- Badges ---- */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  line-height: 1.6; text-transform: none;
+}
+.badge.long   { background: rgba(18,184,134,0.15); color: #38d9a9; }
+.badge.short  { background: rgba(190,75,219,0.15); color: #da77f2; }
+.badge.open   { background: rgba(34,139,230,0.15); color: #74c0fc; }
+.badge.partial{ background: rgba(250,176,5,0.15);  color: #ffd43b; }
+.badge.closed { background: rgba(134,142,150,0.18); color: #adb5bd; }
+.badge.breakeven { background: rgba(134,142,150,0.18); color: #adb5bd; }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-sm); font-size: 14px;
+  font-weight: 500; cursor: pointer; border: 1px solid transparent;
+  font-family: var(--sans); text-decoration: none;
+}
+.btn.filled { background: var(--primary); color: #fff; }
+.btn.filled:hover { background: var(--primary-hover); }
+.btn.default { background: var(--input-bg); color: var(--text-bright); border-color: var(--border); }
+.btn.light { background: rgba(34,139,230,0.15); color: #74c0fc; }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; font-size: 16px;
+}
+.icon-btn:hover { background: var(--input-bg); }
+.icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- Financial number helper (<Money>/<RValue>) ---- */
+.mono { font-family: var(--mono); }
+.num  { font-family: var(--mono); text-align: right; }
+.profit { color: var(--profit); }
+.loss   { color: var(--loss); }
+.neutral{ color: var(--dimmed); }
+
+/* ---- Metric cards (SimpleGrid cols={{ base: 2, sm: 4 }}) ---- */
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-md); margin-bottom: var(--sp-md); }
+.metric { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-md); }
+.metric .lbl { font-size: 13px; color: var(--dimmed); margin-bottom: 6px; }
+.metric .val { font-family: var(--mono); font-size: 24px; font-weight: 700; color: var(--text-bright); }
+.metric .val.profit { color: var(--profit); }
+.metric .val.loss { color: var(--loss); }
+
+.note { font-size: 12px; color: var(--dimmed); margin: var(--sp-md) 0; padding: var(--sp-sm); border-left: 3px solid var(--primary); background: rgba(34,139,230,0.06); }
+
+/* ---- Tables (Mantine Table striped + highlightOnHover, fz=sm) ---- */
+.table-wrap { overflow-x: auto; }
+table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.table thead th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.4px; color: var(--dimmed);
+  padding: var(--sp-xs) var(--sp-sm); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+table.table thead th.right { text-align: right; }
+table.table tbody td {
+  padding: var(--sp-xs) var(--sp-sm); border-bottom: 1px solid var(--border);
+  color: var(--text); white-space: nowrap;
+}
+table.table tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+table.table tbody tr:hover { background: rgba(34,139,230,0.06); cursor: pointer; }
+table.table td.num { font-family: var(--mono); text-align: right; }
+table.table td.mono { font-family: var(--mono); }
+
+/* ==========================================================================
+ * ISSUE #65 ADDITIONS — Journal calendar
+ * ======================================================================== */
+
+/* Toolbar row holding the Calendar/List segmented control */
+.view-toolbar { margin-bottom: var(--sp-md); }
+.view-toolbar .segmented { max-width: 280px; }
+
+/* ---- Calendar shell (rendered inside a Card) ---- */
+.calendar { }
+
+/* Month navigation header (prev / "June 2026" / next) */
+.cal-nav {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-md); margin-bottom: var(--sp-md);
+}
+.cal-nav .month-label {
+  font-size: 18px; font-weight: 700; color: var(--text-bright);
+  min-width: 180px; text-align: center;
+}
+
+/* Weekday header row (MON..FRI) */
+.cal-weekdays {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 6px; margin-bottom: 6px;
+}
+.cal-weekdays .wd {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--dimmed); text-align: center;
+  padding: 4px 0;
+}
+
+/* Calendar grid: 5 trading-day columns, one row per week */
+.cal-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+
+/* Day cell */
+.cal-day {
+  position: relative; min-height: 116px;
+  background: var(--body-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 6px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cal-day.muted { opacity: 0.4; }                 /* day outside current month */
+.cal-day.today { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.cal-day .daynum {
+  font-size: 12px; font-weight: 600; color: var(--dimmed);
+  align-self: flex-end; line-height: 1;
+}
+.cal-day.today .daynum { color: #74c0fc; }
+
+/* Trade event pill (clickable → /trades/:id) */
+.event {
+  display: block; font-family: var(--mono); font-size: 11px;
+  line-height: 1.3; padding: 3px 6px; border-radius: 3px;
+  border-left: 3px solid var(--gray);
+  background: rgba(134,142,150,0.10); color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer; text-decoration: none;
+}
+.event:hover { background: rgba(255,255,255,0.06); }
+.event.win  { border-left-color: var(--profit); background: rgba(64,192,87,0.10); color: #69db7c; }
+.event.loss { border-left-color: var(--loss);   background: rgba(250,82,82,0.10); color: #ff8787; }
+.event.be   { border-left-color: var(--gray);   background: rgba(134,142,150,0.10); color: var(--dimmed); }
+
+/* Overflow indicator ("+N more") */
+.event-more {
+  font-size: 11px; color: var(--dimmed); padding: 1px 6px;
+  cursor: pointer;
+}
+.event-more:hover { color: var(--text-bright); }
+
+/* Review events (weekly = subtle band; monthly = most prominent) */
+.review {
+  display: block; font-family: var(--mono); font-size: 10px;
+  font-weight: 700; letter-spacing: 0.3px; line-height: 1.3;
+  padding: 3px 6px; border-radius: 3px; margin-top: auto;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+.review.weekly {
+  border: 1px dashed var(--border-strong);
+  background: rgba(255,255,255,0.03);
+}
+.review.monthly {
+  border: 1px solid currentColor;
+}
+.review.win  { color: var(--profit); }
+.review.loss { color: var(--loss); }
+.review.be   { color: var(--dimmed); }
+
+/* ---- Empty state (DESIGN_SYSTEM "Empty") ---- */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; gap: var(--sp-sm);
+  padding: var(--sp-xl) var(--sp-md); color: var(--dimmed);
+}
+.empty-state .icon { font-size: 44px; opacity: 0.7; line-height: 1; }
+.empty-state .title { font-size: 18px; font-weight: 600; color: var(--text-bright); }
+.empty-state .desc { font-size: 14px; max-width: 360px; }
+.empty-state .btn { margin-top: var(--sp-xs); }
+
+/* Agenda (mobile) list layout — hidden on desktop, shown < sm */
+.cal-agenda { display: none; }
+.agenda-day { margin-bottom: var(--sp-md); }
+.agenda-day .agenda-date {
+  font-size: 13px; font-weight: 700; color: var(--text-bright);
+  margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.agenda-day .agenda-date.today { color: #74c0fc; }
+.agenda-day .event,
+.agenda-day .review { white-space: normal; margin-bottom: 4px; }
+.agenda-day .review { margin-top: 4px; }
+
+/* ---- Responsive: stack at Mantine `sm` (~768px) ---- */
+@media (max-width: 768px) {
+  .navbar { display: none; }                      /* becomes hamburger drawer */
+  .metrics { grid-template-columns: repeat(2, 1fr); } /* 4-up -> 2x2 */
+  .view-toolbar .segmented { max-width: none; }
+  .segmented.full .seg { padding: 6px 8px; }
+
+  /* Calendar grid is too cramped on phones -> switch to vertical agenda list */
+  .cal-weekdays, .cal-grid { display: none; }
+  .cal-nav .month-label { min-width: 0; }
+  .cal-agenda { display: block; }
+}
+
+/* ==========================================================================
+ * ISSUE #129 ADDITIONS — Journal account-type toggles (Live / Demo / Test)
+ * --------------------------------------------------------------------------
+ * Goal: let demo/test trades opt INTO the calendar + list while staying
+ * visually "doesn't count". Stats cards + weekly/monthly reviews remain
+ * live-only regardless of toggle state.
+ *
+ * Tokens borrowed for this issue (mirror Mantine dark theme; never hardcoded
+ * in the real app):
+ *   --supp        : slate/indigo "supplementary / non-live" hue (Mantine indigo.4)
+ *                   chosen because it carries NO financial semantic (not green/
+ *                   red/amber) so it can't be read as P&L or as missed_opportunity.
+ * ========================================================================== */
+:root {
+  --supp: #748ffc;            /* indigo.4 — "supplementary / non-live" accent */
+  --supp-dim: #5c7cfa;        /* indigo.5 */
+}
+
+/* Page subtitle (used in mobile header) — from issue-102 base */
+.page-subtitle { font-size: 14px; color: var(--dimmed); margin: 2px 0 0; }
+
+/* Loading skeleton (Mantine Skeleton) — from issue-102 base */
+.skeleton {
+  background: linear-gradient(90deg, var(--input-bg) 0%, #34363c 50%, var(--input-bg) 100%);
+  border-radius: var(--radius-sm); height: 14px;
+}
+
+/* Mobile phone frame (journal-mobile.html) — from issue-102 base */
+.phone-frame {
+  max-width: 390px; margin: 0 auto;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; min-height: 100vh; background: var(--body-bg);
+}
+
+/* --------------------------------------------------------------------------
+ * Account-type toggle bar — lives in the .view-toolbar ALONGSIDE the
+ * Calendar/List SegmentedControl (NOT next to the year Select), because these
+ * toggles only affect the calendar/list view, not the data scope. They read
+ * clearly secondary to the year Select: smaller, labelled "Show:", on the
+ * view toolbar.
+ *
+ * Real component: Mantine Chip.Group (multiple) of Chip variant="light".
+ * "Live" chip is always selected and non-deselectable (the primary view);
+ * Demo/Test are opt-in supplementary chips.
+ * ------------------------------------------------------------------------ */
+.view-toolbar.acct {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-md); flex-wrap: wrap;
+}
+.acct-toggles { display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap; }
+.acct-toggles .acct-label {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--dimmed);
+}
+
+/* Chip.Group pills */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--input-bg);
+  color: var(--dimmed); cursor: pointer; user-select: none; line-height: 1.4;
+}
+.chip .dot { width: 8px; height: 8px; border-radius: 999px; background: currentColor; }
+.chip .check { font-size: 12px; line-height: 1; }
+
+/* Live = primary, always on (checkmark, brand fill, looks locked) */
+.chip.live.on {
+  background: rgba(34,139,230,0.18); border-color: var(--primary);
+  color: #74c0fc;
+}
+.chip.live { cursor: default; }            /* live can't be turned off */
+
+/* Demo / Test = supplementary opt-in. Off = subtle; On = indigo "supp" accent. */
+.chip.supp.on {
+  background: rgba(116,143,252,0.16); border-color: var(--supp-dim);
+  color: var(--supp);
+}
+.chip.supp.on .dot { background: var(--supp); }
+.chip.supp { color: var(--dimmed); }
+.chip.supp .dot { background: var(--border-strong); }
+.chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* --------------------------------------------------------------------------
+ * Non-live (demo/test) EVENT treatment in the calendar.
+ * Reads as "doesn't count": muted, dotted/dashed border, indigo "supp" accent,
+ * inline account badge. Live trades are UNCHANGED (.event.win/.loss/.be keep
+ * their green/red/neutral semantic P&L colors).
+ *
+ * Distinction ladder (so demo != test != missed_opportunity):
+ *   live  -> solid 3px green/red left border, full opacity, no badge
+ *   demo  -> DOTTED indigo left border, ~0.7 opacity, DEMO badge,
+ *            P&L keeps a DIMMED green/red tint (still legible, clearly faded)
+ *   test  -> DASHED indigo left border, ~0.55 opacity, TEST badge,
+ *            P&L fully DESATURATED to neutral text (no green/red at all)
+ *   missed_opportunity (reference, not toggled here) -> hollow amber GHOST
+ *            with a dashed amber outline + diagonal hatch — a different hue
+ *            family entirely, so it can never be confused with demo/test.
+ * ------------------------------------------------------------------------ */
+.event.nonlive {
+  position: relative;
+  background: rgba(116,143,252,0.06);
+  border-left-width: 3px; border-left-style: dotted; border-left-color: var(--supp);
+  padding-right: 6px;
+}
+.event.nonlive .acct-badge {
+  display: inline-block; font-family: var(--sans); font-size: 9px; font-weight: 700;
+  letter-spacing: 0.5px; text-transform: uppercase; line-height: 1;
+  padding: 2px 4px; border-radius: 3px; margin-right: 5px; vertical-align: middle;
+  color: var(--supp); background: rgba(116,143,252,0.18);
+}
+
+/* DEMO: dotted border, dimmed P&L still tinted */
+.event.demo { opacity: 0.78; border-left-style: dotted; }
+.event.demo.win  { color: #8ce99a; }       /* faded green, still reads profit */
+.event.demo.loss { color: #ffa8a8; }       /* faded red, still reads loss */
+.event.demo.be   { color: var(--dimmed); }
+
+/* TEST: dashed border, P&L fully desaturated to neutral (no green/red) */
+.event.test { opacity: 0.6; border-left-style: dashed; }
+.event.test.win,
+.event.test.loss,
+.event.test.be { color: var(--dimmed); }   /* test never shows P&L color */
+.event.test .acct-badge { color: var(--text); background: rgba(255,255,255,0.10); }
+.event.test { border-left-color: var(--border-strong); }
+
+/* missed_opportunity reference chip (shown in legend only, NOT a toggle) —
+   amber ghost so it's unmistakably different from indigo demo/test. */
+.event.missed {
+  background: transparent; color: var(--orange);
+  border-left: 3px dashed var(--orange);
+  background-image: repeating-linear-gradient(
+    45deg, rgba(253,126,20,0.08) 0 6px, transparent 6px 12px);
+  opacity: 0.9;
+}
+
+/* Legend strip explaining the event styles (calendar + list footer) */
+.event-legend {
+  display: flex; flex-wrap: wrap; gap: var(--sp-md);
+  margin-top: var(--sp-md); padding-top: var(--sp-sm);
+  border-top: 1px solid var(--border); font-size: 12px; color: var(--dimmed);
+}
+.event-legend .lg { display: inline-flex; align-items: center; gap: 6px; }
+.event-legend .swatch {
+  width: 26px; height: 14px; border-radius: 3px; flex-shrink: 0;
+  background: rgba(134,142,150,0.10);
+}
+.event-legend .swatch.live { border-left: 3px solid var(--profit); background: rgba(64,192,87,0.10); }
+.event-legend .swatch.demo { border-left: 3px dotted var(--supp); background: rgba(116,143,252,0.10); opacity: 0.78; }
+.event-legend .swatch.test { border-left: 3px dashed var(--border-strong); background: rgba(116,143,252,0.06); opacity: 0.6; }
+.event-legend .swatch.missed { border-left: 3px dashed var(--orange); background:
+  repeating-linear-gradient(45deg, rgba(253,126,20,0.10) 0 5px, transparent 5px 10px); }
+
+/* "Live only" caption on the stats row + review bands */
+.liveonly-caption {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--dimmed); margin-top: 6px;
+}
+.liveonly-caption .pill {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase;
+  color: #74c0fc; background: rgba(34,139,230,0.15);
+  padding: 1px 6px; border-radius: 999px;
+}
+.metrics-wrap { margin-bottom: var(--sp-md); }
+.metrics-wrap .metrics { margin-bottom: 0; }
+
+/* --------------------------------------------------------------------------
+ * List view — Account column + non-live row treatment.
+ * Live rows unchanged. Demo/test rows get a muted background + an account
+ * badge; demo keeps dimmed P&L color, test desaturates P&L to neutral.
+ * ------------------------------------------------------------------------ */
+.acct-cell .badge.live { background: rgba(34,139,230,0.15); color: #74c0fc; }
+.acct-cell .badge.demo { background: rgba(116,143,252,0.16); color: var(--supp); }
+.acct-cell .badge.test { background: rgba(255,255,255,0.08); color: var(--text); }
+
+table.table tbody tr.row-demo { background: rgba(116,143,252,0.05) !important; }
+table.table tbody tr.row-test { background: rgba(116,143,252,0.03) !important; opacity: 0.72; }
+table.table tbody tr.row-demo td,
+table.table tbody tr.row-test td { border-left: 0; }
+/* dotted/dashed left accent on the first cell mirrors the calendar borders */
+table.table tbody tr.row-demo td:first-child { box-shadow: inset 3px 0 0 0 var(--supp); }
+table.table tbody tr.row-test td:first-child { box-shadow: inset 3px 0 0 0 var(--border-strong); }
+/* test P&L desaturated to neutral even if +/- */
+table.table tbody tr.row-test td.profit,
+table.table tbody tr.row-test td.loss { color: var(--dimmed) !important; }
+/* demo P&L: faded tint */
+table.table tbody tr.row-demo td.profit { color: #8ce99a !important; }
+table.table tbody tr.row-demo td.loss   { color: #ffa8a8 !important; }
+
+/* --------------------------------------------------------------------------
+ * Mobile: stack the account toggles below the view SegmentedControl.
+ * ------------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .view-toolbar.acct { flex-direction: column; align-items: stretch; gap: var(--sp-sm); }
+  .acct-toggles { justify-content: flex-start; }
+  .event-legend { gap: var(--sp-sm); }
+}
+
+/* ==========================================================================
+ * ISSUE #147 ADDITIONS — Emotions onboarding empty state + trade-form nudge
+ * --------------------------------------------------------------------------
+ * Two surfaces shown when the user has ZERO emotions configured:
+ *   1. Settings > Emotions tab — full inline onboarding (replaces the plain
+ *      DataStates "No emotions yet" Center/Text empty state). NOT a modal: it
+ *      sits inline where the empty state was. Built from the existing
+ *      .empty-state pattern (issue-65), EXTENDED with a language Select, an
+ *      import-count line, a filled CTA and a "start from scratch" text link.
+ *   2. Trade form — a lightweight Mantine Alert (variant="light" color="blue")
+ *      below the emotion MultiSelect, before the Notes section.
+ *
+ * No new colors are introduced. The onboarding reuses --primary (brand blue)
+ * for the CTA, --dimmed for the icon/secondary text, and the existing surface
+ * tokens. The Alert reuses the brand blue family already used by .navlink.active
+ * and .badge.open. Everything maps to Mantine tokens in the real app.
+ * ========================================================================== */
+
+/* ---- Tab bar stand-in (Settings page Mantine Tabs) ---- */
+.tabs {
+  display: flex; gap: 2px; border-bottom: 1px solid var(--border);
+  margin-bottom: var(--sp-md);
+}
+.tabs .tab {
+  padding: var(--sp-xs) var(--sp-md); font-size: 14px; font-weight: 500;
+  color: var(--dimmed); border-bottom: 2px solid transparent;
+  margin-bottom: -1px; cursor: pointer; user-select: none;
+}
+.tabs .tab:hover { color: var(--text-bright); }
+.tabs .tab.active { color: var(--text-bright); border-bottom-color: var(--primary); }
+
+/* --------------------------------------------------------------------------
+ * Onboarding empty state (Settings > Emotions).
+ * Extends .empty-state with an interactive block: language Select + count +
+ * CTA + skip link. Kept narrow and centered so it reads as a focused
+ * onboarding card inside the tab body, not a full page.
+ * ------------------------------------------------------------------------ */
+.onboarding {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; gap: var(--sp-sm);
+  padding: var(--sp-xl) var(--sp-md);
+  max-width: 460px; margin: 0 auto;
+}
+.onboarding .ob-icon {
+  font-size: 52px; line-height: 1; color: var(--dimmed); opacity: 0.65;
+  margin-bottom: var(--sp-xs);
+}
+.onboarding .ob-title {
+  font-size: 20px; font-weight: 700; color: var(--text-bright); margin: 0;
+}
+.onboarding .ob-desc {
+  font-size: 14px; color: var(--dimmed); max-width: 420px; margin: 0;
+  line-height: 1.6;
+}
+
+/* Language Select sits ABOVE the import button. Labelled, left-aligned label,
+   full width of the onboarding column (capped narrow). Mantine Select. */
+.onboarding .ob-lang {
+  width: 100%; max-width: 280px; text-align: left;
+  margin-top: var(--sp-sm);
+}
+.onboarding .ob-lang > label {
+  display: block; font-size: 13px; font-weight: 500;
+  margin-bottom: 4px; color: var(--text);
+}
+
+/* Import count line — informational, below the selector, above the CTA. */
+.onboarding .ob-count {
+  font-size: 13px; color: var(--dimmed);
+}
+.onboarding .ob-count strong { color: var(--text); font-weight: 600; }
+
+/* Primary CTA (Button variant="filled"). Slightly larger than default. */
+.onboarding .ob-cta {
+  margin-top: var(--sp-xs);
+  padding: 10px 22px; font-size: 15px;
+}
+
+/* Secondary "Or start from scratch" — Anchor component="button", dimmed. */
+.onboarding .ob-skip {
+  background: none; border: 0; padding: 4px;
+  font-size: 13px; color: var(--primary); cursor: pointer;
+  font-family: var(--sans); text-decoration: none;
+}
+.onboarding .ob-skip:hover { color: var(--primary-hover); text-decoration: underline; }
+
+/* --------------------------------------------------------------------------
+ * Standard empty state (post-skip) — the plain DataStates Center/Text, shown
+ * here with the page-level "+ New emotion" button above it so the skip target
+ * is concrete in the mockup.
+ * ------------------------------------------------------------------------ */
+.plain-empty {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 120px; padding: var(--sp-md);
+  color: var(--dimmed); font-size: 14px; text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+ * Trade-form nudge — Mantine Alert variant="light" color="blue", compact.
+ * Sits BELOW the emotion MultiSelect, BEFORE the Notes section. Light blue
+ * tinted surface, info icon, message, inline import button. Reuses the brand
+ * blue family already present (.badge.open / .navlink.active) — no new color.
+ * ------------------------------------------------------------------------ */
+.alert {
+  display: flex; align-items: flex-start; gap: var(--sp-sm);
+  padding: var(--sp-sm) var(--sp-md);
+  border-radius: var(--radius-sm);
+  background: rgba(34, 139, 230, 0.10);
+  border: 1px solid rgba(34, 139, 230, 0.30);
+}
+.alert .al-icon {
+  flex-shrink: 0; color: #74c0fc; font-size: 18px; line-height: 1.4;
+}
+.alert .al-body { flex: 1; min-width: 0; }
+.alert .al-msg { font-size: 13px; color: var(--text); line-height: 1.5; }
+.alert .al-actions { margin-top: var(--sp-xs); }
+
+/* Compact inline import button inside the Alert (Button size="xs"). */
+.btn.xs {
+  padding: 5px 12px; font-size: 13px;
+}
+
+/* --------------------------------------------------------------------------
+ * Trade-form fragment scaffold — a single Configuration Card column so the
+ * nudge can be shown in its real context (emotion MultiSelect + "+" ActionIcon
+ * above it, Notes section below).
+ * ------------------------------------------------------------------------ */
+.form-col { max-width: 560px; }
+.field-row { display: flex; align-items: flex-end; gap: var(--sp-xs); }
+.field-row .field { flex: 1; }
+
+/* MultiSelect stand-in (disabled / empty) */
+.multiselect.empty {
+  width: 100%; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--dimmed); padding: 7px 10px; font-size: 14px;
+  opacity: 0.65;
+}
+
+/* --------------------------------------------------------------------------
+ * Responsive — Mantine `sm` (~768px).
+ *   - Onboarding: same centered column (already narrow), language Select goes
+ *     full-width, CTA full-width and tappable.
+ *   - Alert: actions stack below the message (button full-width).
+ * ------------------------------------------------------------------------ */
+@media (max-width: 768px) {
+  .navbar { display: none; }
+
+  .onboarding { padding: var(--sp-lg) var(--sp-sm); }
+  .onboarding .ob-lang { max-width: none; }
+  .onboarding .ob-cta { width: 100%; justify-content: center; }
+
+  .alert .btn.xs { width: 100%; justify-content: center; }
+  .form-col { max-width: none; }
+}
+
+/* ==========================================================================
+ * ISSUE #160 ADDITIONS — Economic-news settings + calendar news display
+ * --------------------------------------------------------------------------
+ * Two surfaces:
+ *   1. Settings > News tab — Switch (master toggle), Checkbox.Group (currency
+ *      filter), SegmentedControl (min impact), last-sync line + Sync ActionIcon.
+ *   2. Journal calendar — news events shown ABOVE trade events. Single event =>
+ *      a news pill; 2+ events => a compact indicator badge with a HoverCard
+ *      listing the events grouped by currency.
+ *
+ * COLOR DISCIPLINE (docs/DESIGN_SYSTEM.md): news must NEVER use the P&L
+ * green/red semantic. Impact is encoded with its OWN ramp so it can't be read
+ * as profit/loss:
+ *   HIGH   -> red.7   left border  (--impact-high)
+ *   MEDIUM -> orange.6 left border (--impact-med)
+ *   LOW    -> dark.3  left border  (--impact-low, dimmed)
+ * NOTE: HIGH uses red.7 (a DEEPER red than the loss red.6) and is paired with a
+ * neutral dark.6 pill background + a calendar/alert glyph, so the eye reads
+ * "event severity", not "losing trade". The pill is non-clickable (no link),
+ * another cue separating it from trade pills.
+ *
+ * Tokens below mirror Mantine (var(--mantine-color-red-7) etc.) — never
+ * hardcoded in the real app.
+ * ========================================================================== */
+:root {
+  --impact-high: #e03131;     /* red.7  — HIGH impact */
+  --impact-med:  #f76707;     /* orange.6 — MEDIUM impact */
+  --impact-low:  #5c5f66;     /* dark.3 — LOW impact (dimmed) */
+  --news-bg:     #25262b;     /* dark.6 — subtle news pill surface */
+}
+
+/* ---- Switch (Mantine Switch) — ported from issue-113 ---- */
+.switch { display: inline-flex; align-items: center; gap: var(--sp-xs); }
+.switch .track {
+  width: 38px; height: 20px; border-radius: 999px; background: var(--input-bg);
+  border: 1px solid var(--border); position: relative; flex-shrink: 0;
+}
+.switch .track .knob {
+  position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--dimmed);
+}
+.switch.on .track { background: var(--primary); border-color: var(--primary); }
+.switch.on .track .knob { left: 20px; background: #fff; }
+.switch .switch-lbl { font-size: 14px; color: var(--text); }
+
+/* ---- ActionIcon (Mantine ActionIcon) — ported from issue-113 ---- */
+.action-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: transparent; border: none; cursor: pointer; vertical-align: middle;
+  color: var(--dimmed);
+}
+.action-icon svg { width: 20px; height: 20px; display: block; }      /* @tabler size=20 */
+.action-icon:hover { background: var(--input-bg); color: var(--text-bright); }
+.action-icon.light { background: rgba(34,139,230,0.12); color: #74c0fc; }
+.action-icon.light:hover { background: rgba(34,139,230,0.22); }
+.action-icon.spinning svg { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --------------------------------------------------------------------------
+ * Settings > News tab.
+ * Each control sits in a labelled "setting" row. When the master Switch is OFF
+ * the dependent controls get the .is-disabled treatment (dimmed + no pointer).
+ * ------------------------------------------------------------------------ */
+.setting { padding: var(--sp-md) 0; border-bottom: 1px solid var(--border); }
+.setting:last-child { border-bottom: none; }
+.setting-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-md);
+}
+.setting-label { font-size: 14px; font-weight: 600; color: var(--text-bright); }
+.setting-desc { font-size: 13px; color: var(--dimmed); margin-top: 2px; }
+
+/* Dependent controls dim out when the master toggle is off */
+.is-disabled { opacity: 0.45; pointer-events: none; user-select: none; }
+
+/* Checkbox.Group — currency filter */
+.checkbox-group {
+  display: flex; flex-wrap: wrap; gap: var(--sp-sm) var(--sp-md);
+  margin-top: var(--sp-sm);
+}
+.checkbox { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.checkbox .box {
+  width: 18px; height: 18px; border-radius: var(--radius-sm); flex-shrink: 0;
+  border: 1px solid var(--border-strong); background: var(--input-bg);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.checkbox.on .box { background: var(--primary); border-color: var(--primary); }
+.checkbox.on .box svg { width: 12px; height: 12px; color: #fff; display: block; }
+.checkbox .ck-lbl { font-size: 14px; color: var(--text); font-family: var(--mono); }
+
+/* "Select all / None" helper Anchor */
+.helper-link {
+  background: none; border: 0; padding: 0; font-size: 13px;
+  color: var(--primary); cursor: pointer; font-family: var(--sans);
+}
+.helper-link:hover { text-decoration: underline; }
+
+/* Last-sync row */
+.sync-row { display: flex; align-items: center; gap: var(--sp-sm); }
+.sync-info { font-size: 13px; color: var(--dimmed); }
+
+/* --------------------------------------------------------------------------
+ * Calendar — news pill (single filtered event on a day).
+ * Distinct from .event trade pills: own impact color ramp, neutral dark-6
+ * surface, a leading news glyph, NON-clickable (cursor default, no href).
+ * Positioned ABOVE trade events (it's first in the cell's flex column).
+ * ------------------------------------------------------------------------ */
+.news {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 11px; line-height: 1.3;
+  padding: 3px 6px; border-radius: 3px;
+  border-left: 3px solid var(--impact-low);
+  background: var(--news-bg); color: var(--text);
+  cursor: default;                       /* news pills have no link */
+}
+.news .news-ic { flex-shrink: 0; opacity: 0.8; display: inline-flex; }
+.news .news-ic svg { width: 12px; height: 12px; display: block; }
+.news .news-time { color: var(--dimmed); flex-shrink: 0; }
+.news .news-title {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+}
+.news.high { border-left-color: var(--impact-high); }
+.news.med  { border-left-color: var(--impact-med); }
+.news.low  { border-left-color: var(--impact-low); }
+
+/* --------------------------------------------------------------------------
+ * Calendar — news indicator badge (2+ filtered events on a day).
+ * Compact glyph + count, tinted/bordered by the day's HIGHEST impact. Anchors
+ * a Mantine HoverCard (desktop only).
+ * ------------------------------------------------------------------------ */
+.news-indicator {
+  position: relative; display: inline-flex; align-items: center; gap: 5px;
+  align-self: flex-start; font-family: var(--mono); font-size: 11px;
+  font-weight: 600; padding: 2px 8px 2px 6px; border-radius: 3px;
+  border-left: 3px solid var(--impact-low);
+  background: var(--news-bg); color: var(--text); cursor: default;
+}
+.news-indicator .news-ic svg { width: 13px; height: 13px; display: block; }
+.news-indicator .count { color: var(--text-bright); }
+.news-indicator.high { border-left-color: var(--impact-high); background: rgba(224,49,49,0.10); }
+.news-indicator.med  { border-left-color: var(--impact-med);  background: rgba(247,103,7,0.10); }
+.news-indicator.low  { border-left-color: var(--impact-low); }
+/* Keyboard-focus affordance (the indicator is the only focusable news control) */
+.news-indicator:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* --------------------------------------------------------------------------
+ * HoverCard (Mantine HoverCard) — full event list grouped by currency.
+ * In the mockup the .news-hover.open modifier renders it statically; in the
+ * app it's toggled by hover/focus and floats via Floating UI.
+ * ------------------------------------------------------------------------ */
+.news-hover {
+  display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
+  width: 280px; padding: var(--sp-sm); text-align: left;
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-md); box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+  cursor: default;
+}
+.news-hover.open { display: block; }
+.news-group { margin-bottom: var(--sp-sm); }
+.news-group:last-child { margin-bottom: 0; }
+.news-group-head {
+  display: flex; align-items: baseline; gap: 6px;
+  font-size: 12px; font-weight: 700; color: var(--text-bright);
+  text-transform: none; margin-bottom: 5px;
+  padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.news-group-head .cur { font-family: var(--mono); }
+.news-group-head .grp-count { font-size: 11px; color: var(--dimmed); font-weight: 600; }
+.news-row {
+  display: grid; grid-template-columns: auto 1fr auto;
+  align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 12px; padding: 3px 0; color: var(--text);
+}
+.news-row .nr-time { color: var(--dimmed); }
+.news-row .nr-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.news-row .nr-impact {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--sans); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.4px; text-transform: uppercase; color: var(--dimmed);
+}
+.impact-dot { width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0; background: var(--impact-low); }
+.impact-dot.high { background: var(--impact-high); }
+.impact-dot.med  { background: var(--impact-med); }
+.impact-dot.low  { background: var(--impact-low); }
+.nr-impact.high { color: #ff8787; }
+.nr-impact.med  { color: #ffa94d; }
+.nr-impact.low  { color: var(--dimmed); }
+
+/* Legend swatches for the news color ramp (calendar footer) */
+.event-legend .swatch.news-high { border-left: 3px solid var(--impact-high); background: var(--news-bg); }
+.event-legend .swatch.news-med  { border-left: 3px solid var(--impact-med);  background: var(--news-bg); }
+.event-legend .swatch.news-low  { border-left: 3px solid var(--impact-low);  background: var(--news-bg); }
+
+/* --------------------------------------------------------------------------
+ * Mobile agenda — news events render INLINE (no hover), before trade events.
+ * Reuse the .news pill; allow it to wrap.
+ * ------------------------------------------------------------------------ */
+.agenda-day .news { white-space: normal; margin-bottom: 4px; }
+.agenda-day .news .news-title { white-space: normal; }
+
+@media (max-width: 768px) {
+  /* HoverCard isn't usable on touch — never show it on mobile */
+  .news-hover, .news-hover.open { display: none; }
+  .checkbox-group { gap: var(--sp-sm) var(--sp-md); }
+}

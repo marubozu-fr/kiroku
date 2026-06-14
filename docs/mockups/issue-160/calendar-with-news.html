@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Journal · Calendar with news</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #160 — Journal calendar with economic-news events.
+    Extends issue-65 journal-calendar.html. News events sit ABOVE trade events
+    in each day cell.
+      Jun 10 (3 events, all HIGH)  -> .news-indicator (HIGH tint) + HoverCard (closed here)
+      Jun 11 (3 events, HIGH+MED)  -> .news-indicator (HIGH tint) + HoverCard (closed here)
+      Jun 12 (1 event,  MEDIUM)    -> single .news pill, shown directly
+    See calendar-with-news-hover.html for an OPEN HoverCard.
+    News colors use the impact ramp (red/orange/dimmed) — never P&L green/red.
+  -->
+  <div class="shell">
+
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▦</span> Dashboard</a>
+      <a class="navlink active" href="#"><span class="ic">▤</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">◫</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <div class="page-header">
+          <h1 class="page-title">Journal</h1>
+          <div class="right">
+            <div class="field">
+              <select class="input" aria-label="Year">
+                <option selected>2026</option>
+                <option>2025</option>
+                <option>2024</option>
+              </select>
+            </div>
+            <a class="btn filled" href="#">+ New Trade</a>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric"><div class="lbl">Total Trades</div><div class="val">47</div></div>
+          <div class="metric"><div class="lbl">Total P&amp;L</div><div class="val profit">+38.50R</div></div>
+          <div class="metric"><div class="lbl">Win Rate</div><div class="val">63%</div></div>
+          <div class="metric"><div class="lbl">Avg. P&amp;L</div><div class="val profit">+0.82R</div></div>
+        </div>
+
+        <div class="view-toolbar">
+          <div class="segmented full" style="max-width: 280px;">
+            <span class="seg active">Calendar</span>
+            <span class="seg">List</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="calendar">
+
+            <div class="cal-nav">
+              <button class="icon-btn" aria-label="Previous month">‹</button>
+              <div class="month-label">June 2026</div>
+              <button class="icon-btn" aria-label="Next month">›</button>
+            </div>
+
+            <div class="cal-weekdays">
+              <div class="wd">Mon</div><div class="wd">Tue</div><div class="wd">Wed</div>
+              <div class="wd">Thu</div><div class="wd">Fri</div>
+            </div>
+
+            <div class="cal-grid">
+
+              <!-- Week 1: Jun 1-5 -->
+              <div class="cal-day">
+                <span class="daynum">1</span>
+                <a class="event win" href="/trades/101">10:00 EUR/USD: +5.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">2</span>
+                <a class="event loss" href="/trades/102">09:15 GBP/USD: -1.00R</a>
+              </div>
+              <div class="cal-day"><span class="daynum">3</span></div>
+              <div class="cal-day">
+                <span class="daynum">4</span>
+                <a class="event win" href="/trades/104">11:30 GOLD: +2.50R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">5</span>
+                <a class="event win" href="/trades/105">08:00 US100: +1.50R</a>
+                <a class="event loss" href="/trades/106">13:45 BTC/USD: -1.00R</a>
+                <span class="event-more">+1 more</span>
+                <span class="review weekly win">Weekly Review: +7.00R</span>
+              </div>
+
+              <!-- Week 2: Jun 8-12 (today = 10) — NEWS injected here -->
+              <div class="cal-day">
+                <span class="daynum">8</span>
+                <a class="event win" href="/trades/108">10:00 SPX: +3.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">9</span>
+                <a class="event loss" href="/trades/109">14:20 EUR/USD: -2.00R</a>
+              </div>
+
+              <!-- Jun 10 — 3 HIGH news events -> indicator badge (HoverCard closed) -->
+              <div class="cal-day today">
+                <span class="daynum">10</span>
+                <span class="news-indicator high" tabindex="0" aria-label="3 economic news events">
+                  <span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>
+                  <span class="count">3</span>
+                  <!-- HoverCard.Dropdown (rendered open in calendar-with-news-hover.html) -->
+                  <span class="news-hover" role="tooltip">
+                    <div class="news-group">
+                      <div class="news-group-head"><span class="cur">USD</span><span class="grp-count">(2)</span></div>
+                      <div class="news-row"><span class="nr-time">08:30</span><span class="nr-title">Core CPI m/m</span><span class="nr-impact high"><span class="impact-dot high"></span>High</span></div>
+                      <div class="news-row"><span class="nr-time">08:30</span><span class="nr-title">CPI y/y</span><span class="nr-impact high"><span class="impact-dot high"></span>High</span></div>
+                    </div>
+                    <div class="news-group">
+                      <div class="news-group-head"><span class="cur">CAD</span><span class="grp-count">(1)</span></div>
+                      <div class="news-row"><span class="nr-time">09:45</span><span class="nr-title">BOC Overnight Rate</span><span class="nr-impact high"><span class="impact-dot high"></span>High</span></div>
+                    </div>
+                  </span>
+                </span>
+                <a class="event win" href="/trades/110">10:00 GBP/JPY: +4.20R</a>
+              </div>
+
+              <!-- Jun 11 — 3 events (HIGH + HIGH + MEDIUM) -> indicator badge -->
+              <div class="cal-day">
+                <span class="daynum">11</span>
+                <span class="news-indicator high" tabindex="0" aria-label="3 economic news events">
+                  <span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>
+                  <span class="count">3</span>
+                  <span class="news-hover" role="tooltip">
+                    <div class="news-group">
+                      <div class="news-group-head"><span class="cur">EUR</span><span class="grp-count">(1)</span></div>
+                      <div class="news-row"><span class="nr-time">08:15</span><span class="nr-title">Main Refinancing Rate</span><span class="nr-impact high"><span class="impact-dot high"></span>High</span></div>
+                    </div>
+                    <div class="news-group">
+                      <div class="news-group-head"><span class="cur">USD</span><span class="grp-count">(2)</span></div>
+                      <div class="news-row"><span class="nr-time">08:30</span><span class="nr-title">Core PPI m/m</span><span class="nr-impact high"><span class="impact-dot high"></span>High</span></div>
+                      <div class="news-row"><span class="nr-time">08:30</span><span class="nr-title">Unemployment Claims</span><span class="nr-impact med"><span class="impact-dot med"></span>Med</span></div>
+                    </div>
+                  </span>
+                </span>
+                <a class="event be" href="/trades/111">09:30 GOLD: 0.00R</a>
+              </div>
+
+              <!-- Jun 12 — 1 MEDIUM event -> single news pill shown directly -->
+              <div class="cal-day">
+                <span class="daynum">12</span>
+                <span class="news med" title="10:00 Prelim UoM Consumer Sentiment (USD, Medium)">
+                  <span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span>
+                  <span class="news-time">10:00</span>
+                  <span class="news-title">Prelim UoM Consumer Sentiment</span>
+                </span>
+                <a class="event win" href="/trades/112">11:00 US30: +1.30R</a>
+                <span class="review weekly win">Weekly Review: +6.50R</span>
+              </div>
+
+              <!-- Week 3: Jun 15-19 -->
+              <div class="cal-day">
+                <span class="daynum">15</span>
+                <a class="event loss" href="/trades/115">10:45 EUR/USD: -1.50R</a>
+              </div>
+              <div class="cal-day"><span class="daynum">16</span></div>
+              <div class="cal-day">
+                <span class="daynum">17</span>
+                <a class="event win" href="/trades/117">12:10 BTC/USD: +2.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">18</span>
+                <a class="event loss" href="/trades/118">15:00 SILVER: -1.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">19</span>
+                <a class="event loss" href="/trades/119">09:50 AUD/USD: -2.30R</a>
+                <span class="review weekly loss">Weekly Review: -2.80R</span>
+              </div>
+
+              <!-- Week 4: Jun 22-26 -->
+              <div class="cal-day">
+                <span class="daynum">22</span>
+                <a class="event win" href="/trades/122">10:00 US100: +6.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">23</span>
+                <a class="event win" href="/trades/123">11:15 EUR/USD: +1.50R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">24</span>
+                <a class="event win" href="/trades/124">13:30 GOLD: +2.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">25</span>
+                <a class="event loss" href="/trades/125">14:00 GBP/USD: -1.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">26</span>
+                <a class="event win" href="/trades/126">10:30 SPX: +3.00R</a>
+                <span class="review weekly win">Weekly Review: +11.50R</span>
+              </div>
+
+              <!-- Week 5: Jun 29-30 + trailing July (muted) -->
+              <div class="cal-day">
+                <span class="daynum">29</span>
+                <a class="event win" href="/trades/129">10:00 EUR/USD: +5.00R</a>
+              </div>
+              <div class="cal-day">
+                <span class="daynum">30</span>
+                <a class="event win" href="/trades/130">11:45 GBP/USD: +1.30R</a>
+                <span class="review monthly win">Monthly Review: +28.50R</span>
+              </div>
+              <div class="cal-day muted"><span class="daynum">1</span></div>
+              <div class="cal-day muted"><span class="daynum">2</span></div>
+              <div class="cal-day muted"><span class="daynum">3</span></div>
+
+            </div>
+
+            <!-- Mobile agenda (< 768px). News renders INLINE (no hover), before trades. -->
+            <div class="cal-agenda">
+              <div class="agenda-day">
+                <div class="agenda-date today">Wed, Jun 10 · Today</div>
+                <!-- 3 news events: rendered as individual pills (no hover on mobile) -->
+                <span class="news high"><span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><span class="news-time">08:30</span><span class="news-title">USD · Core CPI m/m</span></span>
+                <span class="news high"><span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><span class="news-time">08:30</span><span class="news-title">USD · CPI y/y</span></span>
+                <span class="news high"><span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><span class="news-time">09:45</span><span class="news-title">CAD · BOC Overnight Rate</span></span>
+                <a class="event win" href="/trades/110">10:00 GBP/JPY: +4.20R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Thu, Jun 11</div>
+                <span class="news high"><span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><span class="news-time">08:15</span><span class="news-title">EUR · Main Refinancing Rate</span></span>
+                <span class="news high"><span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><span class="news-time">08:30</span><span class="news-title">USD · Core PPI m/m</span></span>
+                <span class="news med"><span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><span class="news-time">08:30</span><span class="news-title">USD · Unemployment Claims</span></span>
+                <a class="event be" href="/trades/111">09:30 GOLD: 0.00R</a>
+              </div>
+              <div class="agenda-day">
+                <div class="agenda-date">Fri, Jun 12</div>
+                <span class="news med"><span class="news-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></span><span class="news-time">10:00</span><span class="news-title">USD · Prelim UoM Consumer Sentiment</span></span>
+                <a class="event win" href="/trades/112">11:00 US30: +1.30R</a>
+                <span class="review weekly win">Weekly Review: +6.50R</span>
+              </div>
+            </div>
+
+            <!-- Legend — news impact ramp (kept separate from trade P&L colors) -->
+            <div class="event-legend">
+              <span class="lg"><span class="swatch news-high"></span> High impact</span>
+              <span class="lg"><span class="swatch news-med"></span> Medium impact</span>
+              <span class="lg"><span class="swatch news-low"></span> Low impact</span>
+              <span class="lg"><span class="swatch live"></span> Trade (P&amp;L)</span>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="note">
+          News events sit <strong>above</strong> trade events in each day cell and
+          never use P&amp;L green/red — impact is shown with its own red / orange /
+          dimmed ramp. A single filtered event renders as a pill (Jun 12); 2+ events
+          collapse into an indicator badge with a HoverCard (Jun 10 &amp; 11). Below
+          <code>sm</code> (768px) the grid becomes an agenda and news renders inline.
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
