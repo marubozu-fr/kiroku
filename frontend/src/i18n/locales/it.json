@@ -385,7 +385,8 @@
       "general": "Generale",
       "assets": "Asset",
       "tags": "Tags",
-      "emotions": "Emozioni"
+      "emotions": "Emozioni",
+      "news": "Notizie"
     },
     "general": {
       "language_label": "Lingua",
@@ -551,6 +552,27 @@
         "notify_success": "{{count}} emozioni importate con successo",
         "notify_error": "Impossibile importare le emozioni"
       }
+    },
+    "news": {
+      "title": "Notizie economiche",
+      "enabled": "Mostra le notizie economiche sul calendario",
+      "enabled_description": "Mostra gli eventi economici (CPI, NFP, FOMC…) sul calendario del diario.",
+      "currencies": "Valute",
+      "currencies_description": "Mostra solo gli eventi delle valute selezionate.",
+      "select_all": "Seleziona tutto",
+      "select_none": "Nessuna",
+      "min_impact": "Livello di impatto minimo",
+      "min_impact_description": "Nascondi gli eventi al di sotto dell’impatto selezionato.",
+      "impact_high": "Solo alto",
+      "impact_medium": "Alto + Medio",
+      "impact_all": "Tutti",
+      "last_sync": "Ultima sincronizzazione: {{time}}",
+      "sync_now": "Sincronizza",
+      "syncing": "Sincronizzazione…",
+      "sync_success": "{{count}} eventi sincronizzati",
+      "sync_error": "Sincronizzazione non riuscita, riprova",
+      "never_synced": "Mai sincronizzato",
+      "save_error": "Impossibile salvare le impostazioni delle notizie"
     }
   },
   "trade": {
