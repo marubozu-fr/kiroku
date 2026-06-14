@@ -24,16 +24,12 @@ function stubFetch(
     prefs?: Preferences
     status?: { last_sync: string | null; is_stale: boolean }
     onPatch?: (body: unknown) => void
-    onSync?: () => void
-    syncSynced?: number
   } = {},
 ) {
   const {
     prefs = preferences(),
     status = { last_sync: null, is_stale: false },
     onPatch,
-    onSync,
-    syncSynced = 12,
   } = handlers
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET'
@@ -46,10 +42,6 @@ function stubFetch(
     }
     if (url === '/api/news/status') {
       return jsonResponse(status)
-    }
-    if (url === '/api/news/sync' && method === 'POST') {
-      onSync?.()
-      return jsonResponse({ synced: syncSynced, week_start: null, week_end: null })
     }
     throw new Error(`Unexpected request: ${method} ${url}`)
   })
@@ -100,7 +92,6 @@ describe('NewsTab', () => {
     expect(screen.getByRole('switch')).not.toBeChecked()
     expect(screen.getByRole('checkbox', { name: 'USD' })).toBeDisabled()
     expect(screen.getByRole('radio', { name: 'All' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Sync now' })).toBeDisabled()
   })
 
   it('persists a toggle change via PATCH /api/preferences', async () => {
@@ -131,25 +122,6 @@ describe('NewsTab', () => {
         news_currencies: ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD', 'CHF', 'NZD', 'CNY'],
       })
     })
-  })
-
-  it('triggers a manual sync and refreshes the last-synced label', async () => {
-    const onSync = vi.fn()
-    stubFetch({ onSync, syncSynced: 7, status: { last_sync: null, is_stale: false } })
-    renderWithProviders(<NewsTab />)
-
-    expect(await screen.findByText('Never synced')).toBeInTheDocument()
-    await waitForChecked()
-    fireEvent.click(screen.getByRole('button', { name: 'Sync now' }))
-
-    await waitFor(() => {
-      expect(onSync).toHaveBeenCalledTimes(1)
-    })
-    // A successful sync stamps the moment, replacing the "Never synced" label.
-    await waitFor(() => {
-      expect(screen.queryByText('Never synced')).not.toBeInTheDocument()
-    })
-    expect(screen.getByText(/Last synced:/)).toBeInTheDocument()
   })
 
   it('shows "Never synced" when there is no last sync', async () => {

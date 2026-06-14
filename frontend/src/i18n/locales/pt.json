@@ -354,7 +354,11 @@
       "more": "+{{count}} mais",
       "prev_month": "Mês anterior",
       "next_month": "Próximo mês",
-      "today": "Hoje"
+      "today": "Hoje",
+      "news": {
+        "events_count": "{{count}} eventos económicos",
+        "no_news": "Sem eventos económicos"
+      }
     },
     "empty": {
       "title": "Sem trades para {{year}}",
@@ -567,10 +571,6 @@
       "impact_medium": "Alto + Médio",
       "impact_all": "Todos",
       "last_sync": "Última sincronização: {{time}}",
-      "sync_now": "Sincronizar",
-      "syncing": "A sincronizar…",
-      "sync_success": "{{count}} eventos sincronizados",
-      "sync_error": "Falha na sincronização, tente novamente",
       "never_synced": "Nunca sincronizado",
       "save_error": "Não foi possível guardar as definições de notícias"
     }

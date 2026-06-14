@@ -354,7 +354,11 @@
       "more": "+{{count}} altri",
       "prev_month": "Mese precedente",
       "next_month": "Mese successivo",
-      "today": "Oggi"
+      "today": "Oggi",
+      "news": {
+        "events_count": "{{count}} eventi economici",
+        "no_news": "Nessun evento economico"
+      }
     },
     "empty": {
       "title": "Nessun trade per {{year}}",
@@ -567,10 +571,6 @@
       "impact_medium": "Alto + Medio",
       "impact_all": "Tutti",
       "last_sync": "Ultima sincronizzazione: {{time}}",
-      "sync_now": "Sincronizza",
-      "syncing": "Sincronizzazione…",
-      "sync_success": "{{count}} eventi sincronizzati",
-      "sync_error": "Sincronizzazione non riuscita, riprova",
       "never_synced": "Mai sincronizzato",
       "save_error": "Impossibile salvare le impostazioni delle notizie"
     }

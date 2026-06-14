@@ -10,3 +10,17 @@ export interface SyncResult {
   week_start: string | null
   week_end: string | null
 }
+
+/** Normalized impact level of an economic calendar event. */
+export type NewsImpact = 'HIGH' | 'MEDIUM' | 'LOW' | 'NONE'
+
+/** A macro economic calendar event from `GET /api/news` (issue #162). */
+export interface NewsEvent {
+  id: string
+  date: string
+  title: string
+  currency: string
+  impact: NewsImpact
+  forecast: string
+  previous: string
+}
