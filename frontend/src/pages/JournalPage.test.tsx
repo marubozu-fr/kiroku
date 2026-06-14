@@ -141,6 +141,18 @@ describe('JournalPage', () => {
     expect(await screen.findByText(/no trades for 2026/i)).toBeInTheDocument()
   })
 
+  it('still renders the calendar when a year has no trades', async () => {
+    stubApi({ years: [2026], assets: [asset], trades: () => [] })
+
+    renderJournal()
+
+    // The empty-state banner no longer replaces the calendar: the month header
+    // and weekday grid render so news events remain visible without any trades.
+    expect(await screen.findByText(/no trades for 2026/i)).toBeInTheDocument()
+    expect((await screen.findAllByText('June 2026')).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Mon').length).toBeGreaterThanOrEqual(1)
+  })
+
   it('reloads trades when the year changes', async () => {
     stubApi({
       years: [2025, 2026],
