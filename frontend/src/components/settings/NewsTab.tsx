@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { IconRefresh } from '@tabler/icons-react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import {
-  ActionIcon,
   Anchor,
   Card,
   Checkbox,
@@ -21,7 +19,7 @@ import { newsApi } from '@/services/news'
 import { preferencesApi } from '@/services/preferences'
 import type { NewsMinImpact, PreferencesUpdate } from '@/types/preferences'
 import { DataStates } from './DataStates'
-import { notifyError, notifySuccess } from './notify'
+import { notifyError } from './notify'
 
 dayjs.extend(relativeTime)
 
@@ -39,7 +37,6 @@ export function NewsTab() {
   const [currencies, setCurrencies] = useState<string[]>([])
   const [minImpact, setMinImpact] = useState<NewsMinImpact>('MEDIUM')
   const [lastSync, setLastSync] = useState<string | null>(null)
-  const [syncing, setSyncing] = useState(false)
 
   // Seed the editable mirror from the fetched preferences exactly once, so a
   // later optimistic edit is never clobbered by the same initial response.
@@ -90,19 +87,6 @@ export function NewsTab() {
     const previous = minImpact
     setMinImpact(next)
     void persist({ news_min_impact: next }, () => setMinImpact(previous))
-  }
-
-  const handleSync = async () => {
-    setSyncing(true)
-    try {
-      const result = await newsApi.sync()
-      setLastSync(new Date().toISOString())
-      notifySuccess(t('settings.news.sync_success', { count: result.synced }))
-    } catch {
-      notifyError(t('settings.news.sync_error'))
-    } finally {
-      setSyncing(false)
-    }
   }
 
   const impactData = [
@@ -206,22 +190,9 @@ export function NewsTab() {
 
           <Divider />
 
-          <Group justify="space-between" align="center">
-            <Text size="sm" c="dimmed">
-              {syncing ? t('settings.news.syncing') : lastSyncLabel}
-            </Text>
-            <ActionIcon
-              variant="light"
-              size="lg"
-              disabled={!enabled || syncing}
-              loading={syncing}
-              onClick={handleSync}
-              aria-label={t('settings.news.sync_now')}
-              title={t('settings.news.sync_now')}
-            >
-              <IconRefresh size={20} />
-            </ActionIcon>
-          </Group>
+          <Text size="sm" c="dimmed">
+            {lastSyncLabel}
+          </Text>
         </Stack>
       </Card>
     </DataStates>

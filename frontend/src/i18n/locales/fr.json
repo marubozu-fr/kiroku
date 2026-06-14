@@ -571,10 +571,6 @@
       "impact_medium": "Élevé + Moyen",
       "impact_all": "Tous",
       "last_sync": "Dernière synchronisation : {{time}}",
-      "sync_now": "Synchroniser",
-      "syncing": "Synchronisation…",
-      "sync_success": "{{count}} événements synchronisés",
-      "sync_error": "Échec de la synchronisation, veuillez réessayer",
       "never_synced": "Jamais synchronisé",
       "save_error": "Impossible d’enregistrer les paramètres des actualités"
     }

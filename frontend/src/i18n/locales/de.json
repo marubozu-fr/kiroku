@@ -571,10 +571,6 @@
       "impact_medium": "Hoch + Mittel",
       "impact_all": "Alle",
       "last_sync": "Zuletzt synchronisiert: {{time}}",
-      "sync_now": "Synchronisieren",
-      "syncing": "Synchronisiere…",
-      "sync_success": "{{count}} Ereignisse synchronisiert",
-      "sync_error": "Synchronisierung fehlgeschlagen, bitte erneut versuchen",
       "never_synced": "Nie synchronisiert",
       "save_error": "Nachrichteneinstellungen konnten nicht gespeichert werden"
     }

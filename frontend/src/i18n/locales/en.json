@@ -571,10 +571,6 @@
       "impact_medium": "High + Medium",
       "impact_all": "All",
       "last_sync": "Last synced: {{time}}",
-      "sync_now": "Sync now",
-      "syncing": "Syncing…",
-      "sync_success": "Synced {{count}} events",
-      "sync_error": "Sync failed, please try again",
       "never_synced": "Never synced",
       "save_error": "Could not save news settings"
     }

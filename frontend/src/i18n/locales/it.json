@@ -571,10 +571,6 @@
       "impact_medium": "Alto + Medio",
       "impact_all": "Tutti",
       "last_sync": "Ultima sincronizzazione: {{time}}",
-      "sync_now": "Sincronizza",
-      "syncing": "Sincronizzazione…",
-      "sync_success": "{{count}} eventi sincronizzati",
-      "sync_error": "Sincronizzazione non riuscita, riprova",
       "never_synced": "Mai sincronizzato",
       "save_error": "Impossibile salvare le impostazioni delle notizie"
     }
