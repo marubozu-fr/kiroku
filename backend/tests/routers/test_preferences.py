@@ -10,7 +10,12 @@ def test_get_preferences_returns_seeded_default() -> None:
   assert response.status_code == 200
   body = response.json()
   assert body["error"] is None
-  assert body["data"] == {"risk_per_trade_default": 1.0}
+  assert body["data"] == {
+    "risk_per_trade_default": 1.0,
+    "news_enabled": True,
+    "news_currencies": ["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "NZD"],
+    "news_min_impact": "MEDIUM",
+  }
 
 
 def test_patch_preferences_updates_field() -> None:
@@ -76,3 +81,35 @@ def test_patch_preferences_accepts_boundary_max() -> None:
 
   assert response.status_code == 200
   assert response.json()["data"]["risk_per_trade_default"] == 100.0
+
+
+def test_patch_preferences_updates_news_fields() -> None:
+  with TestClient(app) as client:
+    response = client.patch(
+      "/api/preferences",
+      json={
+        "news_enabled": False,
+        "news_currencies": ["USD", "EUR"],
+        "news_min_impact": "HIGH",
+      },
+    )
+
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["news_enabled"] is False
+    assert data["news_currencies"] == ["USD", "EUR"]
+    assert data["news_min_impact"] == "HIGH"
+
+    # The currency list round-trips through its JSON column on the next read.
+    reread = client.get("/api/preferences").json()["data"]
+    assert reread["news_currencies"] == ["USD", "EUR"]
+
+
+def test_patch_preferences_rejects_invalid_min_impact() -> None:
+  with TestClient(app) as client:
+    response = client.patch(
+      "/api/preferences", json={"news_min_impact": "NONE"}
+    )
+
+  assert response.status_code == 422
+  assert response.json()["data"] is None

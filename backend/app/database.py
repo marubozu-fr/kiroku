@@ -76,6 +76,32 @@ async def apply_migrations() -> None:
       if "label" not in screenshot_columns:
         await connection.execute("ALTER TABLE trade_screenshots ADD COLUMN label TEXT")
 
+    # news preferences (issue #159): news filtering settings added to the
+    # single user_preferences row. Each column has a NOT NULL DEFAULT, so the
+    # ALTER back-fills existing rows with the same defaults. schema.sql seeds for
+    # fresh databases. Guarded by a table- and column-presence check so it is a
+    # no-op once the database is current and on databases that predate the table.
+    cursor = await connection.execute(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'user_preferences'"
+    )
+    if await cursor.fetchone() is not None:
+      cursor = await connection.execute("PRAGMA table_info(user_preferences)")
+      preference_columns = {row[1] for row in await cursor.fetchall()}
+      if "news_enabled" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN news_enabled BOOLEAN NOT NULL DEFAULT 1"
+        )
+      if "news_currencies" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN news_currencies TEXT NOT NULL "
+          "DEFAULT '[\"USD\", \"EUR\", \"GBP\", \"JPY\", \"CAD\", \"AUD\", \"CHF\", \"NZD\"]'"
+        )
+      if "news_min_impact" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN news_min_impact TEXT NOT NULL "
+          "DEFAULT 'MEDIUM'"
+        )
+
     await connection.commit()
 
 

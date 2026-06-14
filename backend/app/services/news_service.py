@@ -118,10 +118,20 @@ async def load_news_for_period(
   return await news_repository.load_for_period(start_date, end_date, currencies, min_impact)
 
 
-async def is_sync_stale(max_age_hours: int = 12) -> bool:
-  """Return True if the last sync is older than max_age_hours, or never happened."""
-  last_sync = await news_repository.get_last_sync_time()
+def _is_stale(last_sync: Optional[str], max_age_hours: int) -> bool:
+  """Return True if last_sync is older than max_age_hours, or never happened."""
   if last_sync is None:
     return True
   last = datetime.fromisoformat(last_sync)
   return datetime.now(timezone.utc) - last > timedelta(hours=max_age_hours)
+
+
+async def is_sync_stale(max_age_hours: int = 12) -> bool:
+  """Return True if the last sync is older than max_age_hours, or never happened."""
+  return _is_stale(await news_repository.get_last_sync_time(), max_age_hours)
+
+
+async def get_sync_status(max_age_hours: int = 12) -> dict[str, Any]:
+  """Return the last sync timestamp and whether the data is stale."""
+  last_sync = await news_repository.get_last_sync_time()
+  return {"last_sync": last_sync, "is_stale": _is_stale(last_sync, max_age_hours)}
