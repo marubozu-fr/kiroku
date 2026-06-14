@@ -78,7 +78,7 @@ async def apply_migrations() -> None:
 
     # news preferences (issue #159): news filtering settings added to the
     # single user_preferences row. Each column has a NOT NULL DEFAULT, so the
-    # ALTER back-fills existing rows with the same defaults schema.sql seeds for
+    # ALTER back-fills existing rows with the same defaults. schema.sql seeds for
     # fresh databases. Guarded by a table- and column-presence check so it is a
     # no-op once the database is current and on databases that predate the table.
     cursor = await connection.execute(

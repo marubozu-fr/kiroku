@@ -52,7 +52,7 @@ async def get_news(
     preferences["news_min_impact"],
   )
   return NewsListResponse(
-    data=[event.model_dump() for event in events],
+    data=[event.model_dump(exclude={"synced_at"}) for event in events],
     meta=NewsListMeta(count=len(events), start=start_str, end=end_str),
   )
 
