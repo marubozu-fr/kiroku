@@ -113,3 +113,20 @@ CREATE TABLE IF NOT EXISTS user_preferences (
 );
 
 INSERT OR IGNORE INTO user_preferences (id, risk_per_trade_default) VALUES (1, 1.0);
+
+-- Macro economic calendar events synced from the free Forex Factory JSON feed.
+-- `id` is a deterministic sha256(title + date_utc) truncated to 16 chars, so a
+-- re-sync of the same event upserts in place. All dates stored as UTC ISO 8601.
+CREATE TABLE IF NOT EXISTS news_events (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  title TEXT NOT NULL,
+  currency TEXT NOT NULL,
+  impact TEXT NOT NULL CHECK (impact IN ('HIGH', 'MEDIUM', 'LOW', 'NONE')),
+  forecast TEXT NOT NULL DEFAULT '',
+  previous TEXT NOT NULL DEFAULT '',
+  synced_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_news_events_date ON news_events(date);
+CREATE INDEX IF NOT EXISTS idx_news_events_currency ON news_events(currency);
