@@ -25,10 +25,6 @@ _IMPACT_MAP = {
   "Holiday": "NONE",
 }
 
-# Impact ranking used by min_impact filtering (higher number = stronger impact).
-_IMPACT_RANK = {"HIGH": 3, "MEDIUM": 2, "LOW": 1, "NONE": 0}
-
-
 def _now() -> str:
   """Current UTC time as an ISO 8601 string."""
   return datetime.now(timezone.utc).isoformat()
@@ -119,14 +115,7 @@ async def load_news_for_period(
   min_impact: Optional[str] = None,
 ) -> list[NewsEvent]:
   """Load events in a date range, optionally filtered by currency and min impact."""
-  events = await news_repository.load_for_period(start_date, end_date)
-  if currencies:
-    allowed = set(currencies)
-    events = [event for event in events if event.currency in allowed]
-  if min_impact:
-    threshold = _IMPACT_RANK.get(min_impact, 0)
-    events = [event for event in events if _IMPACT_RANK.get(event.impact, 0) >= threshold]
-  return events
+  return await news_repository.load_for_period(start_date, end_date, currencies, min_impact)
 
 
 async def is_sync_stale(max_age_hours: int = 12) -> bool:
