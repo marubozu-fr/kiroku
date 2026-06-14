@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Settings · News</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #160 — Settings > News tab (economic-news configuration).
+    Controls: master Switch | currency Checkbox.Group (+ Select all/None) |
+    min-impact SegmentedControl | last-sync line + Sync ActionIcon.
+    When the master Switch is OFF, the dependent controls get .is-disabled
+    (dimmed + non-interactive). This mockup shows the ENABLED state.
+    News uses an impact color ramp (red/orange/dimmed) — never P&L green/red.
+  -->
+  <div class="shell">
+
+    <!-- AppShell.Navbar (Settings active) -->
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▦</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▤</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">◫</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink active" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+
+        <!-- Page header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Settings</h1>
+            <p class="page-subtitle">Manage your assets, tags, emotions and news.</p>
+          </div>
+        </div>
+
+        <!-- Settings tabs (Mantine Tabs) — News active -->
+        <div class="tabs">
+          <button class="tab">General</button>
+          <button class="tab">Assets</button>
+          <button class="tab">Tags</button>
+          <button class="tab">Emotions</button>
+          <button class="tab active">News</button>
+        </div>
+
+        <!-- News configuration card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Economic news</h2>
+          </div>
+
+          <!-- 1. Master toggle (Mantine Switch) -->
+          <div class="setting">
+            <div class="setting-head">
+              <div>
+                <div class="setting-label">Show economic news on calendar</div>
+                <div class="setting-desc">
+                  Display economic events (CPI, NFP, FOMC…) on the journal calendar.
+                </div>
+              </div>
+              <!-- Switch ON -->
+              <span class="switch on" role="switch" aria-checked="true">
+                <span class="track"><span class="knob"></span></span>
+              </span>
+            </div>
+          </div>
+
+          <!-- 2. Currency filter (Mantine Checkbox.Group) -->
+          <div class="setting">
+            <div class="setting-head">
+              <div class="setting-label">Currencies</div>
+              <!-- Select all / None helper Anchor -->
+              <button class="helper-link">Select all / None</button>
+            </div>
+            <div class="setting-desc">Only show events for the selected currencies.</div>
+            <div class="checkbox-group">
+              <!-- checked = .on (Checkbox checked) -->
+              <label class="checkbox on"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span><span class="ck-lbl">USD</span></label>
+              <label class="checkbox on"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span><span class="ck-lbl">EUR</span></label>
+              <label class="checkbox on"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span><span class="ck-lbl">GBP</span></label>
+              <label class="checkbox on"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span><span class="ck-lbl">JPY</span></label>
+              <label class="checkbox on"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span><span class="ck-lbl">CAD</span></label>
+              <label class="checkbox"><span class="box"></span><span class="ck-lbl">AUD</span></label>
+              <label class="checkbox"><span class="box"></span><span class="ck-lbl">CHF</span></label>
+              <label class="checkbox"><span class="box"></span><span class="ck-lbl">NZD</span></label>
+              <label class="checkbox"><span class="box"></span><span class="ck-lbl">CNY</span></label>
+            </div>
+          </div>
+
+          <!-- 3. Minimum impact (Mantine SegmentedControl) -->
+          <div class="setting">
+            <div class="setting-head">
+              <div class="setting-label">Minimum impact level</div>
+            </div>
+            <div class="setting-desc">Hide events below the selected impact.</div>
+            <div class="segmented" style="margin-top: var(--sp-sm); max-width: 360px;">
+              <span class="seg">High only</span>
+              <span class="seg active">High + Medium</span>
+              <span class="seg">All</span>
+            </div>
+          </div>
+
+          <!-- 4. Last sync + manual Sync (ActionIcon refresh) -->
+          <div class="setting">
+            <div class="sync-row">
+              <span class="sync-info">Last synced: 2h ago</span>
+              <!-- ActionIcon variant=light, IconRefresh -->
+              <button class="action-icon light" title="Sync now" aria-label="Sync now">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="note">
+          When <strong>Show economic news on calendar</strong> is turned OFF, the
+          Currencies, Minimum impact and Sync controls are dimmed and disabled
+          (apply the <code>.is-disabled</code> class to each dependent
+          <code>.setting</code> — see <code>README.md</code> for the OFF state).
+        </div>
+
+      </div>
+    </main>
+  </div>
+</body>
+</html>
