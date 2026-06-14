@@ -11,6 +11,7 @@ Kiroku runs entirely on your machine. Log your trades, track your performance in
 - **Analytics** — R-distribution, cumulative R curve, asset/tag breakdowns, time heatmap, and trades table with filters
 - **Projections** — Data-driven equity and growth forecasts with scenario comparison
 - **Settings** — Manage your assets, tags, and emotions catalogs
+- **Economic Calendar** — Forex Factory integration showing macro events (CPI, NFP, FOMC…) on the trade calendar, filtered by currency and impact level
 - **Multi-language** — English, French, Spanish, Italian, German, Portuguese
 - **R-Multiple Focus** — All performance measured in R-multiples; no dollar amounts displayed
 
@@ -55,7 +56,7 @@ npm install -g pnpm
 ## Quick Start
 
 ```bash
-git clone --branch v0.6.1 --depth 1 https://github.com/marubozu-fr/kiroku.git
+git clone --branch v0.6.2 --depth 1 https://github.com/marubozu-fr/kiroku.git
 cd kiroku
 make dev
 ```
@@ -80,7 +81,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 ```bash
 git clone https://github.com/marubozu-fr/kiroku.git
 cd kiroku
-git checkout v0.6.1
+git checkout v0.6.2
 make dev
 ```
 
@@ -90,7 +91,7 @@ Stable versions are listed on the [Releases](https://github.com/marubozu-fr/kiro
 
 ```bash
 git fetch --tags
-git checkout v0.6.1
+git checkout v0.6.2
 make install
 make dev
 ```
