@@ -3,6 +3,7 @@ import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { RecentTradeItem } from '@/types/dashboard'
 import { renderWithProviders } from '@/test/utils'
+import { assertDefined } from '@/test/helpers'
 import { RecentActivity } from './RecentActivity'
 
 // ---------------------------------------------------------------------------
@@ -101,14 +102,16 @@ describe('RecentActivity', () => {
       renderActivity([makeTradeItem({ performance_r: null })], 'r')
       // formatR(null) returns '—'
       const cells = screen.getAllByRole('cell')
-      const pnlCell = cells[cells.length - 1]
+      const pnlCell = cells.at(-1)
+      assertDefined(pnlCell)
       expect(pnlCell.textContent).toBe('—')
     })
 
     it('shows em dash for null performance_pct in pct mode', () => {
       renderActivity([makeTradeItem({ performance_pct: null })], 'pct')
       const cells = screen.getAllByRole('cell')
-      const pnlCell = cells[cells.length - 1]
+      const pnlCell = cells.at(-1)
+      assertDefined(pnlCell)
       expect(pnlCell.textContent).toBe('—')
     })
 
@@ -183,7 +186,9 @@ describe('RecentActivity', () => {
       // Click the first data row
       const rows = screen.getAllByRole('row')
       // rows[0] is the header, rows[1] is the first data row
-      fireEvent.click(rows[1])
+      const dataRow = rows[1]
+      assertDefined(dataRow)
+      fireEvent.click(dataRow)
 
       expect(screen.getByText('Trade detail sentinel')).toBeInTheDocument()
     })

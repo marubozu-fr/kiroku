@@ -6,6 +6,7 @@ import { ProjectionComparison } from '@/components/projections/ProjectionCompari
 import { ProjectionsPage } from '@/pages/ProjectionsPage'
 import type { Projections } from '@/types/projections'
 import { renderWithProviders } from '@/test/utils'
+import { assertDefined } from '@/test/helpers'
 
 // ---------------------------------------------------------------------------
 // Recharts mock — ResponsiveContainer measures parent width which is 0 in
@@ -344,7 +345,9 @@ describe('ProjectionsPage', () => {
     // At least one call was made; the first call (main) must not have assets
     const calls = vi.mocked(fetchProjections).mock.calls
     expect(calls.length).toBeGreaterThan(0)
-    const [mainFilters] = calls[0]
+    const firstCall = calls[0]
+    assertDefined(firstCall)
+    const [mainFilters] = firstCall
     expect(mainFilters.assets).toBeUndefined()
   })
 

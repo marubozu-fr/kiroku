@@ -85,7 +85,7 @@ function makeTooltip() {
       return null
     }
 
-    const entry = payload[0].payload as ChartEntry
+    const entry = payload[0]?.payload as ChartEntry
     const label = entry.id === -1 ? t('analytics.breakdown.others') : entry.label
 
     return (

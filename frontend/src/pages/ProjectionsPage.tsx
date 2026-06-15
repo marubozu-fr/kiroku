@@ -112,7 +112,7 @@ export function ProjectionsPage() {
   // same "now" point (TraderPro re-anchoring concept).
   const mainLastActual =
     data && data.actual_months.length > 0
-      ? data.actual_months[data.actual_months.length - 1].cumulative_r
+      ? (data.actual_months.at(-1)?.cumulative_r ?? 0)
       : 0
 
   const compData = hasAssets ? compResult.data : null
@@ -121,7 +121,7 @@ export function ProjectionsPage() {
 
   const compLastActual =
     compData && compData.actual_months.length > 0
-      ? compData.actual_months[compData.actual_months.length - 1].cumulative_r
+      ? (compData.actual_months.at(-1)?.cumulative_r ?? 0)
       : 0
 
   const compOffset = mainLastActual - compLastActual

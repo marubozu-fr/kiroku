@@ -5,6 +5,7 @@ import { JournalPage } from '@/pages/JournalPage'
 import type { Asset } from '@/types/referenceData'
 import type { TradeSummary } from '@/types/trade'
 import { jsonResponse, renderWithProviders } from '@/test/utils'
+import { assertDefined } from '@/test/helpers'
 
 function trade(overrides: Partial<TradeSummary> = {}): TradeSummary {
   return {
@@ -181,7 +182,9 @@ describe('JournalPage', () => {
 
     // Both desktop and mobile render the same link; click the first one.
     const eventLinks = await screen.findAllByRole('link', { name: /EUR\/USD/ })
-    fireEvent.click(eventLinks[0])
+    const firstLink = eventLinks[0]
+    assertDefined(firstLink)
+    fireEvent.click(firstLink)
 
     expect(await screen.findByText('Trade detail')).toBeInTheDocument()
   })

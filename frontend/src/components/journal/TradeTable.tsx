@@ -33,8 +33,8 @@ interface TradeTableProps {
 
 /** Returns the muted-row CSS class for a non-live trade, or '' for live. */
 function rowClass(accountType: AccountType): string {
-  if (accountType === 'demo') return classes.rowDemo
-  if (accountType === 'test') return classes.rowTest
+  if (accountType === 'demo') return classes.rowDemo ?? ''
+  if (accountType === 'test') return classes.rowTest ?? ''
   return ''
 }
 

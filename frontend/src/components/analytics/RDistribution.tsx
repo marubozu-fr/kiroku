@@ -45,7 +45,7 @@ function makeTooltip(totalTrades: number) {
       return null
     }
 
-    const entry = payload[0].payload as BucketEntry
+    const entry = payload[0]?.payload as BucketEntry
     const pct = totalTrades > 0 ? (entry.count / totalTrades) * 100 : 0
 
     return (

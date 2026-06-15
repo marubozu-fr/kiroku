@@ -7,6 +7,7 @@ import { EMOTION_PRESETS } from '@/data/emotionPresets'
 import type { Asset, Emotion, Tag } from '@/types/referenceData'
 import type { TradeDetail } from '@/types/trade'
 import { jsonResponse, renderWithProviders } from '@/test/utils'
+import { assertDefined } from '@/test/helpers'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -99,8 +100,8 @@ function makeTrade(overrides: Partial<TradeDetail> = {}): TradeDetail {
         is_entry: false,
       },
     ],
-    tags: [tags[0]],
-    emotions: [emotionsGrouped['Emotional State'][0]],
+    tags: tags.slice(0, 1),
+    emotions: (emotionsGrouped['Emotional State'] ?? []).slice(0, 1),
     screenshots: [],
     ...overrides,
   }
@@ -278,7 +279,10 @@ describe('TradeFormPage — create mode', () => {
     fireEvent.click(screen.getByRole('button', { name: /add entry/i }))
     expect(screen.getAllByLabelText('Quantity')).toHaveLength(2)
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Remove' })[0])
+    const removeButtons = screen.getAllByRole('button', { name: 'Remove' })
+    const firstRemoveBtn = removeButtons[0]
+    assertDefined(firstRemoveBtn)
+    fireEvent.click(firstRemoveBtn)
     expect(screen.getAllByLabelText('Quantity')).toHaveLength(1)
   })
 
@@ -300,9 +304,11 @@ describe('TradeFormPage — create mode', () => {
       expect(body.asset_id).toBe(1)
       expect(body.account_type).toBe('live')
       expect(body.activities).toHaveLength(1)
-      expect(body.activities[0].price).toBe(1.08)
-      expect(body.activities[0].quantity).toBe(1000)
-      expect(body.activities[0].type).toBe('Buy')
+      const firstActivity = body.activities[0]
+      assertDefined(firstActivity)
+      expect(firstActivity.price).toBe(1.08)
+      expect(firstActivity.quantity).toBe(1000)
+      expect(firstActivity.type).toBe('Buy')
     })
 
     expect(await screen.findByText('Trade detail')).toBeInTheDocument()
@@ -317,7 +323,9 @@ describe('TradeFormPage — create mode', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /add exit/i }))
     const quantities = screen.getAllByLabelText('Quantity')
-    fireEvent.change(quantities[1], { target: { value: '5000' } })
+    const exitQtyInput = quantities[1]
+    assertDefined(exitQtyInput)
+    fireEvent.change(exitQtyInput, { target: { value: '5000' } })
 
     expect(
       await screen.findByText('Exit quantity cannot exceed entry quantity'),
@@ -438,7 +446,7 @@ function stubStatefulApi(trade: TradeDetail | null = null) {
   const assetList = [...assets]
   const tagList = [...tags]
   const emotionMap: Record<string, Emotion[]> = {
-    'Emotional State': [...emotionsGrouped['Emotional State']],
+    'Emotional State': [...(emotionsGrouped['Emotional State'] ?? [])],
   }
   let nextId = 100
 

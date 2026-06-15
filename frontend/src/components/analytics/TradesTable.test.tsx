@@ -4,6 +4,7 @@ import { render } from '@testing-library/react'
 import { MantineProvider } from '@mantine/core'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderWithProviders } from '@/test/utils'
+import { assertDefined } from '@/test/helpers'
 import type {
   AnalyticsFilters,
   AnalyticsTrade,
@@ -279,7 +280,8 @@ describe('TradesTable', () => {
 
       await waitFor(() => {
         const calls = vi.mocked(fetchTrades).mock.calls
-        const lastCall = calls[calls.length - 1]
+        const lastCall = calls.at(-1)
+        assertDefined(lastCall)
         expect(lastCall[1]).toBe(2)
       })
     })
@@ -321,7 +323,8 @@ describe('TradesTable', () => {
       // Wait for page 2 fetch to complete
       await waitFor(() => {
         const calls = vi.mocked(fetchTrades).mock.calls
-        const lastCall = calls[calls.length - 1]
+        const lastCall = calls.at(-1)
+        assertDefined(lastCall)
         expect(lastCall[1]).toBe(2)
       })
 
@@ -341,8 +344,10 @@ describe('TradesTable', () => {
       // Verify that only ONE fetch fired after the filter change, and it used page=1
       const callsAfter = vi.mocked(fetchTrades).mock.calls.slice(callsBefore)
       expect(callsAfter.length).toBe(1)
-      expect(callsAfter[0][0]).toEqual(filtersV2)
-      expect(callsAfter[0][1]).toBe(1)
+      const firstAfterCall = callsAfter[0]
+      assertDefined(firstAfterCall)
+      expect(firstAfterCall[0]).toEqual(filtersV2)
+      expect(firstAfterCall[1]).toBe(1)
     })
   })
 
@@ -363,7 +368,9 @@ describe('TradesTable', () => {
 
       const rows = screen.getAllByRole('row')
       // rows[0] is the header row; rows[1] is the first data row
-      fireEvent.click(rows[1])
+      const dataRow = rows[1]
+      assertDefined(dataRow)
+      fireEvent.click(dataRow)
 
       expect(screen.getByText('Trade detail sentinel')).toBeInTheDocument()
     })
@@ -402,7 +409,10 @@ describe('TradesTable', () => {
       // header is present and no extra text-dashes appear in the direction cell.
       const rows = screen.getAllByRole('row')
       // rows[0] is header; rows[1] is data row
-      const directionCell = rows[1].querySelectorAll('td')[2]
+      const dataRow = rows[1]
+      assertDefined(dataRow)
+      const directionCell = dataRow.querySelectorAll('td')[2]
+      assertDefined(directionCell)
       expect(directionCell.textContent).toBe('')
     })
 

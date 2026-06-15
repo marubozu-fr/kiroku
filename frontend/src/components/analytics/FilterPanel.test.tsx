@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { renderWithProviders } from '@/test/utils'
+import { assertDefined } from '@/test/helpers'
 import type { AnalyticsFilters, AvailableFilters } from '@/types/analytics'
 import { FilterPanel } from './FilterPanel'
 
@@ -123,7 +124,9 @@ describe('FilterPanel', () => {
     // Direction "All" radio — there are multiple "All" radios (direction + account_type)
     // Find them by radio name and click the first one (direction group).
     const allRadios = screen.getAllByRole('radio', { name: 'All' })
-    fireEvent.click(allRadios[0])
+    const firstAllRadio = allRadios[0]
+    assertDefined(firstAllRadio)
+    fireEvent.click(firstAllRadio)
 
     expect(props.setFilter).toHaveBeenCalledWith('direction', undefined)
   })

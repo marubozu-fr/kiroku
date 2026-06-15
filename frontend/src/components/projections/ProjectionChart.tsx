@@ -86,12 +86,13 @@ function buildEntries(
   // The last actual cumulative R anchors the fan
   const lastActual =
     actualMonths.length > 0
-      ? actualMonths[actualMonths.length - 1].cumulative_r
+      ? (actualMonths.at(-1)?.cumulative_r ?? 0)
       : 0
 
   // Mark the transition point on the last actual entry
-  if (entries.length > 0) {
-    entries[entries.length - 1].isTransition = true
+  const lastEntry = entries.at(-1)
+  if (lastEntry != null) {
+    lastEntry.isTransition = true
   }
 
   for (const pm of projectedMonths) {
@@ -187,7 +188,7 @@ function makeTooltip(goal: GoalResult | null, comparisonLabel?: string) {
       return null
     }
 
-    const entry = payload[0].payload as ChartEntry
+    const entry = payload[0]?.payload as ChartEntry
 
     return (
       <div className={styles.tooltip}>

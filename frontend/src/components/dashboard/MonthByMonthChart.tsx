@@ -54,7 +54,7 @@ function makeTooltip(displayMode: DisplayMode) {
       return null
     }
 
-    const entry = payload[0].payload as ChartEntry
+    const entry = payload[0]?.payload as ChartEntry
     const formatted =
       displayMode === 'r' ? formatR(entry.value_r) : formatPercent(entry.value_pct)
 
