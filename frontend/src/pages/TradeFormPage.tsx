@@ -639,7 +639,7 @@ export function TradeFormPage() {
           size="xs"
           valueFormat="YYYY-MM-DD HH:mm"
           disabled={disabled}
-          value={form.values[field][index].date ? dayjs(form.values[field][index].date).toDate() : null}
+          value={form.values[field][index]?.date ? dayjs(form.values[field][index]?.date).toDate() : null}
           onChange={(value) =>
             form.setFieldValue(
               `${field}.${index}.date`,

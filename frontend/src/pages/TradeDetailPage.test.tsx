@@ -5,6 +5,7 @@ import { TradeDetailPage } from '@/pages/TradeDetailPage'
 import type { Asset } from '@/types/referenceData'
 import type { TradeDetail } from '@/types/trade'
 import { jsonResponse, renderWithProviders } from '@/test/utils'
+import { assertDefined } from '@/test/helpers'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -337,7 +338,9 @@ describe('TradeDetailPage', () => {
 
     // Click the top-level Delete button (the action button)
     const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
-    fireEvent.click(deleteButtons[0])
+    const firstDeleteBtn = deleteButtons[0]
+    assertDefined(firstDeleteBtn)
+    fireEvent.click(firstDeleteBtn)
 
     // Confirm modal should open
     const dialog = await screen.findByRole('dialog')

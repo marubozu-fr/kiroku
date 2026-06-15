@@ -20,6 +20,7 @@ vi.mock('@/services/news', () => ({
 
 // Import after vi.mock so we get the mocked module.
 import { newsApi } from '@/services/news'
+import { assertDefined } from '@/test/helpers'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -222,6 +223,8 @@ describe('TradeCalendar — news integration', () => {
     // Verify ordering: sync must have been called before list.
     const syncOrder = vi.mocked(newsApi.sync).mock.invocationCallOrder[0]
     const listOrder = vi.mocked(newsApi.list).mock.invocationCallOrder[0]
+    assertDefined(syncOrder)
+    assertDefined(listOrder)
     expect(syncOrder).toBeLessThan(listOrder)
   })
 

@@ -28,7 +28,7 @@ function makeTooltip() {
       return null
     }
 
-    const point = payload[0].payload as CumulativeRPoint
+    const point = payload[0]?.payload as CumulativeRPoint
 
     return (
       <div className={styles.tooltip}>

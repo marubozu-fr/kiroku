@@ -115,7 +115,7 @@ export function EmotionsTab() {
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {grouped[category].map((emotion) => (
+                    {(grouped[category] ?? []).map((emotion) => (
                       <Table.Tr key={emotion.id}>
                         <Table.Td>{emotion.name}</Table.Td>
                         <Table.Td>

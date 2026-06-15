@@ -181,7 +181,7 @@ describe('DashboardPage', () => {
     // Assert: fetch was called again with period=5y
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalled()
-      const calledUrl: string = fetchMock.mock.calls[0][0]
+      const calledUrl = fetchMock.mock.calls.at(0)?.[0]
       expect(calledUrl).toContain('period=5y')
     })
   })
@@ -267,7 +267,7 @@ describe('DashboardPage', () => {
       // Assert: first fetch URL contains period=all
       await waitFor(() => {
         expect(fetchMock).toHaveBeenCalled()
-        const calledUrl: string = fetchMock.mock.calls[0][0]
+        const calledUrl = fetchMock.mock.calls.at(0)?.[0]
         expect(calledUrl).toContain('period=all')
       })
     })

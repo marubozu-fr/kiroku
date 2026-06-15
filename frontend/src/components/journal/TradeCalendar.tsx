@@ -46,15 +46,15 @@ const WEEKDAY_KEYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] as const
 
 /** Returns the CSS class for a review band based on the signed value. */
 function reviewClass(value: number): string {
-  if (value > 0) return classes.reviewProfit
-  if (value < 0) return classes.reviewLoss
-  return classes.reviewNeutral
+  if (value > 0) return classes.reviewProfit ?? ''
+  if (value < 0) return classes.reviewLoss ?? ''
+  return classes.reviewNeutral ?? ''
 }
 
 /** Returns the CSS class for a trade event based on performance_r. */
 function eventClass(performanceR: number | null): string {
-  if (performanceR === null || performanceR === 0) return classes.eventNeutral
-  return performanceR > 0 ? classes.eventProfit : classes.eventLoss
+  if (performanceR === null || performanceR === 0) return classes.eventNeutral ?? ''
+  return performanceR > 0 ? (classes.eventProfit ?? '') : (classes.eventLoss ?? '')
 }
 
 /**
@@ -86,9 +86,9 @@ function highestImpact(events: NewsEvent[]): NewsImpact {
 
 /** Returns the CSS class for a news element based on its impact level. */
 function newsImpactClass(impact: NewsImpact): string {
-  if (impact === 'HIGH') return classes.newsEventHigh
-  if (impact === 'MEDIUM') return classes.newsEventMedium
-  return classes.newsEventLow
+  if (impact === 'HIGH') return classes.newsEventHigh ?? ''
+  if (impact === 'MEDIUM') return classes.newsEventMedium ?? ''
+  return classes.newsEventLow ?? ''
 }
 
 /** Inline account badge ("Demo"/"Test") shown on non-live events; null for live. */
@@ -217,7 +217,8 @@ function NewsIndicator({ events }: NewsIndicatorProps) {
       currencyOrder.push(ev.currency)
       currencyGroups[ev.currency] = []
     }
-    currencyGroups[ev.currency].push(ev)
+    const group = currencyGroups[ev.currency]
+    if (group != null) group.push(ev)
   }
 
   const indicatorClass = [
@@ -248,6 +249,7 @@ function NewsIndicator({ events }: NewsIndicatorProps) {
       <HoverCard.Dropdown className={classes.newsHoverCard}>
         {currencyOrder.map((currency) => {
           const groupEvents = currencyGroups[currency]
+          if (groupEvents == null) return null
           return (
             <div key={currency}>
               <div className={classes.newsCurrencyGroup}>
@@ -372,11 +374,11 @@ export function TradeCalendar({
     for (const ev of newsForMonth) {
       const dateStr = dayjs(ev.date).format('YYYY-MM-DD')
       if (!map[dateStr]) map[dateStr] = []
-      map[dateStr].push(ev)
+      map[dateStr]?.push(ev)
     }
     // Sort each day's events by date string (ISO, so lexicographic = chronological).
     for (const dateStr of Object.keys(map)) {
-      map[dateStr].sort((a, b) => a.date.localeCompare(b.date))
+      map[dateStr]?.sort((a, b) => a.date.localeCompare(b.date))
     }
     return map
   }, [newsByMonth, displayMonth])
@@ -612,7 +614,7 @@ function DayCell({
       </Text>
 
       {/* News events rendered ABOVE trades */}
-      {newsEvents.length === 1 && (
+      {newsEvents.length === 1 && newsEvents[0] != null && (
         <NewsEventPill event={newsEvents[0]} />
       )}
       {newsEvents.length >= 2 && (

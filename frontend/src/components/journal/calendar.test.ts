@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import dayjs from 'dayjs'
+import { assertDefined } from '@/test/helpers'
 import type { TradeSummary } from '@/types/trade'
 import {
   buildCalendarCells,
@@ -68,19 +69,25 @@ describe('buildCalendarCells', () => {
 
   it('grid rows start on Monday', () => {
     const cells = buildCalendarCells(dayjs('2026-06-01'))
-    expect(cells[0].date.day()).toBe(1) // Monday
+    const first = cells[0]
+    assertDefined(first)
+    expect(first.date.day()).toBe(1) // Monday
   })
 
   it('grid rows end on Friday', () => {
     const cells = buildCalendarCells(dayjs('2026-06-01'))
-    expect(cells[cells.length - 1].date.day()).toBe(5) // Friday
+    const last = cells.at(-1)
+    assertDefined(last)
+    expect(last.date.day()).toBe(5) // Friday
   })
 
   it('handles a month where the 1st is a Monday (no leading days)', () => {
     // March 2021: the 1st is a Monday.
     const cells = buildCalendarCells(dayjs('2021-03-01'))
-    expect(cells[0].date.format('YYYY-MM-DD')).toBe('2021-03-01')
-    expect(cells[0].inCurrentMonth).toBe(true)
+    const first = cells[0]
+    assertDefined(first)
+    expect(first.date.format('YYYY-MM-DD')).toBe('2021-03-01')
+    expect(first.inCurrentMonth).toBe(true)
   })
 
   it('handles a month where the last day is a Friday (no trailing days)', () => {
@@ -90,7 +97,8 @@ describe('buildCalendarCells', () => {
     // We want a month whose last calendar day IS a Friday: e.g. March 2024 ends on Sunday.
     // Let's use September 2023: last day is Sep 30 (Saturday) → last trading day is Sep 29 (Friday).
     const cells = buildCalendarCells(dayjs('2023-09-01'))
-    const last = cells[cells.length - 1]
+    const last = cells.at(-1)
+    assertDefined(last)
     expect(last.date.day()).toBe(5) // always ends on Friday
   })
 })
