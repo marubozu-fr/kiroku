@@ -59,14 +59,6 @@ def _set_backup_directory(client: TestClient, directory: str) -> None:
   assert resp.status_code == 200, resp.text
 
 
-def _create_valid_backup(client: TestClient, backup_dir: str) -> dict:
-  """Configure backup directory and trigger a backup, returning the response data."""
-  _set_backup_directory(client, backup_dir)
-  resp = client.post("/api/backup")
-  assert resp.status_code == 200, resp.text
-  return resp.json()["data"]
-
-
 def _build_zip_bytes(entries: dict[str, bytes]) -> bytes:
   """Build an in-memory zip with the given {arcname: content} entries."""
   buf = io.BytesIO()
