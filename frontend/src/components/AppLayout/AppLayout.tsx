@@ -13,6 +13,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { navItems } from './navItems'
 import { Logo } from '../Logo/Logo'
+import { BackupReminderBanner } from '../BackupReminderBanner'
 
 export function AppLayout() {
   const { t } = useTranslation()
@@ -81,6 +82,7 @@ export function AppLayout() {
 
       <AppShell.Main>
         <Box maw={1400} mx="auto">
+          <BackupReminderBanner />
           <Outlet />
         </Box>
       </AppShell.Main>

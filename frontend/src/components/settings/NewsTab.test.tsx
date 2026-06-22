@@ -11,6 +11,9 @@ function preferences(overrides: Partial<Preferences> = {}): Preferences {
     news_enabled: true,
     news_currencies: ['USD', 'EUR'],
     news_min_impact: 'MEDIUM',
+    backup_directory: null,
+    backup_reminder_days: 7,
+    last_backup_at: null,
     ...overrides,
   }
 }

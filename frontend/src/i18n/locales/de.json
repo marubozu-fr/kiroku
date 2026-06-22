@@ -573,6 +573,37 @@
       "last_sync": "Zuletzt synchronisiert: {{time}}",
       "never_synced": "Nie synchronisiert",
       "save_error": "Nachrichteneinstellungen konnten nicht gespeichert werden"
+    },
+    "backup": {
+      "title": "Backup",
+      "directory_label": "Backup-Verzeichnis",
+      "directory_description": "Absoluter Pfad, in dem Backups gespeichert werden",
+      "directory_error": "Dieser Pfad existiert nicht oder ist nicht beschreibbar.",
+      "save_path": "Pfad speichern",
+      "save_error": "Änderungen konnten nicht gespeichert werden",
+      "reminder_label": "Backup-Erinnerung",
+      "reminder_description": "Wird automatisch gespeichert",
+      "reminder_every_7": "Alle 7 Tage",
+      "reminder_every_14": "Alle 14 Tage",
+      "reminder_every_30": "Alle 30 Tage",
+      "reminder_disabled": "Deaktiviert",
+      "last_backup": "Letztes Backup: {{when}}",
+      "last_backup_never": "Letztes Backup: Nie",
+      "backup_now": "Jetzt sichern",
+      "backup_now_disabled_tooltip": "Lege zuerst ein gültiges Backup-Verzeichnis fest",
+      "notify_success": "Backup gespeichert: {{filename}}",
+      "notify_error": "Backup fehlgeschlagen"
+    },
+    "restore": {
+      "title": "Aus Backup wiederherstellen",
+      "upload_label": "Backup-Datei hochladen (.zip)",
+      "validate_error": "Diese Datei ist kein gültiges Backup",
+      "modal_title": "Backup wiederherstellen",
+      "summary": "Backup vom {{date}}, Kiroku {{version}} — {{trades}} trades, {{screenshots}} Screenshots",
+      "version_warning": "Dieses Backup wurde mit einer neueren Version von Kiroku erstellt. Die Wiederherstellung kann zu Problemen führen.",
+      "destructive_warning": "Dadurch werden alle aktuellen Daten ersetzt. Diese Aktion kann nicht rückgängig gemacht werden.",
+      "confirm": "Wiederherstellen",
+      "notify_error": "Wiederherstellung fehlgeschlagen"
     }
   },
   "trade": {
@@ -736,6 +767,15 @@
       "test": "Test",
       "demo": "Demo",
       "live": "Live"
+    }
+  },
+  "backup": {
+    "reminder": {
+      "never": "Du hast deine Daten noch nicht gesichert",
+      "overdue_one": "Dein letztes Backup war vor {{count}} Tag",
+      "overdue_other": "Dein letztes Backup war vor {{count}} Tagen",
+      "backup_now": "Jetzt sichern",
+      "not_now": "Nicht jetzt"
     }
   }
 }

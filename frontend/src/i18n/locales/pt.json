@@ -573,6 +573,37 @@
       "last_sync": "Última sincronização: {{time}}",
       "never_synced": "Nunca sincronizado",
       "save_error": "Não foi possível guardar as definições de notícias"
+    },
+    "backup": {
+      "title": "Backup",
+      "directory_label": "Pasta de backup",
+      "directory_description": "Caminho absoluto onde os backups serão salvos",
+      "directory_error": "Este caminho não existe ou não tem permissão de escrita.",
+      "save_path": "Salvar caminho",
+      "save_error": "Não foi possível salvar suas alterações",
+      "reminder_label": "Lembrete de backup",
+      "reminder_description": "Salva automaticamente",
+      "reminder_every_7": "A cada 7 dias",
+      "reminder_every_14": "A cada 14 dias",
+      "reminder_every_30": "A cada 30 dias",
+      "reminder_disabled": "Desativado",
+      "last_backup": "Último backup: {{when}}",
+      "last_backup_never": "Último backup: Nunca",
+      "backup_now": "Fazer backup agora",
+      "backup_now_disabled_tooltip": "Defina primeiro uma pasta de backup válida",
+      "notify_success": "Backup salvo: {{filename}}",
+      "notify_error": "Falha no backup"
+    },
+    "restore": {
+      "title": "Restaurar a partir de um backup",
+      "upload_label": "Enviar um arquivo de backup (.zip)",
+      "validate_error": "Este arquivo não é um backup válido",
+      "modal_title": "Restaurar backup",
+      "summary": "Backup de {{date}}, Kiroku {{version}} — {{trades}} trades, {{screenshots}} capturas de tela",
+      "version_warning": "Este backup foi criado com uma versão mais recente do Kiroku. A restauração pode causar problemas.",
+      "destructive_warning": "Isso substituirá todos os dados atuais. Esta ação não pode ser desfeita.",
+      "confirm": "Restaurar",
+      "notify_error": "Falha na restauração"
     }
   },
   "trade": {
@@ -736,6 +767,15 @@
       "test": "Test",
       "demo": "Demo",
       "live": "Live"
+    }
+  },
+  "backup": {
+    "reminder": {
+      "never": "Você ainda não fez backup dos seus dados",
+      "overdue_one": "Seu último backup foi há {{count}} dia",
+      "overdue_other": "Seu último backup foi há {{count}} dias",
+      "backup_now": "Fazer backup agora",
+      "not_now": "Agora não"
     }
   }
 }
