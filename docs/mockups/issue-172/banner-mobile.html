@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Backup reminder banner (mobile, stacked)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!-- Phone frame (~390px). On mobile the navbar collapses to a hamburger header
+       and the banner's Group stacks vertically (message above, buttons below). -->
+  <div class="phone-frame">
+    <main class="main">
+      <div class="content">
+        <!-- Reminder banner — stacked layout for narrow screens -->
+        <div class="banner stacked" role="alert">
+          <div class="banner-main">
+            <span class="banner-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </span>
+            <span class="banner-msg">Your last backup was <strong>12 days</strong> ago</span>
+          </div>
+          <div class="banner-actions">
+            <!-- POST /api/backup -->
+            <button class="btn filled compact-sm">Back up now</button>
+            <!-- Dismisses for 24 hours (localStorage) -->
+            <button class="btn subtle compact-sm">Not now</button>
+          </div>
+        </div>
+
+        <!-- Page content (Dashboard) — pushed down by the banner -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Your trading performance at a glance.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Equity curve</h2>
+          </div>
+          <div class="empty-state">
+            <span class="icon">▤</span>
+            <span class="desc">Page content stands in for the dashboard; the stacked banner is the subject of this mockup.</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

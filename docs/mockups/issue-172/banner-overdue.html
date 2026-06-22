@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Backup reminder banner (12 days ago)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <div class="shell">
+    <!-- AppShell.Navbar -->
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▦</span> Dashboard</a>
+      <a class="navlink active" href="#"><span class="ic">▤</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">◫</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <!-- Reminder banner: in-flow, above <Outlet/>, pushes page content down -->
+        <div class="banner" role="alert">
+          <div class="banner-main">
+            <span class="banner-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </span>
+            <span class="banner-msg">Your last backup was <strong>12 days</strong> ago</span>
+          </div>
+          <div class="banner-actions">
+            <!-- POST /api/backup -->
+            <button class="btn filled compact-sm">Back up now</button>
+            <!-- Dismisses for 24 hours (localStorage) -->
+            <button class="btn subtle compact-sm">Not now</button>
+          </div>
+        </div>
+
+        <!-- Page content (Journal) — pushed down by the banner -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Journal</h1>
+            <p class="page-subtitle">Every trade you've logged.</p>
+          </div>
+          <div class="right">
+            <button class="btn filled sm">+ New trade</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Symbol</th>
+                  <th>Direction</th>
+                  <th>Status</th>
+                  <th class="right">P&amp;L</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <span class="desc">Trade rows stand in for real journal data; the banner is the subject of this mockup.</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
