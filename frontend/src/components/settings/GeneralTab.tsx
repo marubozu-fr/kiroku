@@ -19,7 +19,6 @@ import { useDisclosure } from '@mantine/hooks'
 import { IconAlertTriangle, IconUpload } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import { LANGUAGE_OPTIONS, SUPPORTED_LANGUAGES } from '@/i18n'
-import { APP_VERSION } from '@/constants'
 import { useFetch } from '@/hooks/useFetch'
 import { ApiError } from '@/services/api'
 import { backupApi } from '@/services/backup'
@@ -97,7 +96,7 @@ export function GeneralTab() {
       await preferencesApi.update({ backup_directory: next })
       setSavedDirectory(next)
     } catch (cause) {
-      if (cause instanceof ApiError && cause.status === 422) {
+      if (cause instanceof ApiError && cause.status === 400) {
         setDirectoryError(t('settings.backup.directory_error'))
       } else {
         notifyError(t('settings.backup.save_error'))
@@ -185,7 +184,8 @@ export function GeneralTab() {
     ? t('settings.backup.last_backup', { when: dayjs(lastBackupAt).format('LLL') })
     : t('settings.backup.last_backup_never')
 
-  const versionMismatch = metadata !== null && isNewerVersion(metadata.version, APP_VERSION)
+  const versionMismatch =
+    metadata !== null && isNewerVersion(metadata.version, __APP_VERSION__)
 
   return (
     <Stack gap="md" maw={520}>

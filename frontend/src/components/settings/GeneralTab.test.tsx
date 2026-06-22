@@ -108,8 +108,8 @@ describe('GeneralTab', () => {
     })
   })
 
-  it('shows an inline error when the backup directory is rejected (422)', async () => {
-    stubFetch({ patchStatus: { ok: false, status: 422, error: 'invalid path' } })
+  it('shows an inline error when the backup directory is rejected (400)', async () => {
+    stubFetch({ patchStatus: { ok: false, status: 400, error: 'invalid path' } })
     renderWithProviders(<GeneralTab />)
 
     const input = await screen.findByRole('textbox', { name: 'Backup directory' })
