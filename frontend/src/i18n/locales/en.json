@@ -573,6 +573,37 @@
       "last_sync": "Last synced: {{time}}",
       "never_synced": "Never synced",
       "save_error": "Could not save news settings"
+    },
+    "backup": {
+      "title": "Backup",
+      "directory_label": "Backup directory",
+      "directory_description": "Absolute path where backups will be saved",
+      "directory_error": "This path doesn't exist or isn't writable.",
+      "save_path": "Save path",
+      "save_error": "Could not save your changes",
+      "reminder_label": "Backup reminder",
+      "reminder_description": "Auto-saves on change",
+      "reminder_every_7": "Every 7 days",
+      "reminder_every_14": "Every 14 days",
+      "reminder_every_30": "Every 30 days",
+      "reminder_disabled": "Disabled",
+      "last_backup": "Last backup: {{when}}",
+      "last_backup_never": "Last backup: Never",
+      "backup_now": "Back up now",
+      "backup_now_disabled_tooltip": "Set a valid backup directory first",
+      "notify_success": "Backup saved: {{filename}}",
+      "notify_error": "Backup failed"
+    },
+    "restore": {
+      "title": "Restore from backup",
+      "upload_label": "Upload a backup file (.zip)",
+      "validate_error": "This file is not a valid backup",
+      "modal_title": "Restore backup",
+      "summary": "Backup from {{date}}, Kiroku {{version}} — {{trades}} trades, {{screenshots}} screenshots",
+      "version_warning": "This backup was created with a newer version of Kiroku. Restoring may cause issues.",
+      "destructive_warning": "This will replace all current data. This action cannot be undone.",
+      "confirm": "Restore",
+      "notify_error": "Restore failed"
     }
   },
   "trade": {
@@ -736,6 +767,15 @@
       "test": "Test",
       "demo": "Demo",
       "live": "Live"
+    }
+  },
+  "backup": {
+    "reminder": {
+      "never": "You haven't backed up your data yet",
+      "overdue_one": "Your last backup was {{count}} day ago",
+      "overdue_other": "Your last backup was {{count}} days ago",
+      "backup_now": "Back up now",
+      "not_now": "Not now"
     }
   }
 }

@@ -573,6 +573,37 @@
       "last_sync": "Ultima sincronizzazione: {{time}}",
       "never_synced": "Mai sincronizzato",
       "save_error": "Impossibile salvare le impostazioni delle notizie"
+    },
+    "backup": {
+      "title": "Backup",
+      "directory_label": "Cartella di backup",
+      "directory_description": "Percorso assoluto in cui verranno salvati i backup",
+      "directory_error": "Questo percorso non esiste o non è scrivibile.",
+      "save_path": "Salva percorso",
+      "save_error": "Impossibile salvare le modifiche",
+      "reminder_label": "Promemoria di backup",
+      "reminder_description": "Salvataggio automatico",
+      "reminder_every_7": "Ogni 7 giorni",
+      "reminder_every_14": "Ogni 14 giorni",
+      "reminder_every_30": "Ogni 30 giorni",
+      "reminder_disabled": "Disattivato",
+      "last_backup": "Ultimo backup: {{when}}",
+      "last_backup_never": "Ultimo backup: Mai",
+      "backup_now": "Esegui backup ora",
+      "backup_now_disabled_tooltip": "Imposta prima una cartella di backup valida",
+      "notify_success": "Backup salvato: {{filename}}",
+      "notify_error": "Backup non riuscito"
+    },
+    "restore": {
+      "title": "Ripristina da un backup",
+      "upload_label": "Carica un file di backup (.zip)",
+      "validate_error": "Questo file non è un backup valido",
+      "modal_title": "Ripristina backup",
+      "summary": "Backup del {{date}}, Kiroku {{version}} — {{trades}} trades, {{screenshots}} screenshot",
+      "version_warning": "Questo backup è stato creato con una versione più recente di Kiroku. Il ripristino potrebbe causare problemi.",
+      "destructive_warning": "Questo sostituirà tutti i dati attuali. Questa azione non può essere annullata.",
+      "confirm": "Ripristina",
+      "notify_error": "Ripristino non riuscito"
     }
   },
   "trade": {
@@ -736,6 +767,15 @@
       "test": "Test",
       "demo": "Demo",
       "live": "Live"
+    }
+  },
+  "backup": {
+    "reminder": {
+      "never": "Non hai ancora eseguito il backup dei tuoi dati",
+      "overdue_one": "Il tuo ultimo backup risale a {{count}} giorno fa",
+      "overdue_other": "Il tuo ultimo backup risale a {{count}} giorni fa",
+      "backup_now": "Esegui backup ora",
+      "not_now": "Non ora"
     }
   }
 }

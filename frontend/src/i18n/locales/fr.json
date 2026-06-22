@@ -573,6 +573,37 @@
       "last_sync": "Dernière synchronisation : {{time}}",
       "never_synced": "Jamais synchronisé",
       "save_error": "Impossible d’enregistrer les paramètres des actualités"
+    },
+    "backup": {
+      "title": "Sauvegarde",
+      "directory_label": "Dossier de sauvegarde",
+      "directory_description": "Chemin absolu où les sauvegardes seront enregistrées",
+      "directory_error": "Ce chemin n'existe pas ou n'est pas accessible en écriture.",
+      "save_path": "Enregistrer le chemin",
+      "save_error": "Impossible d'enregistrer vos modifications",
+      "reminder_label": "Rappel de sauvegarde",
+      "reminder_description": "Enregistrement automatique",
+      "reminder_every_7": "Tous les 7 jours",
+      "reminder_every_14": "Tous les 14 jours",
+      "reminder_every_30": "Tous les 30 jours",
+      "reminder_disabled": "Désactivé",
+      "last_backup": "Dernière sauvegarde : {{when}}",
+      "last_backup_never": "Dernière sauvegarde : Jamais",
+      "backup_now": "Sauvegarder maintenant",
+      "backup_now_disabled_tooltip": "Définissez d'abord un dossier de sauvegarde valide",
+      "notify_success": "Sauvegarde enregistrée : {{filename}}",
+      "notify_error": "Échec de la sauvegarde"
+    },
+    "restore": {
+      "title": "Restaurer depuis une sauvegarde",
+      "upload_label": "Importer un fichier de sauvegarde (.zip)",
+      "validate_error": "Ce fichier n'est pas une sauvegarde valide",
+      "modal_title": "Restaurer la sauvegarde",
+      "summary": "Sauvegarde du {{date}}, Kiroku {{version}} — {{trades}} trades, {{screenshots}} captures d'écran",
+      "version_warning": "Cette sauvegarde a été créée avec une version plus récente de Kiroku. La restauration peut causer des problèmes.",
+      "destructive_warning": "Cela remplacera toutes les données actuelles. Cette action est irréversible.",
+      "confirm": "Restaurer",
+      "notify_error": "Échec de la restauration"
     }
   },
   "trade": {
@@ -736,6 +767,15 @@
       "test": "Test",
       "demo": "Demo",
       "live": "Live"
+    }
+  },
+  "backup": {
+    "reminder": {
+      "never": "Vous n'avez pas encore sauvegardé vos données",
+      "overdue_one": "Votre dernière sauvegarde remonte à {{count}} jour",
+      "overdue_other": "Votre dernière sauvegarde remonte à {{count}} jours",
+      "backup_now": "Sauvegarder maintenant",
+      "not_now": "Plus tard"
     }
   }
 }

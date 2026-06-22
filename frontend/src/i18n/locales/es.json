@@ -573,6 +573,37 @@
       "last_sync": "Última sincronización: {{time}}",
       "never_synced": "Nunca sincronizado",
       "save_error": "No se pudieron guardar los ajustes de noticias"
+    },
+    "backup": {
+      "title": "Copia de seguridad",
+      "directory_label": "Carpeta de copia de seguridad",
+      "directory_description": "Ruta absoluta donde se guardarán las copias de seguridad",
+      "directory_error": "Esta ruta no existe o no tiene permisos de escritura.",
+      "save_path": "Guardar ruta",
+      "save_error": "No se pudieron guardar los cambios",
+      "reminder_label": "Recordatorio de copia de seguridad",
+      "reminder_description": "Se guarda automáticamente",
+      "reminder_every_7": "Cada 7 días",
+      "reminder_every_14": "Cada 14 días",
+      "reminder_every_30": "Cada 30 días",
+      "reminder_disabled": "Desactivado",
+      "last_backup": "Última copia de seguridad: {{when}}",
+      "last_backup_never": "Última copia de seguridad: Nunca",
+      "backup_now": "Hacer copia ahora",
+      "backup_now_disabled_tooltip": "Configura primero una carpeta de copia de seguridad válida",
+      "notify_success": "Copia de seguridad guardada: {{filename}}",
+      "notify_error": "Error al crear la copia de seguridad"
+    },
+    "restore": {
+      "title": "Restaurar desde una copia de seguridad",
+      "upload_label": "Subir un archivo de copia de seguridad (.zip)",
+      "validate_error": "Este archivo no es una copia de seguridad válida",
+      "modal_title": "Restaurar copia de seguridad",
+      "summary": "Copia de seguridad del {{date}}, Kiroku {{version}} — {{trades}} trades, {{screenshots}} capturas de pantalla",
+      "version_warning": "Esta copia de seguridad se creó con una versión más reciente de Kiroku. La restauración puede causar problemas.",
+      "destructive_warning": "Esto reemplazará todos los datos actuales. Esta acción no se puede deshacer.",
+      "confirm": "Restaurar",
+      "notify_error": "Error al restaurar"
     }
   },
   "trade": {
@@ -736,6 +767,15 @@
       "test": "Test",
       "demo": "Demo",
       "live": "Live"
+    }
+  },
+  "backup": {
+    "reminder": {
+      "never": "Aún no has hecho una copia de seguridad de tus datos",
+      "overdue_one": "Tu última copia de seguridad fue hace {{count}} día",
+      "overdue_other": "Tu última copia de seguridad fue hace {{count}} días",
+      "backup_now": "Hacer copia ahora",
+      "not_now": "Ahora no"
     }
   }
 }
