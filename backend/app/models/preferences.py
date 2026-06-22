@@ -14,6 +14,9 @@ class PreferencesResponse(BaseModel):
   news_enabled: bool
   news_currencies: list[str]
   news_min_impact: NewsMinImpact
+  backup_directory: Optional[str]
+  backup_reminder_days: int
+  last_backup_at: Optional[str]
 
 
 class PreferencesUpdate(BaseModel):
@@ -24,3 +27,6 @@ class PreferencesUpdate(BaseModel):
   news_enabled: Optional[bool] = None
   news_currencies: Optional[list[str]] = None
   news_min_impact: Optional[NewsMinImpact] = None
+  backup_directory: Optional[str] = Field(default=None)
+  # 0 disables the reminder; other values are cadences in days.
+  backup_reminder_days: Optional[Literal[0, 7, 14, 30]] = Field(default=None)

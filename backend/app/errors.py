@@ -12,3 +12,7 @@ class ConflictError(Exception):
 
 class ValidationError(Exception):
   """Raised when a request payload is malformed (e.g. invalid file upload)."""
+
+
+class BackupError(Exception):
+  """Raised when a backup or restore operation fails at the OS/disk level."""

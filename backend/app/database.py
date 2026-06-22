@@ -102,6 +102,22 @@ async def apply_migrations() -> None:
           "DEFAULT 'MEDIUM'"
         )
 
+      # backup preferences (issue #173): directory path, reminder cadence, and
+      # last-backup timestamp. backup_reminder_days has a NOT NULL DEFAULT so
+      # existing rows are back-filled to 7; the other two default to NULL.
+      if "backup_directory" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN backup_directory TEXT"
+        )
+      if "backup_reminder_days" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN backup_reminder_days INTEGER NOT NULL DEFAULT 7"
+        )
+      if "last_backup_at" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN last_backup_at TEXT"
+        )
+
     await connection.commit()
 
 
