@@ -68,7 +68,9 @@ describe('GeneralTab', () => {
     stubFetch()
     renderWithProviders(<GeneralTab />)
 
-    const input = screen.getByRole('textbox', { name: 'Language' })
+    const input = screen.getByRole('textbox', {
+      description: 'Choose the display language',
+    })
     expect(input).toBeInTheDocument()
     expect(input).toHaveValue('English')
   })
@@ -77,13 +79,17 @@ describe('GeneralTab', () => {
     stubFetch()
     renderWithProviders(<GeneralTab />)
 
-    fireEvent.click(screen.getByRole('textbox', { name: 'Language' }))
+    fireEvent.click(
+      screen.getByRole('textbox', { description: 'Choose the display language' }),
+    )
     fireEvent.click(await screen.findByText('Français'))
 
     await waitFor(() => {
       expect(i18n.language).toBe('fr')
     })
-    expect(screen.getByRole('textbox', { name: 'Langue' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { description: "Choisissez la langue d'affichage" }),
+    ).toBeInTheDocument()
   })
 
   it('renders the backup directory input empty when none is configured', async () => {
