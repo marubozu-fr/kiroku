@@ -112,7 +112,10 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   risk_per_trade_default REAL NOT NULL DEFAULT 1.0,
   news_enabled BOOLEAN NOT NULL DEFAULT 1,
   news_currencies TEXT NOT NULL DEFAULT '["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "NZD"]',
-  news_min_impact TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (news_min_impact IN ('HIGH', 'MEDIUM', 'LOW'))
+  news_min_impact TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (news_min_impact IN ('HIGH', 'MEDIUM', 'LOW')),
+  backup_directory TEXT,
+  backup_reminder_days INTEGER NOT NULL DEFAULT 7,
+  last_backup_at TEXT
 );
 
 INSERT OR IGNORE INTO user_preferences (id, risk_per_trade_default) VALUES (1, 1.0);

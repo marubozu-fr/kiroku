@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.database import close_db, init_db
 from app.errors import (
+  BackupError,
   ConflictError,
   DuplicateError,
   NotFoundError,
@@ -16,6 +17,7 @@ from app.models.response import ApiResponse
 from app.routers import (
   analytics,
   assets,
+  backup,
   dashboard,
   emotions,
   news,
@@ -81,6 +83,13 @@ async def validation_error_handler(
   return _error_response(400, str(exc))
 
 
+@app.exception_handler(BackupError)
+async def backup_error_handler(
+  request: Request, exc: BackupError
+) -> JSONResponse:
+  return _error_response(500, str(exc))
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_handler(
   request: Request, exc: RequestValidationError
@@ -98,6 +107,7 @@ app.include_router(emotions.router)
 app.include_router(trades.router)
 app.include_router(screenshots.router)
 app.include_router(preferences.router)
+app.include_router(backup.router)
 app.include_router(dashboard.router)
 app.include_router(analytics.router)
 app.include_router(projections.router)

@@ -5,11 +5,15 @@ from app.database import database
 
 # Columns a client may write. Used to build UPDATE statements from a known
 # allowlist so column identifiers never come from request data.
+# last_backup_at is intentionally excluded: it is set internally by
+# set_last_backup_at(), never directly by a client preferences update.
 WRITABLE_COLUMNS = (
   "risk_per_trade_default",
   "news_enabled",
   "news_currencies",
   "news_min_impact",
+  "backup_directory",
+  "backup_reminder_days",
 )
 
 # Single-user app: preferences live in exactly one row, enforced by the
@@ -41,3 +45,11 @@ async def update(fields: dict[str, Any]) -> None:
   set_clause = ", ".join(f"{column} = :{column}" for column in fields)
   query = f"UPDATE user_preferences SET {set_clause} WHERE id = :id"
   await database.execute(query, values)
+
+
+async def set_last_backup_at(timestamp: str) -> None:
+  """Record the ISO 8601 UTC timestamp of the most recent successful backup."""
+  await database.execute(
+    "UPDATE user_preferences SET last_backup_at = :ts WHERE id = :id",
+    {"ts": timestamp, "id": PREFERENCES_ID},
+  )

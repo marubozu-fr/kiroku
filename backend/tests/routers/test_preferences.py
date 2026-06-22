@@ -15,6 +15,9 @@ def test_get_preferences_returns_seeded_default() -> None:
     "news_enabled": True,
     "news_currencies": ["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "NZD"],
     "news_min_impact": "MEDIUM",
+    "backup_directory": None,
+    "backup_reminder_days": 7,
+    "last_backup_at": None,
   }
 
 
