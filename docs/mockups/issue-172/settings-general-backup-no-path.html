@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Settings · General · Backup (no valid path)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <div class="shell">
+    <!-- AppShell.Navbar -->
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▦</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▤</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">◫</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink active" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Settings</h1>
+            <p class="page-subtitle">Manage your preferences, assets, tags and emotions.</p>
+          </div>
+        </div>
+
+        <!-- Mantine Tabs -->
+        <div class="tabs">
+          <div class="tabs-list">
+            <button class="tab active">General</button>
+            <button class="tab">Assets</button>
+            <button class="tab">Tags</button>
+            <button class="tab">Emotions</button>
+          </div>
+        </div>
+
+        <!-- GeneralTab — no valid backup directory configured -->
+        <div class="tab-panel">
+          <div class="field narrow">
+            <label>Language</label>
+            <div class="field-desc">Interface language</div>
+            <select class="input">
+              <option>English</option>
+              <option>Français</option>
+              <option>Español</option>
+              <option>Italiano</option>
+              <option>Deutsch</option>
+              <option>Português</option>
+            </select>
+          </div>
+
+          <!-- Card: Backup — empty/invalid path → "Back up now" disabled -->
+          <div class="card">
+            <h4 class="section-title">Backup</h4>
+            <div class="stack-md">
+              <div class="field">
+                <label>Backup directory</label>
+                <div class="field-desc">Absolute path where backups will be saved</div>
+                <!-- 422 from PATCH /api/preferences: path doesn't exist / not writable -->
+                <input class="input error" type="text" value="/Users/trader/no-such-folder" />
+                <div class="field-error">This path doesn't exist or isn't writable.</div>
+              </div>
+              <div>
+                <button class="btn light sm">Save path</button>
+              </div>
+
+              <div class="field narrow">
+                <label>Backup reminder</label>
+                <div class="field-desc">Auto-saves on change</div>
+                <select class="input">
+                  <option selected>Every 7 days</option>
+                  <option>Every 14 days</option>
+                  <option>Every 30 days</option>
+                  <option>Disabled</option>
+                </select>
+              </div>
+
+              <p class="last-backup">Last backup: <span class="when">Never</span></p>
+
+              <!-- Disabled until a valid backup directory is saved (dimmed + tooltip) -->
+              <button class="btn filled disabled" title="Set a valid backup directory first">Back up now</button>
+            </div>
+          </div>
+
+          <!-- Card: Restore -->
+          <div class="card">
+            <h4 class="section-title">Restore from backup</h4>
+            <div class="dropzone" title="Accept .zip only">
+              <span class="dz-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="m7 9 5-5 5 5"/><path d="M12 4v12"/></svg>
+              </span>
+              <span class="dz-title">Upload a backup file (.zip)</span>
+              <span class="dz-hint">Drag a file here or click to browse</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

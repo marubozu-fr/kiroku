@@ -1,0 +1,457 @@
+/*
+ * Kiroku — Issue #172 mockup stylesheet (Backup & Restore UI).
+ *
+ * Base tokens/components copied verbatim from docs/mockups/issue-113 so all
+ * mockups look like the same app; backup/restore-specific styles are ADDED
+ * below the "ISSUE #172 ADDITIONS" banner. This folder is self-contained (no
+ * cross-folder imports).
+ *
+ * These CSS variables mirror Mantine's built-in dark theme. In the real app
+ * these come from Mantine tokens (var(--mantine-color-*)) — never hardcoded.
+ * Engineers translate the classes below 1:1 to Mantine (see README): the
+ * Settings page is a Tabs layout; the backup section is two Cards inside the
+ * General tab; the restore confirmation is a centered Modal; the reminder
+ * banner is an in-flow Alert above the page content.
+ *
+ * Semantic colors per docs/DESIGN_SYSTEM.md:
+ *   profit = green.6, loss = red.6, neutral = dimmed.
+ *   RED is reserved for DANGER/destructive (the "Restore" confirm Button which
+ *   replaces all data) — NEVER for warnings. ORANGE is the WARNING accent (the
+ *   reminder banner + the version-mismatch Alert + form path errors).
+ *   Green/red as a financial semantic are unused on this page.
+ */
+
+:root {
+  /* Mantine dark surface scale (dark.7 body, dark.6 cards, dark.5 inputs/borders) */
+  --body-bg: #1a1b1e;          /* dark.7 */
+  --card-bg: #25262b;          /* dark.6 */
+  --input-bg: #2c2e33;         /* dark.5 */
+  --border: #373a40;           /* dark.4 */
+  --border-strong: #5c5f66;    /* dark.3 */
+
+  /* Text */
+  --text: #c1c2c5;            /* dark.0 */
+  --text-bright: #f1f3f5;     /* near white headings */
+  --dimmed: #909296;          /* Mantine dimmed */
+
+  /* Brand / primary (Mantine blue.6 default primary) */
+  --primary: #228be6;
+  --primary-hover: #1c7ed6;
+
+  /* Semantic — financial only + danger/warning */
+  --profit: #40c057;          /* green.6 */
+  --loss: #fa5252;            /* red.6 — also DANGER/destructive */
+  --orange: #fd7e14;          /* form errors / WARNING severity */
+
+  /* Non-semantic badge hues */
+  --teal: #12b886;            /* Long direction */
+  --grape: #be4bdb;           /* Short direction */
+  --cyan: #22b8cf;            /* Tags */
+  --indigo: #5c7cfa;          /* Emotions */
+  --blue: #228be6;            /* Open status */
+  --yellow: #fab005;          /* Partial status */
+  --gray: #868e96;            /* Closed / Breakeven */
+
+  /* Mantine spacing scale */
+  --sp-xs: 10px;
+  --sp-sm: 12px;
+  --sp-md: 16px;
+  --sp-lg: 20px;
+  --sp-xl: 32px;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--body-bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---- App shell stand-in (AppShell) ---- */
+.shell { display: flex; min-height: 100vh; }
+
+.navbar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  padding: var(--sp-md) var(--sp-sm);
+}
+.navbar .brand {
+  font-size: 18px; font-weight: 700; color: var(--text-bright);
+  padding: var(--sp-xs) var(--sp-sm); margin-bottom: var(--sp-md);
+}
+.navbar .brand .sub { color: var(--dimmed); font-weight: 400; font-size: 13px; }
+.navlink {
+  display: flex; align-items: center; gap: var(--sp-sm);
+  padding: var(--sp-xs) var(--sp-sm); border-radius: var(--radius-sm);
+  color: var(--text); margin-bottom: 2px; font-size: 14px;
+}
+.navlink.active { background: rgba(34, 139, 230, 0.15); color: #74c0fc; }
+.navlink .ic { width: 20px; text-align: center; opacity: 0.85; }
+
+.main { flex: 1; padding: var(--sp-md); }
+.content { max-width: 1400px; margin: 0 auto; }
+
+/* ---- Page header row (Group justify=space-between) ---- */
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--sp-md); margin-bottom: var(--sp-md); flex-wrap: wrap;
+}
+.page-title { font-size: 24px; font-weight: 700; color: var(--text-bright); margin: 0; }
+.page-subtitle { font-size: 14px; color: var(--dimmed); margin: 2px 0 0; }
+.page-header .right { display: flex; align-items: center; gap: var(--sp-sm); }
+
+/* ---- Card (Mantine Card padding=md radius=md) ---- */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.card:last-child { margin-bottom: 0; }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--sp-sm);
+}
+.card-title { font-size: 15px; font-weight: 600; color: var(--text-bright); margin: 0; }
+
+/* ---- Form field (Select/TextInput label above) ---- */
+.field { margin-bottom: 0; }
+.field > label {
+  display: block; font-size: 13px; font-weight: 500;
+  margin-bottom: 4px; color: var(--text);
+}
+.input,
+select.input {
+  width: 100%; background: var(--input-bg);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text-bright); padding: 7px 10px; font-size: 14px;
+  font-family: var(--sans);
+}
+.input:focus { outline: none; border-color: var(--primary); }
+
+/* ---- SegmentedControl ---- */
+.segmented {
+  display: inline-flex; background: var(--input-bg);
+  border-radius: var(--radius-sm); padding: 3px; gap: 2px;
+}
+.segmented.full { width: 100%; }
+.segmented .seg {
+  flex: 1; text-align: center; padding: 6px 16px; border-radius: 3px;
+  font-size: 14px; font-weight: 500; color: var(--dimmed); cursor: pointer;
+  user-select: none; display: inline-flex; align-items: center;
+  justify-content: center; gap: 6px;
+}
+.segmented .seg.active {
+  background: var(--card-bg); color: var(--text-bright);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* ---- Badges ---- */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  line-height: 1.6; text-transform: none;
+}
+.badge.long   { background: rgba(18,184,134,0.15); color: #38d9a9; }
+.badge.short  { background: rgba(190,75,219,0.15); color: #da77f2; }
+.badge.tag    { background: rgba(34,184,207,0.15); color: #66d9e8; }
+.badge.emotion{ background: rgba(92,124,250,0.15); color: #91a7ff; }
+.badge.open   { background: rgba(34,139,230,0.15); color: #74c0fc; }
+.badge.partial{ background: rgba(250,176,5,0.15);  color: #ffd43b; }
+.badge.closed { background: rgba(134,142,150,0.18); color: #adb5bd; }
+.badge.breakeven { background: rgba(134,142,150,0.18); color: #adb5bd; }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: var(--radius-sm); font-size: 14px;
+  font-weight: 500; cursor: pointer; border: 1px solid transparent;
+  font-family: var(--sans); text-decoration: none;
+}
+.btn.filled { background: var(--primary); color: #fff; }
+.btn.filled:hover { background: var(--primary-hover); }
+.btn.default { background: var(--input-bg); color: var(--text-bright); border-color: var(--border); }
+.btn.light { background: rgba(34,139,230,0.15); color: #74c0fc; }
+.btn.subtle { background: transparent; color: var(--dimmed); padding: 6px 10px; }
+.btn.subtle:hover { background: var(--input-bg); color: var(--text-bright); }
+.btn.sm { padding: 5px 10px; font-size: 13px; }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; font-size: 16px;
+}
+.icon-btn:hover { background: var(--input-bg); }
+.icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ---- Financial number helper (<Money>/<RValue>) ---- */
+.mono { font-family: var(--mono); }
+.num  { font-family: var(--mono); text-align: right; }
+.profit { color: var(--profit); }
+.loss   { color: var(--loss); }
+.neutral{ color: var(--dimmed); }
+
+/* ---- Tables (Mantine Table striped + highlightOnHover, fz=sm) ---- */
+.table-wrap { overflow-x: auto; }
+table.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.table thead th {
+  text-align: left; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.4px; color: var(--dimmed);
+  padding: var(--sp-xs) var(--sp-sm); border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+table.table thead th.right { text-align: right; }
+table.table tbody td {
+  padding: var(--sp-xs) var(--sp-sm); border-bottom: 1px solid var(--border);
+  color: var(--text); white-space: nowrap;
+}
+table.table tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+table.table tbody tr:hover { background: rgba(34,139,230,0.06); }
+table.table td.num { font-family: var(--mono); text-align: right; }
+table.table td.mono { font-family: var(--mono); }
+
+/* ---- Switch stand-in (Mantine Switch) ---- */
+.switch { display: inline-flex; align-items: center; gap: var(--sp-xs); }
+.switch .track {
+  width: 38px; height: 20px; border-radius: 999px; background: var(--input-bg);
+  border: 1px solid var(--border); position: relative; flex-shrink: 0;
+}
+.switch .track .knob {
+  position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--dimmed);
+}
+.switch.on .track { background: var(--primary); border-color: var(--primary); }
+.switch.on .track .knob { left: 20px; background: #fff; }
+.switch .switch-lbl { font-size: 13px; color: var(--text); }
+
+/* ---- Empty state (DESIGN_SYSTEM "Empty") ---- */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; gap: var(--sp-sm);
+  padding: var(--sp-xl) var(--sp-md); color: var(--dimmed);
+}
+.empty-state .icon { font-size: 44px; opacity: 0.7; line-height: 1; }
+.empty-state .title { font-size: 18px; font-weight: 600; color: var(--text-bright); }
+.empty-state .desc { font-size: 14px; max-width: 380px; }
+.empty-state .btn { margin-top: var(--sp-xs); }
+
+/* ---- Mobile phone frame ---- */
+.phone-frame {
+  max-width: 390px; margin: 0 auto;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  overflow: hidden; min-height: 100vh; background: var(--body-bg);
+}
+
+/* ---- Settings Tabs (Mantine Tabs, list variant=default) ---- */
+.tabs { margin-bottom: var(--sp-md); }
+.tabs .tabs-list {
+  display: flex; gap: 2px; border-bottom: 1px solid var(--border);
+}
+.tabs .tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: var(--sp-xs) var(--sp-md); font-size: 14px; font-weight: 500;
+  color: var(--dimmed); cursor: pointer; border: none; background: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tabs .tab:hover { color: var(--text-bright); }
+.tabs .tab.active { color: var(--text-bright); border-bottom-color: var(--primary); }
+
+/* ---- Modal overlay + centered dialog (Mantine Modal, centered) ---- */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.65);                /* Mantine overlay backdrop, dimmed */
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--sp-md);
+}
+.modal {
+  width: 100%; max-width: 480px;               /* Modal size=md */
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+  overflow: hidden;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-md) var(--sp-md) var(--sp-sm);
+}
+.modal-title { font-size: 16px; font-weight: 600; color: var(--text-bright); margin: 0; }
+.modal-close {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: var(--radius-sm);
+  background: transparent; border: none; color: var(--dimmed); cursor: pointer;
+}
+.modal-close:hover { background: var(--input-bg); color: var(--text-bright); }
+.modal-body { padding: 0 var(--sp-md) var(--sp-md); font-size: 14px; color: var(--text); }
+.modal-body p { margin: 0 0 var(--sp-sm); }
+.modal-body p:last-child { margin-bottom: 0; }
+.modal-body .name { font-weight: 600; color: var(--text-bright); }
+/* "cannot be undone" reminder line — dimmed, sits below the callout. */
+.modal-body .undone { font-size: 13px; color: var(--dimmed); }
+
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: var(--sp-sm);
+  padding: var(--sp-sm) var(--sp-md) var(--sp-md);
+}
+
+/* Destructive confirm Button (Button color=red variant=filled). */
+.btn.danger { background: var(--loss); color: #fff; border-color: var(--loss); }
+.btn.danger:hover { background: #f03e3e; }
+
+/* ---- Callouts (Mantine Alert) ----
+ * WARNING (orange): version mismatch on restore. Never red — red is the
+ * destructive confirm action itself. */
+.callout {
+  display: flex; align-items: flex-start; gap: var(--sp-sm);
+  border-radius: var(--radius-sm); padding: var(--sp-sm) var(--sp-md);
+  margin-bottom: var(--sp-sm); font-size: 13.5px; line-height: 1.55;
+}
+.callout .callout-icon { flex-shrink: 0; margin-top: 1px; }
+.callout .callout-icon svg { width: 20px; height: 20px; display: block; }
+.callout .callout-body { color: var(--text); }
+.callout .callout-body .count { font-weight: 600; color: var(--text-bright); }
+.callout.warning {
+  background: rgba(253,126,20,0.10); border: 1px solid rgba(253,126,20,0.35);
+}
+.callout.warning .callout-icon { color: var(--orange); }
+
+
+/* ==========================================================================
+ * ISSUE #172 ADDITIONS — Backup & Restore UI
+ * ==========================================================================
+ *
+ * Base tokens/components above are copied verbatim from docs/mockups/issue-113
+ * (self-contained — no cross-folder imports). Everything below maps 1:1 to the
+ * real app's Mantine implementation (see README):
+ *   - the Backup/Restore cards inside the Settings General tab,
+ *   - the wider tab panel (maw ~520) that fits the longer path TextInput,
+ *   - the Dropzone (.zip upload), the restore Modal summary + version Alert,
+ *   - the in-flow reminder Alert banner shown above page content.
+ *
+ * COLOR DECISION — danger vs warning (DESIGN_SYSTEM.md):
+ *   RED (loss token) is the DANGER/destructive color: ONLY the "Restore" confirm
+ *   Button, which replaces all current data permanently.
+ *   ORANGE is the WARNING accent: the reminder banner ("back up your data"), the
+ *   restore version-mismatch Alert ("created with a newer version"), and the
+ *   inline path-validation error (422). It signals "read this before you act" —
+ *   never destructive-by-itself.
+ *   Green/red as a P&L semantic are NOT used on this page.
+ */
+
+/* ---- General tab panel width (Stack maw widened from 320 → ~520) ----
+ * The language Select stays narrow; the backup path TextInput needs more room,
+ * so the whole panel grows to accommodate both. */
+.tab-panel { max-width: 520px; }
+.tab-panel > .field { margin-bottom: var(--sp-md); }
+/* The language Select keeps its original narrow width. */
+.field.narrow { max-width: 320px; }
+
+/* ---- Section title (Mantine Title order={4}) ---- */
+.section-title {
+  font-size: 15px; font-weight: 600; color: var(--text-bright);
+  margin: 0 0 var(--sp-sm);
+}
+
+/* ---- Field description + inline error (TextInput description / error) ----
+ * Mantine order inside an input wrapper: label → description → input → error. */
+.field .field-desc { font-size: 12px; color: var(--dimmed); margin: -2px 0 6px; }
+.field .field-error { font-size: 12px; color: var(--orange); margin-top: 6px; }
+.input.error { border-color: var(--orange); }
+
+/* ---- Inline field + button row (TextInput with adjacent "Save path") ---- */
+.field-row { display: flex; align-items: flex-start; gap: var(--sp-sm); }
+.field-row .field { flex: 1; }
+/* The Save-path button sits at the input baseline (label has 4px + ~19px). */
+.field-row .btn-align { margin-top: 23px; }
+
+/* Spacing between stacked backup controls inside a card. */
+.stack-md > * + * { margin-top: var(--sp-md); }
+.stack-sm > * + * { margin-top: var(--sp-sm); }
+
+/* ---- Disabled filled Button (Mantine `disabled` — dimmed gray, not-allowed) ----
+ * Used for "Backup now" when no backup directory is configured. */
+.btn.filled.disabled {
+  background: var(--input-bg); color: var(--dimmed);
+  border-color: var(--border); cursor: not-allowed;
+}
+.btn.filled.disabled:hover { background: var(--input-bg); }
+
+/* ---- Loading spinner inside a Button (Mantine `loading`) ---- */
+.btn .spinner {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+  display: inline-block;
+}
+
+/* ---- "Last backup" line (Text c="dimmed" fz="sm") ---- */
+.last-backup { font-size: 13px; color: var(--dimmed); margin: 0; }
+.last-backup .when { color: var(--text); }
+
+/* ---- Dropzone / FileInput (.zip upload) ----
+ * Maps to @mantine/dropzone Dropzone (accept: application/zip). A plain
+ * FileInput is an acceptable fallback; the README documents both. */
+.dropzone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; text-align: center;
+  border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
+  background: var(--input-bg); color: var(--dimmed);
+  padding: var(--sp-lg) var(--sp-md); cursor: pointer;
+}
+.dropzone:hover { border-color: var(--primary); background: rgba(34,139,230,0.06); }
+.dropzone .dz-icon { color: var(--dimmed); display: flex; }
+.dropzone .dz-icon svg { width: 28px; height: 28px; }
+.dropzone .dz-title { font-size: 14px; color: var(--text); }
+.dropzone .dz-hint { font-size: 12px; color: var(--dimmed); }
+
+/* ==========================================================================
+ * Reminder banner (Mantine Alert color="orange" variant="light", in-flow)
+ * ==========================================================================
+ * Lives inside AppShell.Main, above <Outlet/>, inside the Box maw={1400}
+ * wrapper. It is in normal document flow (NOT fixed/absolute) and pushes the
+ * page content down when visible. */
+.banner {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-md);
+  background: rgba(253,126,20,0.10); border: 1px solid rgba(253,126,20,0.35);
+  border-radius: var(--radius-md); padding: var(--sp-sm) var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+.banner .banner-main { display: flex; align-items: center; gap: var(--sp-sm); min-width: 0; }
+.banner .banner-icon { color: var(--orange); flex-shrink: 0; display: flex; margin-top: 1px; }
+.banner .banner-icon svg { width: 20px; height: 20px; }
+.banner .banner-msg { color: var(--text); font-size: 14px; }
+.banner .banner-msg strong { color: var(--text-bright); font-weight: 600; }
+.banner .banner-actions { display: flex; align-items: center; gap: var(--sp-xs); flex-shrink: 0; }
+
+/* compact-sm buttons used inside the banner */
+.btn.compact-sm { padding: 4px 10px; font-size: 13px; }
+
+/* Mobile / stacked banner (Group switches to vertical < sm).
+ * Applied explicitly via .banner.stacked because the phone-frame mockup is
+ * viewed on a desktop browser; in the app this is a responsive prop at `sm`. */
+.banner.stacked { flex-direction: column; align-items: stretch; }
+.banner.stacked .banner-actions { justify-content: flex-end; }
+
+/* ---- Responsive: Mantine `sm` (~768px) ---- */
+@media (max-width: 768px) {
+  .navbar { display: none; }                   /* hamburger drawer */
+  .tabs .tabs-list { overflow-x: auto; }        /* tab strip scrolls */
+  .modal { max-width: 100%; }                   /* Modal near full-width on phones */
+  .tab-panel { max-width: 100%; }
+  .banner { flex-direction: column; align-items: stretch; }
+  .banner .banner-actions { justify-content: flex-end; }
+}
