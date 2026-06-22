@@ -32,7 +32,9 @@ describe('SettingsPage', () => {
 
     // The default (General) tab loads and shows the language selector.
     expect(
-      await screen.findByRole('textbox', { name: 'Language' }),
+      await screen.findByRole('textbox', {
+        description: 'Choose the display language',
+      }),
     ).toBeInTheDocument()
   })
 

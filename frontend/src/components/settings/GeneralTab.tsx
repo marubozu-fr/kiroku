@@ -189,15 +189,19 @@ export function GeneralTab() {
 
   return (
     <Stack gap="md" maw={520}>
-      <Select
-        label={t('settings.general.language_label')}
-        description={t('settings.general.language_description')}
-        data={LANGUAGE_OPTIONS}
-        value={current}
-        onChange={handleLanguageChange}
-        allowDeselect={false}
-        maw={320}
-      />
+      <Card withBorder padding="md" radius="md">
+        <Stack gap="md">
+          <Title order={4}>{t('settings.general.language_label')}</Title>
+          <Select
+            description={t('settings.general.language_description')}
+            data={LANGUAGE_OPTIONS}
+            value={current}
+            onChange={handleLanguageChange}
+            allowDeselect={false}
+            maw={320}
+          />
+        </Stack>
+      </Card>
 
       <Card withBorder padding="md" radius="md">
         <Stack gap="md">
