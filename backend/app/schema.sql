@@ -3,11 +3,15 @@
 -- Executed by database.py on first run when the tables do not yet exist.
 
 -- Reference data: tradable instruments.
+-- massive_ticker is the Massive API symbol used to fetch chart candles (e.g.
+-- 'C:EURUSD' for forex, 'ESU5' for futures). NULL means the asset has no chart
+-- data.
 CREATE TABLE IF NOT EXISTS assets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
   category TEXT NOT NULL,
   currency TEXT,
+  massive_ticker TEXT,
   is_active BOOLEAN NOT NULL DEFAULT 1,
   created_at TEXT,
   updated_at TEXT
@@ -115,7 +119,8 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   news_min_impact TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (news_min_impact IN ('HIGH', 'MEDIUM', 'LOW')),
   backup_directory TEXT,
   backup_reminder_days INTEGER NOT NULL DEFAULT 7,
-  last_backup_at TEXT
+  last_backup_at TEXT,
+  massive_api_key TEXT NOT NULL DEFAULT ''
 );
 
 INSERT OR IGNORE INTO user_preferences (id, risk_per_trade_default) VALUES (1, 1.0);
@@ -136,3 +141,20 @@ CREATE TABLE IF NOT EXISTS news_events (
 
 CREATE INDEX IF NOT EXISTS idx_news_events_date ON news_events(date);
 CREATE INDEX IF NOT EXISTS idx_news_events_currency ON news_events(currency);
+
+-- Historical M1 (1-minute) OHLCV market data backing trade charts, keyed by the
+-- Massive API ticker (assets.massive_ticker). Higher timeframes are aggregated
+-- on the fly at query time. This is permanent data, not a cache: historical
+-- candles never change, so rows are never deleted automatically. `timestamp` is
+-- Unix milliseconds, as returned by the Massive API. The composite primary key
+-- (ticker, timestamp) deduplicates re-fetched bars in place.
+CREATE TABLE IF NOT EXISTS candles (
+  ticker TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+  open REAL NOT NULL,
+  high REAL NOT NULL,
+  low REAL NOT NULL,
+  close REAL NOT NULL,
+  volume REAL NOT NULL,
+  PRIMARY KEY (ticker, timestamp)
+);

@@ -17,6 +17,7 @@ EXPECTED_TABLES = {
   "trade_emotions",
   "trade_screenshots",
   "user_preferences",
+  "candles",
 }
 
 # Child tables whose foreign key to the parent must cascade on delete.
@@ -77,6 +78,43 @@ def test_schema_seeds_single_preferences_row() -> None:
     "SELECT id, risk_per_trade_default FROM user_preferences"
   ).fetchall()
   assert rows == [(1, 1.0)]
+
+
+def test_schema_assets_has_nullable_massive_ticker() -> None:
+  # massive_ticker (issue #184) must exist on a fresh assets table, be nullable,
+  # and carry no default.
+  connection = _load_schema()
+  columns = {
+    row[1]: row for row in connection.execute("PRAGMA table_info(assets)").fetchall()
+  }
+  assert "massive_ticker" in columns
+  # PRAGMA columns: (cid, name, type, notnull, dflt_value, pk).
+  _, _, col_type, notnull, default, _ = columns["massive_ticker"]
+  assert col_type == "TEXT"
+  assert notnull == 0
+  assert default is None
+
+
+def test_schema_candles_has_composite_primary_key() -> None:
+  # candles (issue #184) must exist with a composite primary key on
+  # (ticker, timestamp).
+  connection = _load_schema()
+  primary_key = [
+    row[1]
+    for row in connection.execute("PRAGMA table_info(candles)").fetchall()
+    if row[5] > 0  # pk column: 0 = not part of key, 1+ = position in key.
+  ]
+  assert primary_key == ["ticker", "timestamp"]
+
+
+def test_schema_seeds_empty_massive_api_key() -> None:
+  # A fresh database seeds the single preferences row with an empty Massive API
+  # key (feature disabled until the user provides one).
+  connection = _load_schema()
+  value = connection.execute(
+    "SELECT massive_api_key FROM user_preferences WHERE id = 1"
+  ).fetchone()[0]
+  assert value == ""
 
 
 def test_schema_is_idempotent() -> None:
@@ -231,6 +269,121 @@ def test_migration_adds_news_preference_columns(
   assert row[0] == 1
   assert row[1] == '["USD", "EUR", "GBP", "JPY", "CAD", "AUD", "CHF", "NZD"]'
   assert row[2] == "MEDIUM"
+
+
+def test_migration_adds_massive_ticker_to_assets(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  # A legacy assets table created before massive_ticker (issue #184) must gain
+  # the column on migration, preserving existing rows with a NULL ticker.
+  db_path = tmp_path / "kiroku.db"
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+
+  connection = sqlite3.connect(db_path)
+  # A current trades table so the unrelated trades migrations are no-ops and
+  # only the assets step is exercised.
+  connection.execute(
+    "CREATE TABLE trades (id INTEGER PRIMARY KEY, status TEXT NOT NULL, "
+    "account_type TEXT NOT NULL DEFAULT 'live')"
+  )
+  connection.execute(
+    "CREATE TABLE assets ("
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE, "
+    "category TEXT NOT NULL, currency TEXT, is_active BOOLEAN NOT NULL DEFAULT 1)"
+  )
+  connection.execute(
+    "INSERT INTO assets (id, name, category) VALUES (1, 'EURUSD', 'Forex')"
+  )
+  connection.commit()
+  connection.close()
+
+  asyncio.run(apply_migrations())
+  # Idempotent: a second run must not raise on the now-current table.
+  asyncio.run(apply_migrations())
+
+  connection = sqlite3.connect(db_path)
+  columns = {row[1] for row in connection.execute("PRAGMA table_info(assets)").fetchall()}
+  ticker = connection.execute("SELECT massive_ticker FROM assets WHERE id = 1").fetchone()[0]
+  name = connection.execute("SELECT name FROM assets WHERE id = 1").fetchone()[0]
+  connection.close()
+
+  assert "massive_ticker" in columns
+  assert ticker is None
+  # Existing asset data is preserved (migration is additive).
+  assert name == "EURUSD"
+
+
+def test_migration_adds_massive_api_key(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  # A legacy user_preferences table created before massive_api_key (issue #184)
+  # must gain the column, back-filled to an empty string.
+  db_path = tmp_path / "kiroku.db"
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+
+  connection = sqlite3.connect(db_path)
+  # A current trades table so the unrelated trades migrations are no-ops.
+  connection.execute(
+    "CREATE TABLE trades (id INTEGER PRIMARY KEY, status TEXT NOT NULL, "
+    "account_type TEXT NOT NULL DEFAULT 'live')"
+  )
+  connection.execute(
+    "CREATE TABLE user_preferences ("
+    "id INTEGER PRIMARY KEY CHECK (id = 1), "
+    "risk_per_trade_default REAL NOT NULL DEFAULT 1.0)"
+  )
+  connection.execute("INSERT INTO user_preferences (id) VALUES (1)")
+  connection.commit()
+  connection.close()
+
+  asyncio.run(apply_migrations())
+  # Idempotent: a second run must not raise on the now-current table.
+  asyncio.run(apply_migrations())
+
+  connection = sqlite3.connect(db_path)
+  columns = {
+    row[1] for row in connection.execute("PRAGMA table_info(user_preferences)").fetchall()
+  }
+  value = connection.execute(
+    "SELECT massive_api_key FROM user_preferences WHERE id = 1"
+  ).fetchone()[0]
+  connection.close()
+
+  assert "massive_api_key" in columns
+  assert value == ""
+
+
+def test_migration_creates_candles_table(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  # The candles table (issue #184) is created by apply_schema's CREATE TABLE IF
+  # NOT EXISTS, which runs on every startup. A database that predates candles
+  # (simulated here by dropping it from a current schema) gains it on the next
+  # apply_schema, with no effect on the tables already present.
+  db_path = tmp_path / "kiroku.db"
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+
+  asyncio.run(apply_schema())
+  connection = sqlite3.connect(db_path)
+  connection.execute("DROP TABLE candles")
+  connection.commit()
+  connection.close()
+
+  asyncio.run(apply_schema())
+
+  connection = sqlite3.connect(db_path)
+  exists = connection.execute(
+    "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'candles'"
+  ).fetchone()
+  primary_key = [
+    row[1]
+    for row in connection.execute("PRAGMA table_info(candles)").fetchall()
+    if row[5] > 0
+  ]
+  connection.close()
+
+  assert exists is not None
+  assert primary_key == ["ticker", "timestamp"]
 
 
 def test_pool_enforces_foreign_keys(

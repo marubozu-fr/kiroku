@@ -62,6 +62,19 @@ async def apply_migrations() -> None:
         "ALTER TABLE trades ADD COLUMN account_type TEXT NOT NULL DEFAULT 'live'"
       )
 
+    # massive_ticker (issue #184): the Massive API symbol used to fetch chart
+    # candles for an asset. Nullable (NULL = no chart data), so existing rows
+    # need no back-fill. Guarded by a table- and column-presence check so it is
+    # a no-op once the database is current and on databases that predate assets.
+    cursor = await connection.execute(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'assets'"
+    )
+    if await cursor.fetchone() is not None:
+      cursor = await connection.execute("PRAGMA table_info(assets)")
+      asset_columns = {row[1] for row in await cursor.fetchall()}
+      if "massive_ticker" not in asset_columns:
+        await connection.execute("ALTER TABLE assets ADD COLUMN massive_ticker TEXT")
+
     # label (issue #56): optional free-text annotation per screenshot (e.g.
     # "Setup confirmation", "Entry point"). Nullable, so existing rows need no
     # back-fill. Timeframe stays nullable in the schema for older rows; new
@@ -116,6 +129,15 @@ async def apply_migrations() -> None:
       if "last_backup_at" not in preference_columns:
         await connection.execute(
           "ALTER TABLE user_preferences ADD COLUMN last_backup_at TEXT"
+        )
+
+      # massive_api_key (issue #184): API key for the Massive market-data
+      # service that backs trade charts. NOT NULL DEFAULT '' back-fills existing
+      # rows with an empty key (feature disabled until the user sets one),
+      # matching how risk_per_trade_default and the news settings are seeded.
+      if "massive_api_key" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN massive_api_key TEXT NOT NULL DEFAULT ''"
         )
 
     await connection.commit()
