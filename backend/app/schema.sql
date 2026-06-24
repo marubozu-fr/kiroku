@@ -3,11 +3,15 @@
 -- Executed by database.py on first run when the tables do not yet exist.
 
 -- Reference data: tradable instruments.
+-- massive_ticker is the Massive API symbol used to fetch chart candles (e.g.
+-- 'C:EURUSD' for forex, 'ESU5' for futures). NULL means the asset has no chart
+-- data.
 CREATE TABLE IF NOT EXISTS assets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
   category TEXT NOT NULL,
   currency TEXT,
+  massive_ticker TEXT,
   is_active BOOLEAN NOT NULL DEFAULT 1,
   created_at TEXT,
   updated_at TEXT
@@ -115,7 +119,8 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   news_min_impact TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (news_min_impact IN ('HIGH', 'MEDIUM', 'LOW')),
   backup_directory TEXT,
   backup_reminder_days INTEGER NOT NULL DEFAULT 7,
-  last_backup_at TEXT
+  last_backup_at TEXT,
+  massive_api_key TEXT NOT NULL DEFAULT ''
 );
 
 INSERT OR IGNORE INTO user_preferences (id, risk_per_trade_default) VALUES (1, 1.0);
