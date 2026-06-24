@@ -17,7 +17,6 @@ EXPECTED_TABLES = {
   "trade_emotions",
   "trade_screenshots",
   "user_preferences",
-  "candles",
 }
 
 # Child tables whose foreign key to the parent must cascade on delete.
@@ -93,18 +92,6 @@ def test_schema_assets_has_nullable_massive_ticker() -> None:
   assert col_type == "TEXT"
   assert notnull == 0
   assert default is None
-
-
-def test_schema_candles_has_composite_primary_key() -> None:
-  # candles (issue #184) must exist with a composite primary key on
-  # (ticker, timestamp).
-  connection = _load_schema()
-  primary_key = [
-    row[1]
-    for row in connection.execute("PRAGMA table_info(candles)").fetchall()
-    if row[5] > 0  # pk column: 0 = not part of key, 1+ = position in key.
-  ]
-  assert primary_key == ["ticker", "timestamp"]
 
 
 def test_schema_seeds_empty_massive_api_key() -> None:
@@ -351,39 +338,6 @@ def test_migration_adds_massive_api_key(
 
   assert "massive_api_key" in columns
   assert value == ""
-
-
-def test_migration_creates_candles_table(
-  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-  # The candles table (issue #184) is created by apply_schema's CREATE TABLE IF
-  # NOT EXISTS, which runs on every startup. A database that predates candles
-  # (simulated here by dropping it from a current schema) gains it on the next
-  # apply_schema, with no effect on the tables already present.
-  db_path = tmp_path / "kiroku.db"
-  monkeypatch.setattr(database, "DB_PATH", db_path)
-
-  asyncio.run(apply_schema())
-  connection = sqlite3.connect(db_path)
-  connection.execute("DROP TABLE candles")
-  connection.commit()
-  connection.close()
-
-  asyncio.run(apply_schema())
-
-  connection = sqlite3.connect(db_path)
-  exists = connection.execute(
-    "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'candles'"
-  ).fetchone()
-  primary_key = [
-    row[1]
-    for row in connection.execute("PRAGMA table_info(candles)").fetchall()
-    if row[5] > 0
-  ]
-  connection.close()
-
-  assert exists is not None
-  assert primary_key == ["ticker", "timestamp"]
 
 
 def test_pool_enforces_foreign_keys(

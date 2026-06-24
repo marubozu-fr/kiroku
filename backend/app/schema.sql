@@ -141,20 +141,3 @@ CREATE TABLE IF NOT EXISTS news_events (
 
 CREATE INDEX IF NOT EXISTS idx_news_events_date ON news_events(date);
 CREATE INDEX IF NOT EXISTS idx_news_events_currency ON news_events(currency);
-
--- Historical M1 (1-minute) OHLCV market data backing trade charts, keyed by the
--- Massive API ticker (assets.massive_ticker). Higher timeframes are aggregated
--- on the fly at query time. This is permanent data, not a cache: historical
--- candles never change, so rows are never deleted automatically. `timestamp` is
--- Unix milliseconds, as returned by the Massive API. The composite primary key
--- (ticker, timestamp) deduplicates re-fetched bars in place.
-CREATE TABLE IF NOT EXISTS candles (
-  ticker TEXT NOT NULL,
-  timestamp INTEGER NOT NULL,
-  open REAL NOT NULL,
-  high REAL NOT NULL,
-  low REAL NOT NULL,
-  close REAL NOT NULL,
-  volume REAL NOT NULL,
-  PRIMARY KEY (ticker, timestamp)
-);
