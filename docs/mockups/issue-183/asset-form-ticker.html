@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Settings · Assets · Market data ticker autocomplete</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▦</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▤</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">◫</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink active" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Settings</h1>
+            <p class="page-subtitle">Manage your preferences, assets, tags and emotions.</p>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tabs-list">
+            <button class="tab">General</button>
+            <button class="tab active">Assets</button>
+            <button class="tab">Tags</button>
+            <button class="tab">Emotions</button>
+          </div>
+        </div>
+
+        <!-- Assets table behind the modal, for context -->
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Name</th><th>Category</th><th>Currency</th><th>Ticker</th><th class="right">Active</th></tr></thead>
+            <tbody>
+              <tr><td>EUR / USD</td><td><span class="badge tag">Forex</span></td><td class="mono">USD</td><td class="mono">C:EURUSD</td><td class="num">On</td></tr>
+              <tr><td>BTC / USD</td><td><span class="badge tag">Crypto</span></td><td class="mono">USD</td><td class="neutral">—</td><td class="num">On</td></tr>
+              <tr><td>Apple</td><td><span class="badge tag">Stock</span></td><td class="mono">USD</td><td class="mono">AAPL</td><td class="num">On</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!--
+    Add/Edit asset Modal (size="md"). Existing fields (Name, Category, Currency)
+    stay as-is; issue #183 adds the "Market data ticker" Autocomplete BELOW them.
+    Shown here in the active search state: the user has typed "EUR" (2+ chars), so
+    the Combobox dropdown lists matching Massive tickers. A clear (×) button unlinks.
+  -->
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit asset</h3>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="stack-md">
+          <div class="field">
+            <label>Name</label>
+            <input class="input" type="text" value="EUR / USD" />
+          </div>
+
+          <div class="field narrow">
+            <label>Category</label>
+            <select class="input">
+              <option selected>Forex</option>
+              <option>Crypto</option>
+              <option>Stock</option>
+              <option>ETF</option>
+              <option>Indices</option>
+            </select>
+          </div>
+
+          <div class="field narrow">
+            <label>Currency</label>
+            <input class="input" type="text" value="USD" />
+          </div>
+
+          <!-- NEW (issue #183): Market data ticker Autocomplete -->
+          <div class="field">
+            <label>Market data ticker</label>
+            <div class="field-desc">Links this asset to a Massive ticker so its trades show a price chart.</div>
+            <div class="autocomplete">
+              <div class="input-with-clear">
+                <input class="input" type="text" value="EUR" placeholder="Type 2+ characters to search…" autocomplete="off" />
+                <button class="clear-btn" aria-label="Clear ticker">✕</button>
+              </div>
+              <!-- Combobox.Dropdown — matching tickers "C:EURUSD — Euro / United States Dollar" -->
+              <div class="ac-dropdown">
+                <div class="ac-option active"><span class="sym">C:EURUSD</span><span class="name">Euro / United States Dollar</span></div>
+                <div class="ac-option"><span class="sym">C:EURGBP</span><span class="name">Euro / British Pound</span></div>
+                <div class="ac-option"><span class="sym">C:EURJPY</span><span class="name">Euro / Japanese Yen</span></div>
+                <div class="ac-option"><span class="sym">C:EURCHF</span><span class="name">Euro / Swiss Franc</span></div>
+                <div class="ac-option"><span class="sym">C:EURAUD</span><span class="name">Euro / Australian Dollar</span></div>
+              </div>
+            </div>
+            <div class="field-desc">Optional — enables chart display in trade detail.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn default">Cancel</button>
+        <button class="btn filled">Save</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

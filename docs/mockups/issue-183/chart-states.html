@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Trade detail · Chart panel states</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▦</span> Dashboard</a>
+      <a class="navlink active" href="#"><span class="ic">▤</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">◫</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content detail">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Chart panel — states</h1>
+            <p class="page-subtitle">The four non-populated states of the trade-detail chart panel (issue #183).</p>
+          </div>
+        </div>
+
+        <!--
+          STATE 1 — EMPTY: the trade's asset has no `massive_ticker` linked, so
+          there is nothing to chart. Helpful empty state (per DESIGN_SYSTEM "Empty")
+          with a CTA that deep-links to Settings → Assets to add a ticker.
+        -->
+        <div class="card">
+          <div class="chart-toolbar">
+            <div class="left"><h4 class="section-title">Price chart</h4></div>
+          </div>
+          <div class="chart-frame">
+            <div class="empty-state">
+              <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 3-4 3 3 4-6"/><line x1="3" y1="3" x2="21" y2="21"/></svg>
+              </span>
+              <span class="title">No chart for this asset</span>
+              <span class="desc">Link a market data ticker to <strong>EUR / USD</strong> in Settings → Assets to display candlestick data here.</span>
+              <button class="btn light">Link a ticker</button>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          STATE 2 — LOADING: candles are being fetched from the Massive API.
+          Skeleton placeholder (per DESIGN_SYSTEM "Loading"), shaped like a candle
+          series. The timeframe SegmentedControl stays visible but disabled.
+        -->
+        <div class="card">
+          <div class="chart-toolbar">
+            <div class="left"><h4 class="section-title">Price chart</h4></div>
+            <div class="segmented tf" aria-label="Timeframe (loading)">
+              <span class="seg">M1</span><span class="seg">M5</span>
+              <span class="seg active">M15</span><span class="seg">H1</span>
+              <span class="seg">H4</span><span class="seg">D1</span>
+            </div>
+          </div>
+          <div class="chart-frame">
+            <div class="chart-skeleton" aria-hidden="true">
+              <span class="sk-bar"></span><span class="sk-bar"></span><span class="sk-bar"></span>
+              <span class="sk-bar"></span><span class="sk-bar"></span><span class="sk-bar"></span>
+              <span class="sk-bar"></span><span class="sk-bar"></span><span class="sk-bar"></span>
+              <span class="sk-bar"></span><span class="sk-bar"></span><span class="sk-bar"></span>
+              <span class="sk-bar"></span><span class="sk-bar"></span><span class="sk-bar"></span>
+              <span class="sk-bar"></span><span class="sk-bar"></span><span class="sk-bar"></span>
+              <span class="sk-bar"></span><span class="sk-bar"></span><span class="sk-bar"></span>
+              <span class="sk-bar"></span><span class="sk-bar"></span><span class="sk-bar"></span>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          STATE 3 — DATA NOT YET AVAILABLE: a same-day trade. Massive serves
+          end-of-day candles, so today's bar is not published until after the
+          close. Informational empty state (no CTA — nothing the user can do).
+        -->
+        <div class="card">
+          <div class="chart-toolbar">
+            <div class="left"><h4 class="section-title">Price chart</h4></div>
+            <div class="segmented tf" aria-label="Timeframe">
+              <span class="seg">M1</span><span class="seg">M5</span>
+              <span class="seg active">M15</span><span class="seg">H1</span>
+              <span class="seg">H4</span><span class="seg">D1</span>
+            </div>
+          </div>
+          <div class="chart-frame">
+            <div class="empty-state">
+              <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              </span>
+              <span class="title">Chart data not yet available</span>
+              <span class="desc">End-of-day candles for <strong>June 24, 2026</strong> are published after the market closes. Check back tomorrow.</span>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          STATE 4 — ERROR: the Massive request failed (bad/missing API key, rate
+          limit, network). Orange Alert with a retry, per DESIGN_SYSTEM "Error".
+        -->
+        <div class="card">
+          <div class="chart-toolbar">
+            <div class="left"><h4 class="section-title">Price chart</h4></div>
+          </div>
+          <div class="chart-frame">
+            <div class="empty-state error">
+              <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 4 3.4 16a2 2 0 0 0 1.7 3h13.8a2 2 0 0 0 1.7-3L13.7 4a2 2 0 0 0-3.4 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
+              </span>
+              <span class="title">Couldn't load chart data</span>
+              <span class="desc">Check your Massive API key in Settings → General, then try again.</span>
+              <button class="btn default">Retry</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Settings · General · Massive API key</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="navbar">
+      <div class="brand">Kiroku <span class="sub">記録</span></div>
+      <a class="navlink" href="#"><span class="ic">▦</span> Dashboard</a>
+      <a class="navlink" href="#"><span class="ic">▤</span> Journal</a>
+      <a class="navlink" href="#"><span class="ic">◫</span> Analytics</a>
+      <a class="navlink" href="#"><span class="ic">◔</span> Projections</a>
+      <a class="navlink active" href="#"><span class="ic">⚙</span> Settings</a>
+    </nav>
+
+    <main class="main">
+      <div class="content">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Settings</h1>
+            <p class="page-subtitle">Manage your preferences, assets, tags and emotions.</p>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tabs-list">
+            <button class="tab active">General</button>
+            <button class="tab">Assets</button>
+            <button class="tab">Tags</button>
+            <button class="tab">Emotions</button>
+          </div>
+        </div>
+
+        <!--
+          GeneralTab — Stack gap="md" maw={520}. Issue #183 ADDS the "Market data"
+          card holding the Massive API-key PasswordInput. It sits between the
+          existing Language card and the Backup card; Backup/Restore are unchanged.
+        -->
+        <div class="tab-panel">
+          <!-- Card: Language (existing, from issue #178) -->
+          <div class="card">
+            <h4 class="section-title">Language</h4>
+            <div class="field narrow">
+              <div class="field-desc">Choose the display language</div>
+              <select class="input">
+                <option>English</option>
+                <option>Français</option>
+                <option>Español</option>
+                <option>Italiano</option>
+                <option>Deutsch</option>
+                <option>Português</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Card: Market data (NEW — issue #183) -->
+          <div class="card">
+            <h4 class="section-title">Market data</h4>
+            <div class="stack-md">
+              <div class="field">
+                <label>Massive API Key</label>
+                <!-- PasswordInput with a show/hide toggle (visibilityToggleIcon). -->
+                <div class="input-with-toggle">
+                  <input class="input" type="password" value="msv_live_a83bc92e1f4d7" />
+                  <button class="reveal-btn" aria-label="Show API key">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+                <div class="field-desc">
+                  Free API key from <a href="https://massive.com/dashboard/signup">massive.com</a> — enables chart data for trades.
+                </div>
+              </div>
+              <!-- Saves via PATCH /api/preferences (stored in DB). -->
+              <button class="btn filled sm">Save key</button>
+            </div>
+          </div>
+
+          <!-- Card: Backup (existing, unchanged) -->
+          <div class="card">
+            <h4 class="section-title">Backup</h4>
+            <div class="field">
+              <label>Backup directory</label>
+              <div class="field-desc">Absolute path where backups will be saved</div>
+              <input class="input" type="text" value="/Users/trader/kiroku-backups" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
