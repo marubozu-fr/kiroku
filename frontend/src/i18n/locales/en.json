@@ -399,7 +399,8 @@
       "massive_api_key_hint": "Free API key from massive.com — enables chart data in trades",
       "massive_api_key_link": "Get a free API key",
       "massive_api_key_valid": "API key verified — market data is enabled",
-      "massive_api_key_invalid": "Could not verify the API key — check it and try again"
+      "massive_api_key_invalid": "Could not verify the API key — check it and try again",
+      "save_error": "Could not save your changes"
     },
     "data_states": {
       "load_error": "Could not load data"

@@ -399,7 +399,8 @@
       "massive_api_key_hint": "Clé API gratuite de massive.com — active les données de graphique dans les trades",
       "massive_api_key_link": "Obtenir une clé API gratuite",
       "massive_api_key_valid": "Clé API vérifiée — les données de marché sont activées",
-      "massive_api_key_invalid": "Impossible de vérifier la clé API — vérifiez-la et réessayez"
+      "massive_api_key_invalid": "Impossible de vérifier la clé API — vérifiez-la et réessayez",
+      "save_error": "Impossible d'enregistrer vos modifications"
     },
     "data_states": {
       "load_error": "Impossible de charger les données"

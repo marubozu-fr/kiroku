@@ -140,7 +140,7 @@ export function GeneralTab() {
         notifyWarning(t('settings.general.massive_api_key_invalid'))
       }
     } catch {
-      notifyError(t('settings.backup.save_error'))
+      notifyError(t('settings.general.save_error'))
     } finally {
       setSavingApiKey(false)
     }

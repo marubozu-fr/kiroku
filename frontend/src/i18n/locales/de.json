@@ -399,7 +399,8 @@
       "massive_api_key_hint": "Kostenloser API-Schlüssel von massive.com — aktiviert Chart-Daten in Trades",
       "massive_api_key_link": "Kostenlosen API-Schlüssel erhalten",
       "massive_api_key_valid": "API-Schlüssel verifiziert — Marktdaten sind aktiviert",
-      "massive_api_key_invalid": "API-Schlüssel konnte nicht verifiziert werden — bitte prüfen und erneut versuchen"
+      "massive_api_key_invalid": "API-Schlüssel konnte nicht verifiziert werden — bitte prüfen und erneut versuchen",
+      "save_error": "Änderungen konnten nicht gespeichert werden"
     },
     "data_states": {
       "load_error": "Daten konnten nicht geladen werden"

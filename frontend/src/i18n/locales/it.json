@@ -399,7 +399,8 @@
       "massive_api_key_hint": "Chiave API gratuita da massive.com — abilita i dati dei grafici nei trade",
       "massive_api_key_link": "Ottieni una chiave API gratuita",
       "massive_api_key_valid": "Chiave API verificata — i dati di mercato sono abilitati",
-      "massive_api_key_invalid": "Impossibile verificare la chiave API — controllala e riprova"
+      "massive_api_key_invalid": "Impossibile verificare la chiave API — controllala e riprova",
+      "save_error": "Impossibile salvare le modifiche"
     },
     "data_states": {
       "load_error": "Impossibile caricare i dati"
