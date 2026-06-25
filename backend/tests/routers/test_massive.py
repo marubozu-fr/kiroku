@@ -75,6 +75,26 @@ def test_search_tickers_passes_explicit_market(
   assert seen["market"] == "crypto"
 
 
+def test_search_tickers_accepts_indices_market(
+  monkeypatch: pytest.MonkeyPatch,
+) -> None:
+  seen: dict[str, str] = {}
+
+  async def fake_search(query: str, market: str) -> list[dict]:
+    seen["market"] = market
+    return []
+
+  monkeypatch.setattr(massive_service, "search_tickers", fake_search)
+
+  with TestClient(app) as client:
+    response = client.get(
+      "/api/massive/tickers", params={"search": "SPX", "market": "indices"}
+    )
+
+  assert response.status_code == 200
+  assert seen["market"] == "indices"
+
+
 def test_search_tickers_too_short_returns_400() -> None:
   with TestClient(app) as client:
     response = client.get("/api/massive/tickers", params={"search": "E"})

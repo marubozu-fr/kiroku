@@ -5,11 +5,22 @@ import { useDebouncedValue } from '@mantine/hooks'
 import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { massiveApi } from '@/services/massive'
+import type { MassiveMarket } from '@/services/massive'
 import { preferencesApi } from '@/services/preferences'
 import { assetsApi } from '@/services/referenceData'
 import { ASSET_CATEGORIES } from '@/types/referenceData'
 import type { Asset, AssetCategory } from '@/types/referenceData'
 import { notifyError, notifySuccess } from './notify'
+
+// Each asset category maps to the Massive market its tickers live in, so the
+// autocomplete searches the right reference set (issue #204).
+const CATEGORY_TO_MARKET: Record<AssetCategory, MassiveMarket> = {
+  Forex: 'fx',
+  Crypto: 'crypto',
+  Stock: 'stocks',
+  ETF: 'stocks',
+  Indices: 'indices',
+}
 
 interface AssetModalProps {
   opened: boolean
@@ -78,17 +89,23 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, asset])
 
+  // The asset's category selects which Massive market the autocomplete queries.
+  // Null until a category is picked, which also gates the ticker field.
+  const market = form.values.category ? CATEGORY_TO_MARKET[form.values.category] : null
+
   // Fetch ticker matches once the debounced input reaches 2+ characters. Skip
-  // when the input already equals the selected ticker (nothing new to search).
+  // when no market is selected yet, or when the input already equals the
+  // selected ticker (nothing new to search). Re-runs when the market changes
+  // so switching category searches the new reference set.
   const [debouncedTicker] = useDebouncedValue(form.values.tickerInput, 300)
   useEffect(() => {
     const query = debouncedTicker.trim()
-    if (!hasApiKey || query.length < 2 || query === form.values.massiveTicker) {
+    if (!hasApiKey || !market || query.length < 2 || query === form.values.massiveTicker) {
       return
     }
     const controller = new AbortController()
     massiveApi
-      .searchTickers(query, 'fx', controller.signal)
+      .searchTickers(query, market, controller.signal)
       .then((results) => {
         setTickerOptions(
           results.map((result) => ({
@@ -104,7 +121,17 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
       })
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedTicker, hasApiKey])
+  }, [debouncedTicker, hasApiKey, market])
+
+  // Changing the category switches the Massive market, so any ticker chosen for
+  // the old market no longer applies — clear the selection and stale matches.
+  const categoryProps = form.getInputProps('category')
+  const handleCategoryChange = (value: string | null) => {
+    categoryProps.onChange(value)
+    form.setFieldValue('massiveTicker', null)
+    form.setFieldValue('tickerInput', '')
+    setTickerOptions([])
+  }
 
   // Mantine's Autocomplete reports the option label on select and the raw text
   // while typing. Resolve a label back to its ticker value; any other change
@@ -181,7 +208,8 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
             placeholder={t('settings.assets.form.category_placeholder')}
             withAsterisk
             data={[...ASSET_CATEGORIES]}
-            {...form.getInputProps('category')}
+            {...categoryProps}
+            onChange={handleCategoryChange}
           />
           <TextInput
             label={t('settings.assets.form.currency_label')}
@@ -192,14 +220,16 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
             label={t('settings.assets.form.massive_ticker_label')}
             placeholder={t('settings.assets.form.massive_ticker_placeholder')}
             description={
-              hasApiKey
-                ? t('settings.assets.form.massive_ticker_hint')
-                : t('settings.assets.form.massive_ticker_no_api_key')
+              !hasApiKey
+                ? t('settings.assets.form.massive_ticker_no_api_key')
+                : !market
+                  ? t('settings.assets.form.massive_ticker_select_category')
+                  : t('settings.assets.form.massive_ticker_hint')
             }
             data={showTickerOptions ? tickerOptions : []}
             value={form.values.tickerInput}
             onChange={handleTickerChange}
-            disabled={!hasApiKey}
+            disabled={!hasApiKey || !market}
             clearable
           />
           <Group justify="flex-end" mt="xs">

@@ -9,6 +9,15 @@ from app.database import database, enable_foreign_keys
 from app.services import massive_service
 
 # ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+
+def test_allowed_markets_covers_all_supported_markets() -> None:
+  assert massive_service.ALLOWED_MARKETS == ("fx", "stocks", "crypto", "indices")
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 

@@ -270,7 +270,7 @@ describe('AssetsTab', () => {
       ).toBeInTheDocument()
     })
 
-    it('enables the ticker field and shows the hint description when an API key is configured', async () => {
+    it('keeps the ticker field disabled with a hint until a category is selected', async () => {
       stubFetch({ assets: [], prefs: preferences({ massive_api_key: 'valid-key' }) })
       renderWithProviders(<AssetsTab />)
       await screen.findByText(/no assets yet/i)
@@ -279,10 +279,47 @@ describe('AssetsTab', () => {
       const dialog = await screen.findByRole('dialog')
 
       const tickerInput = await within(dialog).findByLabelText('Market data ticker')
-      expect(tickerInput).not.toBeDisabled()
+      expect(tickerInput).toBeDisabled()
+      expect(within(dialog).getByText('Select a category first')).toBeInTheDocument()
+    })
+
+    it('enables the ticker field and shows the hint once a category is selected', async () => {
+      stubFetch({ assets: [], prefs: preferences({ massive_api_key: 'valid-key' }) })
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText(/no assets yet/i)
+
+      fireEvent.click(screen.getByRole('button', { name: /add asset/i }))
+      const dialog = await screen.findByRole('dialog')
+
+      // Mantine renders Select options in a portal, outside the dialog node.
+      fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
+      fireEvent.click(screen.getByText('Forex'))
+
+      const tickerInput = await within(dialog).findByLabelText('Market data ticker')
+      await waitFor(() => expect(tickerInput).not.toBeDisabled())
       expect(
         within(dialog).getByText('Optional — link to market data for chart display'),
       ).toBeInTheDocument()
+    })
+
+    it('clears a selected ticker when the category changes', async () => {
+      const linkedAsset = asset({ massive_ticker: 'C:EURUSD' })
+      stubFetch({ assets: [linkedAsset], prefs: preferences({ massive_api_key: 'valid-key' }) })
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText('EUR/USD')
+
+      fireEvent.click(screen.getByLabelText('Edit EUR/USD'))
+      const dialog = await screen.findByRole('dialog')
+
+      const tickerInput = await within(dialog).findByLabelText('Market data ticker')
+      await waitFor(() => expect(tickerInput).toHaveValue('C:EURUSD'))
+
+      // Switching from Forex to Crypto invalidates the forex ticker.
+      fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
+      fireEvent.click(screen.getByText('Crypto'))
+
+      await waitFor(() => expect(tickerInput).toHaveValue(''))
+      expect(tickerInput).not.toBeDisabled()
     })
 
     it('prefills the ticker input when editing an asset that has a massive_ticker', async () => {
