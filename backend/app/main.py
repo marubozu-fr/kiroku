@@ -20,6 +20,7 @@ from app.routers import (
   backup,
   dashboard,
   emotions,
+  massive,
   news,
   preferences,
   projections,
@@ -112,6 +113,7 @@ app.include_router(dashboard.router)
 app.include_router(analytics.router)
 app.include_router(projections.router)
 app.include_router(news.router)
+app.include_router(massive.router)
 
 
 @app.get("/api/health")

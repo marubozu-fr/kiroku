@@ -4,7 +4,7 @@ from app.database import database
 
 # Columns a client may write. Used to build UPDATE statements from a known
 # allowlist so column identifiers never come from request data.
-WRITABLE_COLUMNS = ("name", "category", "currency", "is_active")
+WRITABLE_COLUMNS = ("name", "category", "currency", "massive_ticker", "is_active")
 
 
 async def get_all(active_only: bool = False) -> list[dict[str, Any]]:
@@ -34,14 +34,25 @@ async def get_by_name(name: str) -> Optional[dict[str, Any]]:
 
 
 async def create(
-  name: str, category: str, currency: Optional[str], now: str
+  name: str,
+  category: str,
+  currency: Optional[str],
+  massive_ticker: Optional[str],
+  now: str,
 ) -> int:
   """Insert a new asset and return its generated id."""
   query = """
-    INSERT INTO assets (name, category, currency, is_active, created_at, updated_at)
-    VALUES (:name, :category, :currency, 1, :now, :now)
+    INSERT INTO assets
+      (name, category, currency, massive_ticker, is_active, created_at, updated_at)
+    VALUES (:name, :category, :currency, :massive_ticker, 1, :now, :now)
   """
-  values = {"name": name, "category": category, "currency": currency, "now": now}
+  values = {
+    "name": name,
+    "category": category,
+    "currency": currency,
+    "massive_ticker": massive_ticker,
+    "now": now,
+  }
   return await database.execute(query, values)
 
 

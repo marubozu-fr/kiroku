@@ -39,7 +39,11 @@ async def create_asset(payload: AssetCreate) -> dict[str, Any]:
   if await asset_repository.get_by_name(payload.name) is not None:
     raise DuplicateAssetError(f"Asset name '{payload.name}' already exists")
   new_id = await asset_repository.create(
-    payload.name, payload.category, payload.currency, _now()
+    payload.name,
+    payload.category,
+    payload.currency,
+    payload.massive_ticker,
+    _now(),
   )
   created = await asset_repository.get_by_id(new_id)
   # get_by_id cannot return None here: the row was just inserted.

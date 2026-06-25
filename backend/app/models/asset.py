@@ -23,6 +23,7 @@ class AssetCreate(BaseModel):
   name: str = Field(min_length=2, max_length=50)
   category: AssetCategory
   currency: Optional[str] = Field(default=None, max_length=10)
+  massive_ticker: Optional[str] = Field(default=None, max_length=50)
 
 
 class AssetUpdate(BaseModel):
@@ -33,6 +34,7 @@ class AssetUpdate(BaseModel):
   name: Optional[str] = Field(default=None, min_length=2, max_length=50)
   category: Optional[AssetCategory] = None
   currency: Optional[str] = Field(default=None, max_length=10)
+  massive_ticker: Optional[str] = Field(default=None, max_length=50)
   is_active: Optional[bool] = None
 
 
@@ -43,6 +45,7 @@ class AssetResponse(BaseModel):
   name: str
   category: AssetCategory
   currency: Optional[str] = None
+  massive_ticker: Optional[str] = None
   is_active: bool
   created_at: Optional[str] = None
   updated_at: Optional[str] = None
