@@ -1,6 +1,6 @@
 import type { ApiResponse } from '@/types/api'
 
-const API_BASE = '/api'
+export const API_BASE = '/api'
 
 /** Thrown when the API returns an error envelope or a non-OK HTTP status. */
 export class ApiError extends Error {

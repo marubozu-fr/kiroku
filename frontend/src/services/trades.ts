@@ -1,4 +1,4 @@
-import { api } from '@/services/api'
+import { api, ApiError, API_BASE } from '@/services/api'
 import type {
   ScreenshotUploadInput,
   TradeDetail,
@@ -6,6 +6,7 @@ import type {
   TradeScreenshot,
   TradeSummary,
 } from '@/types/trade'
+import type { TradeCandlesResponse } from '@/types/candle'
 
 /**
  * API client for trades. The journal list page reads the years that have
@@ -41,4 +42,40 @@ export const tradesApi = {
   },
   removeScreenshot: (screenshotId: number): Promise<TradeScreenshot> =>
     api.delete<TradeScreenshot>(`/screenshots/${screenshotId}`),
+  candles: async (
+    id: number,
+    resolution?: string,
+    signal?: AbortSignal,
+  ): Promise<TradeCandlesResponse> => {
+    const url =
+      resolution !== undefined
+        ? `${API_BASE}/trades/${id}/candles?resolution=${resolution}`
+        : `${API_BASE}/trades/${id}/candles`
+
+    let response: Response
+    try {
+      response = await fetch(url, { signal })
+    } catch (cause) {
+      throw new ApiError(
+        cause instanceof Error ? cause.message : 'Network request failed',
+        0,
+      )
+    }
+
+    let payload: TradeCandlesResponse
+    try {
+      payload = (await response.json()) as TradeCandlesResponse
+    } catch {
+      throw new ApiError('Invalid JSON response from server', response.status)
+    }
+
+    if (!response.ok || payload.error !== null) {
+      throw new ApiError(
+        payload.error ?? `Request failed with status ${response.status}`,
+        response.status,
+      )
+    }
+
+    return payload
+  },
 }

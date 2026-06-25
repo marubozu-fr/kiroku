@@ -663,6 +663,11 @@
       "totals": {
         "quantity": "Qté totale",
         "avg_price": "Prix moyen"
+      },
+      "chart": {
+        "title": "Graphique",
+        "no_ticker": "Associez cet actif à un ticker de données de marché dans les Paramètres pour afficher les graphiques",
+        "no_data": "Les données du graphique ne sont pas encore disponibles — synchronisation automatique en cours"
       }
     },
     "form": {

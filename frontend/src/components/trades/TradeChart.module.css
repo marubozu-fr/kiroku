@@ -1,0 +1,12 @@
+.container {
+  width: 100%;
+  min-height: 320px;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  color: var(--mantine-color-dimmed);
+}
