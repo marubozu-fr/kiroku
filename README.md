@@ -59,7 +59,7 @@ npm install -g pnpm
 ```bash
 git clone --branch v0.6.5 --depth 1 https://github.com/marubozu-fr/kiroku.git
 cd kiroku
-make dev
+make start
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
@@ -83,7 +83,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 git clone https://github.com/marubozu-fr/kiroku.git
 cd kiroku
 git checkout v0.6.5
-make dev
+make start
 ```
 
 Stable versions are listed on the [Releases](https://github.com/marubozu-fr/kiroku/releases) page.
@@ -94,7 +94,7 @@ Stable versions are listed on the [Releases](https://github.com/marubozu-fr/kiro
 git fetch --tags
 git checkout v0.6.5
 make install
-make dev
+make start
 ```
 
 Your data (trades, screenshots, settings) is stored in `backend/data/` which
