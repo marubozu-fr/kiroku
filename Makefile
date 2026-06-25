@@ -1,6 +1,13 @@
-.PHONY: dev dev-backend dev-frontend install test lint
+.PHONY: start dev dev-backend dev-frontend install test lint
 
-## Start backend and frontend concurrently.
+## Start backend and frontend concurrently (no auto-reload).
+## Ctrl+C stops both processes.
+start:
+	@trap 'kill 0' EXIT; \
+	(cd backend && uv run uvicorn app.main:app --port 8000) & \
+	(cd frontend && pnpm install --silent && exec pnpm dev)
+
+## Start backend and frontend concurrently with auto-reload (development).
 ## Ctrl+C stops both processes.
 dev:
 	@trap 'kill 0' EXIT; \
