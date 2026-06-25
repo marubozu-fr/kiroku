@@ -18,6 +18,7 @@ def test_get_preferences_returns_seeded_default() -> None:
     "backup_directory": None,
     "backup_reminder_days": 7,
     "last_backup_at": None,
+    "massive_api_key": "",
   }
 
 
@@ -34,6 +35,23 @@ def test_patch_preferences_updates_field() -> None:
     assert client.get("/api/preferences").json()["data"][
       "risk_per_trade_default"
     ] == 2.0
+
+
+def test_patch_preferences_saves_and_clears_massive_api_key() -> None:
+  with TestClient(app) as client:
+    saved = client.patch(
+      "/api/preferences", json={"massive_api_key": "secret-key"}
+    )
+    assert saved.status_code == 200
+    assert saved.json()["data"]["massive_api_key"] == "secret-key"
+    assert (
+      client.get("/api/preferences").json()["data"]["massive_api_key"]
+      == "secret-key"
+    )
+
+    # An empty string clears the key (the column is NOT NULL).
+    cleared = client.patch("/api/preferences", json={"massive_api_key": ""})
+    assert cleared.json()["data"]["massive_api_key"] == ""
 
 
 def test_patch_preferences_empty_body_is_noop() -> None:

@@ -16,3 +16,12 @@ export function notifySuccess(message: string): void {
 export function notifyError(message: string): void {
   notifications.show({ color: 'orange', title: i18n.t('common.notifications.error_title'), message })
 }
+
+/**
+ * Non-blocking caution (orange, per the design system — red is reserved for
+ * financial loss). Unlike {@link notifyError} it carries no error title: the
+ * action partly succeeded but warrants attention.
+ */
+export function notifyWarning(message: string): void {
+  notifications.show({ color: 'orange', message })
+}

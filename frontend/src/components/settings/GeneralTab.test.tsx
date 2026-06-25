@@ -5,6 +5,7 @@ import i18n from '@/i18n'
 import { GeneralTab } from '@/components/settings/GeneralTab'
 import type { Preferences } from '@/types/preferences'
 import type { BackupResult } from '@/types/backup'
+import type { TickerSearchResult } from '@/types/massive'
 import { jsonResponse, renderWithProviders } from '@/test/utils'
 
 function preferences(overrides: Partial<Preferences> = {}): Preferences {
@@ -16,6 +17,7 @@ function preferences(overrides: Partial<Preferences> = {}): Preferences {
     backup_directory: null,
     backup_reminder_days: 7,
     last_backup_at: null,
+    massive_api_key: '',
     ...overrides,
   }
 }
@@ -33,9 +35,10 @@ function stubFetch(
     prefs?: Preferences
     patchStatus?: { ok: boolean; status: number; error: string | null }
     onPatch?: (body: unknown) => void
+    tickers?: TickerSearchResult[]
   } = {},
 ) {
-  const { prefs = preferences(), patchStatus, onPatch } = handlers
+  const { prefs = preferences(), patchStatus, onPatch, tickers = [] } = handlers
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET'
     if (url === '/api/preferences' && method === 'GET') {
@@ -50,6 +53,9 @@ function stubFetch(
     }
     if (url === '/api/backup' && method === 'POST') {
       return jsonResponse(backupResult)
+    }
+    if ((url as string).startsWith('/api/massive/tickers') && method === 'GET') {
+      return jsonResponse(tickers)
     }
     throw new Error(`Unexpected request: ${method} ${url}`)
   })
@@ -196,6 +202,97 @@ describe('GeneralTab', () => {
           message: `Backup saved: ${backupResult.filename}`,
         }),
       )
+    })
+  })
+
+  describe('Massive API key', () => {
+    it('seeds the API key PasswordInput from stored preferences', async () => {
+      stubFetch({ prefs: preferences({ massive_api_key: 'abc123' }) })
+      renderWithProviders(<GeneralTab />)
+
+      const input = await screen.findByLabelText('Massive API Key')
+      await waitFor(() => expect(input).toHaveValue('abc123'))
+    })
+
+    it('saves a non-empty key, validates it, and notifies success when tickers are returned', async () => {
+      const showSpy = vi.spyOn(notifications, 'show')
+      const onPatch = vi.fn()
+      const fetchMock = stubFetch({
+        prefs: preferences({ massive_api_key: '' }),
+        onPatch,
+        tickers: [{ ticker: 'C:EURUSD', name: 'EUR/USD', market: 'fx', active: true }],
+      })
+      renderWithProviders(<GeneralTab />)
+
+      const input = await screen.findByLabelText('Massive API Key')
+      fireEvent.change(input, { target: { value: 'abc123' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+      await waitFor(() => {
+        expect(onPatch).toHaveBeenCalledWith({ massive_api_key: 'abc123' })
+      })
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          expect.stringContaining('/api/massive/tickers'),
+          expect.objectContaining({ method: 'GET' }),
+        )
+      })
+      await waitFor(() => {
+        expect(showSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'API key verified — market data is enabled',
+          }),
+        )
+      })
+    })
+
+    it('shows a warning when the tickers endpoint returns an empty array', async () => {
+      const showSpy = vi.spyOn(notifications, 'show')
+      const onPatch = vi.fn()
+      stubFetch({
+        prefs: preferences({ massive_api_key: '' }),
+        onPatch,
+        tickers: [],
+      })
+      renderWithProviders(<GeneralTab />)
+
+      const input = await screen.findByLabelText('Massive API Key')
+      fireEvent.change(input, { target: { value: 'bad-key' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+      await waitFor(() => {
+        expect(onPatch).toHaveBeenCalledWith({ massive_api_key: 'bad-key' })
+      })
+      await waitFor(() => {
+        expect(showSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'Could not verify the API key — check it and try again',
+          }),
+        )
+      })
+    })
+
+    it('clears the key, patches with empty string, and skips ticker validation', async () => {
+      const onPatch = vi.fn()
+      const fetchMock = stubFetch({
+        prefs: preferences({ massive_api_key: 'abc123' }),
+        onPatch,
+      })
+      renderWithProviders(<GeneralTab />)
+
+      const input = await screen.findByLabelText('Massive API Key')
+      await waitFor(() => expect(input).toHaveValue('abc123'))
+
+      fireEvent.change(input, { target: { value: '' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+      await waitFor(() => {
+        expect(onPatch).toHaveBeenCalledWith({ massive_api_key: '' })
+      })
+      // The tickers validation endpoint must NOT be called when the key is cleared.
+      expect(
+        fetchMock.mock.calls.every(([url]) => !String(url).startsWith('/api/massive/tickers')),
+      ).toBe(true)
     })
   })
 })

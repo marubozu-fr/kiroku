@@ -17,6 +17,8 @@ export interface Preferences {
   backup_directory: string | null
   backup_reminder_days: number
   last_backup_at: string | null
+  /** Massive market-data API key; empty string when not configured. */
+  massive_api_key: string
 }
 
 /**
@@ -32,5 +34,6 @@ export type PreferencesUpdate = Partial<
     | 'news_min_impact'
     | 'backup_directory'
     | 'backup_reminder_days'
+    | 'massive_api_key'
   >
 >

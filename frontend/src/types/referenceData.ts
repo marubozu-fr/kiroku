@@ -26,6 +26,8 @@ export interface Asset {
   name: string
   category: AssetCategory
   currency: string | null
+  /** Linked Massive market-data ticker (e.g. `C:EURUSD`), or null if unlinked. */
+  massive_ticker: string | null
   is_active: boolean
   created_at: string | null
   updated_at: string | null
@@ -35,6 +37,7 @@ export interface AssetInput {
   name: string
   category: AssetCategory
   currency?: string | null
+  massive_ticker?: string | null
 }
 
 export interface Tag {
