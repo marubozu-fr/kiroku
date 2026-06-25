@@ -41,6 +41,56 @@ def test_create_asset_happy_path() -> None:
   assert data["updated_at"] is not None
 
 
+def test_create_asset_with_massive_ticker() -> None:
+  with TestClient(app) as client:
+    response = _create(client, massive_ticker="C:EURUSD")
+
+  assert response.status_code == 201
+  data = response.json()["data"]
+  assert data["massive_ticker"] == "C:EURUSD"
+
+
+def test_create_asset_massive_ticker_defaults_to_null() -> None:
+  with TestClient(app) as client:
+    response = _create(client)
+
+  assert response.status_code == 201
+  assert response.json()["data"]["massive_ticker"] is None
+
+
+def test_update_asset_sets_massive_ticker() -> None:
+  with TestClient(app) as client:
+    created = _create(client).json()["data"]
+    response = client.put(
+      f"/api/assets/{created['id']}", json={"massive_ticker": "C:EURUSD"}
+    )
+
+  assert response.status_code == 200
+  data = response.json()["data"]
+  assert data["massive_ticker"] == "C:EURUSD"
+  assert data["name"] == "EUR/USD"
+
+
+def test_update_asset_clears_massive_ticker() -> None:
+  with TestClient(app) as client:
+    created = _create(client, massive_ticker="C:EURUSD").json()["data"]
+    response = client.put(
+      f"/api/assets/{created['id']}", json={"massive_ticker": None}
+    )
+
+  assert response.status_code == 200
+  assert response.json()["data"]["massive_ticker"] is None
+
+
+def test_get_asset_returns_massive_ticker() -> None:
+  with TestClient(app) as client:
+    created = _create(client, massive_ticker="C:EURUSD").json()["data"]
+    response = client.get(f"/api/assets/{created['id']}")
+
+  assert response.status_code == 200
+  assert response.json()["data"]["massive_ticker"] == "C:EURUSD"
+
+
 def test_create_asset_without_currency() -> None:
   with TestClient(app) as client:
     response = client.post("/api/assets", json={"name": "BTC", "category": "Crypto"})
