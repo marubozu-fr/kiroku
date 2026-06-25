@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { useMantineColorScheme } from '@mantine/core'
 import type { TradeCandlesResponse } from '@/types/candle'
 import { renderWithProviders } from '@/test/utils'
 
@@ -14,6 +15,7 @@ const {
   mockSetData,
   mockSetMarkers,
   mockCreatePriceLine,
+  mockSeriesApplyOptions,
   mockFitContent,
   mockApplyOptions,
   mockRemove,
@@ -22,6 +24,7 @@ const {
   const mockSetData = vi.fn()
   const mockSetMarkers = vi.fn()
   const mockCreatePriceLine = vi.fn()
+  const mockSeriesApplyOptions = vi.fn()
   const mockFitContent = vi.fn()
   const mockApplyOptions = vi.fn()
   const mockRemove = vi.fn()
@@ -30,6 +33,7 @@ const {
     setData: mockSetData,
     setMarkers: mockSetMarkers,
     createPriceLine: mockCreatePriceLine,
+    applyOptions: mockSeriesApplyOptions,
   }))
 
   const mockCreateChart = vi.fn(() => ({
@@ -53,6 +57,7 @@ const {
     mockSetData,
     mockSetMarkers,
     mockCreatePriceLine,
+    mockSeriesApplyOptions,
     mockFitContent,
     mockApplyOptions,
     mockRemove,
@@ -168,6 +173,7 @@ beforeEach(() => {
     setData: mockSetData,
     setMarkers: mockSetMarkers,
     createPriceLine: mockCreatePriceLine,
+    applyOptions: mockSeriesApplyOptions,
   })
   mockCreateChart.mockReturnValue({
     addCandlestickSeries: mockAddCandlestickSeries,
@@ -286,6 +292,72 @@ describe('TradeChart', () => {
     // The chart container div is present in the document
     const chartContainer = document.querySelector('[class*="container"]')
     expect(chartContainer).not.toBeNull()
+  })
+
+  it('disables the TradingView attribution logo and uses a 450px chart height', async () => {
+    mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
+
+    renderWithProviders(
+      <TradeChart tradeId={6} defaultResolution="M15" />,
+    )
+
+    await waitFor(() => {
+      expect(mockCreateChart).toHaveBeenCalledOnce()
+    })
+
+    const options = (mockCreateChart.mock.calls[0] as unknown[])[1] as {
+      height: number
+      layout: { attributionLogo: boolean }
+    }
+    expect(options.height).toBe(450)
+    expect(options.layout.attributionLogo).toBe(false)
+  })
+
+  it('re-applies chart and series colors when the color scheme toggles', async () => {
+    mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
+
+    function ColorSchemeToggle() {
+      const { setColorScheme } = useMantineColorScheme()
+      return (
+        <button type="button" onClick={() => setColorScheme('dark')}>
+          to-dark
+        </button>
+      )
+    }
+
+    renderWithProviders(
+      <>
+        <ColorSchemeToggle />
+        <TradeChart tradeId={7} defaultResolution="M15" />
+      </>,
+    )
+
+    // Wait until the chart and series have been created.
+    await waitFor(() => {
+      expect(mockAddCandlestickSeries).toHaveBeenCalledOnce()
+    })
+
+    // The theme effect has not fired yet (no scheme change since creation).
+    expect(mockSeriesApplyOptions).not.toHaveBeenCalled()
+
+    // Toggle the Mantine color scheme.
+    fireEvent.click(screen.getByRole('button', { name: 'to-dark' }))
+
+    // Both the chart layout/grid and the series candle colors are re-applied.
+    await waitFor(() => {
+      expect(mockSeriesApplyOptions).toHaveBeenCalled()
+    })
+    const seriesColors = mockSeriesApplyOptions.mock.calls.at(-1)![0] as {
+      upColor: string
+      downColor: string
+    }
+    expect(seriesColors).toHaveProperty('upColor')
+    expect(seriesColors).toHaveProperty('downColor')
+
+    const chartOptions = mockApplyOptions.mock.calls.at(-1)![0] as {
+      layout?: { textColor?: string }
+    }
+    expect(chartOptions.layout).toBeDefined()
   })
 
   it('re-fetches with the new resolution when the SegmentedControl changes', async () => {

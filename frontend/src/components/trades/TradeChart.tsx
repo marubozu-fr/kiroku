@@ -7,9 +7,18 @@ import {
   LineStyle,
   type UTCTimestamp,
   type IChartApi,
+  type ISeriesApi,
   type SeriesMarker,
 } from 'lightweight-charts'
-import { Alert, Button, SegmentedControl, Skeleton, Stack, Text } from '@mantine/core'
+import {
+  Alert,
+  Button,
+  SegmentedControl,
+  Skeleton,
+  Stack,
+  Text,
+  useMantineColorScheme,
+} from '@mantine/core'
 import { IconAlertTriangle } from '@tabler/icons-react'
 import { useFetch } from '@/hooks/useFetch'
 import { tradesApi } from '@/services/trades'
@@ -26,8 +35,34 @@ function isValidResolution(value: string): value is ChartResolution {
   return (CHART_RESOLUTIONS as string[]).includes(value)
 }
 
+interface ChartColors {
+  bg: string
+  text: string
+  grid: string
+  green: string
+  red: string
+}
+
+// Resolve theme-aware colors from the container's computed style. Mantine's
+// semantic CSS variables (--mantine-color-body / text / default-border) resolve
+// to different values per color scheme, so re-reading them after a theme switch
+// yields the correct palette for the active scheme.
+function resolveChartColors(containerEl: HTMLElement): ChartColors {
+  const style = getComputedStyle(containerEl)
+  const get = (name: string, fallback: string): string =>
+    style.getPropertyValue(name).trim() || fallback
+  return {
+    bg: get('--mantine-color-body', 'transparent'),
+    text: get('--mantine-color-text', '#a6a7ab'),
+    grid: get('--mantine-color-default-border', '#373a40'),
+    green: get('--mantine-color-green-6', '#40c057'),
+    red: get('--mantine-color-red-6', '#fa5252'),
+  }
+}
+
 export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
   const { t } = useTranslation()
+  const { colorScheme } = useMantineColorScheme()
 
   const [resolution, setResolution] = useState<ChartResolution>(
     isValidResolution(defaultResolution) ? defaultResolution : 'M15',
@@ -54,6 +89,7 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const chartRef = useRef<IChartApi | null>(null)
+  const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
 
   useEffect(() => {
     const containerEl = containerRef.current
@@ -68,12 +104,7 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
       return
     }
 
-    const style = getComputedStyle(containerEl)
-    const bgColor = style.getPropertyValue('--mantine-color-body').trim() || 'transparent'
-    const textColor = style.getPropertyValue('--mantine-color-dark-2').trim() || '#a6a7ab'
-    const gridColor = style.getPropertyValue('--mantine-color-dark-4').trim() || '#373a40'
-    const greenColor = style.getPropertyValue('--mantine-color-green-6').trim() || '#40c057'
-    const redColor = style.getPropertyValue('--mantine-color-red-6').trim() || '#fa5252'
+    const colors = resolveChartColors(containerEl)
 
     // Derive price format from magnitude of first candle's close
     const firstCandle = candles[0]
@@ -82,42 +113,45 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
     const minMove = isForex ? 0.00001 : 0.01
 
     const chart = createChart(containerEl, {
-      height: 320,
+      height: 450,
       width: containerEl.clientWidth,
       layout: {
-        background: { type: ColorType.Solid, color: bgColor },
-        textColor,
+        background: { type: ColorType.Solid, color: colors.bg },
+        textColor: colors.text,
+        attributionLogo: false,
       },
       grid: {
-        vertLines: { color: gridColor },
-        horzLines: { color: gridColor },
+        vertLines: { color: colors.grid },
+        horzLines: { color: colors.grid },
       },
       crosshair: { mode: CrosshairMode.Normal },
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
-        borderColor: gridColor,
+        borderColor: colors.grid,
       },
       rightPriceScale: {
-        borderColor: gridColor,
+        borderColor: colors.grid,
       },
     })
 
     chartRef.current = chart
 
     const series = chart.addCandlestickSeries({
-      upColor: greenColor,
-      downColor: redColor,
-      borderUpColor: greenColor,
-      borderDownColor: redColor,
-      wickUpColor: greenColor,
-      wickDownColor: redColor,
+      upColor: colors.green,
+      downColor: colors.red,
+      borderUpColor: colors.green,
+      borderDownColor: colors.red,
+      wickUpColor: colors.green,
+      wickDownColor: colors.red,
       priceFormat: {
         type: 'price',
         precision,
         minMove,
       },
     })
+
+    seriesRef.current = series
 
     series.setData(
       candles.map((c) => ({
@@ -134,7 +168,7 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
       .map((m) => ({
         time: (m.timestamp / 1000) as UTCTimestamp,
         position: m.type === 'entry' ? ('belowBar' as const) : ('aboveBar' as const),
-        color: m.type === 'entry' ? greenColor : redColor,
+        color: m.type === 'entry' ? colors.green : colors.red,
         shape: m.type === 'entry' ? ('arrowUp' as const) : ('arrowDown' as const),
         text: m.type,
       }))
@@ -146,7 +180,7 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
     if (data.levels.stop_loss !== null) {
       series.createPriceLine({
         price: data.levels.stop_loss,
-        color: redColor,
+        color: colors.red,
         lineWidth: 1,
         lineStyle: LineStyle.Dashed,
         axisLabelVisible: true,
@@ -158,7 +192,7 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
     tps.forEach((tp, i) => {
       series.createPriceLine({
         price: tp,
-        color: greenColor,
+        color: colors.green,
         lineWidth: 1,
         lineStyle: LineStyle.Dashed,
         axisLabelVisible: true,
@@ -177,14 +211,49 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
       resizeObserver.disconnect()
       chart.remove()
       chartRef.current = null
+      seriesRef.current = null
     }
   }, [response])
+
+  // Re-apply theme-aware colors when the Mantine color scheme toggles. The
+  // create effect only runs on data change, so without this the chart keeps the
+  // colors resolved at creation time after a dark <-> light switch.
+  useEffect(() => {
+    const containerEl = containerRef.current
+    const chart = chartRef.current
+    const series = seriesRef.current
+    if (!containerEl || !chart || !series) {
+      return
+    }
+
+    const colors = resolveChartColors(containerEl)
+    chart.applyOptions({
+      layout: {
+        background: { type: ColorType.Solid, color: colors.bg },
+        textColor: colors.text,
+      },
+      grid: {
+        vertLines: { color: colors.grid },
+        horzLines: { color: colors.grid },
+      },
+      timeScale: { borderColor: colors.grid },
+      rightPriceScale: { borderColor: colors.grid },
+    })
+    series.applyOptions({
+      upColor: colors.green,
+      downColor: colors.red,
+      borderUpColor: colors.green,
+      borderDownColor: colors.red,
+      wickUpColor: colors.green,
+      wickDownColor: colors.red,
+    })
+  }, [colorScheme])
 
   const resolutionData = CHART_RESOLUTIONS.map((r) => ({ value: r, label: r }))
 
   let content: ReactNode
   if (loading) {
-    content = <Skeleton height={320} />
+    content = <Skeleton height={450} />
   } else if (error) {
     content = (
       <Alert
