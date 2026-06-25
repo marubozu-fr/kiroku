@@ -69,7 +69,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 > ```powershell
 > # Terminal 1 — backend
 > cd backend
-> uv run uvicorn app.main:app --reload --port 8000
+> uv run uvicorn app.main:app --port 8000
 >
 > # Terminal 2 — frontend
 > cd frontend
