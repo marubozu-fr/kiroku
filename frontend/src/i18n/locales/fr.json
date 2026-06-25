@@ -446,7 +446,8 @@
         "massive_ticker_label": "Ticker de données de marché",
         "massive_ticker_hint": "Optionnel — associer aux données de marché pour l’affichage du graphique",
         "massive_ticker_placeholder": "Rechercher des tickers...",
-        "massive_ticker_no_api_key": "Configurez votre clé API Massive dans Paramètres > Général pour activer ceci"
+        "massive_ticker_no_api_key": "Configurez votre clé API Massive dans Paramètres > Général pour activer ceci",
+        "massive_ticker_select_category": "Sélectionnez d'abord une catégorie"
       },
       "notify": {
         "created": "{{name}} créé",

@@ -12,7 +12,7 @@ MASSIVE_BASE_URL = "https://api.massive.com"
 REQUEST_TIMEOUT_SECONDS = 30.0
 
 # Markets the Massive reference search accepts.
-ALLOWED_MARKETS = ("fx", "stocks", "crypto")
+ALLOWED_MARKETS = ("fx", "stocks", "crypto", "indices")
 
 # Rate limiter: free tier allows 5 calls per 60-second sliding window.
 MAX_CALLS_PER_MINUTE = 5
@@ -126,7 +126,7 @@ def _normalize_futures_candle(raw: dict) -> dict:
 async def search_tickers(query: str, market: str) -> list[dict]:
   """Search Massive tickers by keyword and market.
 
-  market must be one of: 'fx', 'stocks', 'crypto'.
+  market must be one of: 'fx', 'stocks', 'crypto', 'indices'.
   Returns a list of dicts with keys: ticker, name, market, locale,
   currency_name, active. Returns [] if the API key is missing or the
   request fails.

@@ -446,7 +446,8 @@
         "massive_ticker_label": "Marktdaten-Ticker",
         "massive_ticker_hint": "Optional — mit Marktdaten für die Chart-Anzeige verknüpfen",
         "massive_ticker_placeholder": "Ticker suchen...",
-        "massive_ticker_no_api_key": "Konfiguriere deinen Massive-API-Schlüssel unter Einstellungen > Allgemein, um dies zu aktivieren"
+        "massive_ticker_no_api_key": "Konfiguriere deinen Massive-API-Schlüssel unter Einstellungen > Allgemein, um dies zu aktivieren",
+        "massive_ticker_select_category": "Wähle zuerst eine Kategorie"
       },
       "notify": {
         "created": "{{name}} erstellt",
