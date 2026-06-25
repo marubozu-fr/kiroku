@@ -9,9 +9,13 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 
+from app.database import DB_PATH
+
 logger = logging.getLogger(__name__)
 
-CANDLES_DIR = "data/candles"
+# Anchored to the database directory (honours the KIROKU_DB_PATH override),
+# mirroring SCREENSHOTS_DIR so candle files share the app's data location.
+CANDLES_DIR = DB_PATH.parent / "candles"
 
 # Parquet schema for all candle files.
 _SCHEMA = pa.schema(
@@ -91,7 +95,11 @@ def store_candles(ticker: str, candles: list[dict]) -> int:
 
   path.parent.mkdir(parents=True, exist_ok=True)
   table = pa.Table.from_pylist(merged, schema=_SCHEMA)
-  pq.write_table(table, path)
+  # Write to a temp file then rename: rename is atomic on POSIX, so a crash
+  # mid-write cannot truncate the existing historical data for this ticker.
+  tmp = path.with_suffix(".tmp")
+  pq.write_table(table, tmp)
+  tmp.rename(path)
 
   logger.debug("store_candles(%s): %d new rows written", ticker, new_count)
   return new_count
