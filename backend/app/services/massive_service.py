@@ -11,6 +11,9 @@ logger = logging.getLogger(__name__)
 MASSIVE_BASE_URL = "https://api.massive.com"
 REQUEST_TIMEOUT_SECONDS = 30.0
 
+# Markets the Massive reference search accepts.
+ALLOWED_MARKETS = ("fx", "stocks", "crypto")
+
 # Rate limiter: free tier allows 5 calls per 60-second sliding window.
 MAX_CALLS_PER_MINUTE = 5
 RATE_WINDOW_SECONDS = 60

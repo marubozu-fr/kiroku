@@ -4,11 +4,9 @@ from app.errors import ValidationError
 from app.models.massive import TickerSearchResult
 from app.models.response import ApiResponse
 from app.services import massive_service
+from app.services.massive_service import ALLOWED_MARKETS
 
 router = APIRouter(prefix="/api/massive", tags=["massive"])
-
-# Markets the Massive reference search accepts. Mirrors massive_service.
-ALLOWED_MARKETS = ("fx", "stocks", "crypto")
 
 
 @router.get("/tickers")
