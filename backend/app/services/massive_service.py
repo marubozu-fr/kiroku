@@ -29,11 +29,29 @@ async def _get_api_key() -> str:
   return prefs.get("massive_api_key", "") or ""
 
 
+async def _await_rate_limit_slot() -> None:
+  """Block until a call slot is free under the sliding-window rate limit.
+
+  Drops timestamps older than RATE_WINDOW_SECONDS, then sleeps until the
+  oldest of MAX_CALLS_PER_MINUTE recorded calls leaves the window.
+  """
+  cutoff = time.monotonic() - RATE_WINDOW_SECONDS
+  while _call_times and _call_times[0] <= cutoff:
+    _call_times.pop(0)
+
+  if len(_call_times) >= MAX_CALLS_PER_MINUTE:
+    oldest = _call_times[0]
+    sleep_for = (oldest + RATE_WINDOW_SECONDS) - time.monotonic()
+    if sleep_for > 0:
+      logger.debug("Rate limit reached; sleeping %.2f s", sleep_for)
+      await asyncio.sleep(sleep_for)
+
+
 async def _rate_limited_get(url: str, params: dict) -> dict | None:
   """Perform a rate-limited GET request with the API key injected.
 
   Enforces a sliding-window limit of MAX_CALLS_PER_MINUTE calls per
-  RATE_WINDOW_SECONDS. Sleeps until the window clears if the limit is reached.
+  RATE_WINDOW_SECONDS, and retries once after a delay on HTTP 429.
   Returns the parsed JSON dict on success, or None on error / missing key.
   """
   api_key = await _get_api_key()
@@ -41,51 +59,38 @@ async def _rate_limited_get(url: str, params: dict) -> dict | None:
     logger.info("Massive API key not configured; skipping request to %s", url)
     return None
 
-  # Enforce rate limit: if 5 calls were made in the last 60 s, sleep until
-  # the oldest of those 5 falls outside the window.
-  now = time.monotonic()
-  # Drop timestamps outside the current window.
-  cutoff = now - RATE_WINDOW_SECONDS
-  while _call_times and _call_times[0] <= cutoff:
-    _call_times.pop(0)
-
-  if len(_call_times) >= MAX_CALLS_PER_MINUTE:
-    # Sleep until the oldest recorded call exits the window.
-    oldest = _call_times[0]
-    sleep_for = (oldest + RATE_WINDOW_SECONDS) - time.monotonic()
-    if sleep_for > 0:
-      logger.debug("Rate limit reached; sleeping %.2f s", sleep_for)
-      await asyncio.sleep(sleep_for)
-
   full_params = {**params, "apiKey": api_key}
 
-  try:
-    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as client:
-      response = await client.get(url, params=full_params)
-      response.raise_for_status()
-      _call_times.append(time.monotonic())
-      return response.json()
-  except httpx.HTTPStatusError as exc:
-    status = exc.response.status_code
-    if status in (401, 403):
-      logger.error("Invalid Massive API key (HTTP %d) for %s", status, url)
-    elif status == 429:
-      logger.warning("Massive API rate limited (HTTP 429); retrying once after %.1f s", RETRY_DELAY_SECONDS)
-      await asyncio.sleep(RETRY_DELAY_SECONDS)
-      try:
-        async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as client:
-          response = await client.get(url, params=full_params)
-          response.raise_for_status()
-          _call_times.append(time.monotonic())
-          return response.json()
-      except httpx.HTTPError as retry_exc:
-        logger.warning("Massive API retry failed for %s: %s", url, retry_exc)
-    else:
-      logger.warning("Massive API HTTP error %d for %s", status, url)
-    return None
-  except httpx.HTTPError as exc:
-    logger.warning("Massive API network error for %s: %s", url, exc)
-    return None
+  # Two attempts at most: the second covers a single retry after a 429.
+  for attempt in range(2):
+    await _await_rate_limit_slot()
+    try:
+      async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as client:
+        response = await client.get(url, params=full_params)
+        # Record the call as soon as the server responds: the provider counts
+        # it against the rate limit even when it returns an error status.
+        _call_times.append(time.monotonic())
+        response.raise_for_status()
+        return response.json()
+    except httpx.HTTPStatusError as exc:
+      status = exc.response.status_code
+      if status == 429 and attempt == 0:
+        logger.warning(
+          "Massive API rate limited (HTTP 429); retrying once after %.1f s",
+          RETRY_DELAY_SECONDS,
+        )
+        await asyncio.sleep(RETRY_DELAY_SECONDS)
+        continue
+      if status in (401, 403):
+        logger.error("Invalid Massive API key (HTTP %d) for %s", status, url)
+      else:
+        logger.warning("Massive API HTTP error %d for %s", status, url)
+      return None
+    except httpx.HTTPError as exc:
+      logger.warning("Massive API network error for %s: %s", url, exc)
+      return None
+
+  return None
 
 
 def _normalize_forex_candle(raw: dict) -> dict:
@@ -123,10 +128,6 @@ async def search_tickers(query: str, market: str) -> list[dict]:
   currency_name, active. Returns [] if the API key is missing or the
   request fails.
   """
-  api_key = await _get_api_key()
-  if not api_key:
-    return []
-
   url = f"{MASSIVE_BASE_URL}/v3/reference/tickers"
   params = {
     "search": query,
@@ -153,10 +154,6 @@ async def fetch_candles(ticker: str, date_from: str, date_to: str) -> list[dict]
 
   Returns [] if the API key is missing or the request fails.
   """
-  api_key = await _get_api_key()
-  if not api_key:
-    return []
-
   is_forex = ticker.startswith("C:")
 
   if is_forex:
