@@ -2,6 +2,7 @@ from typing import Optional
 
 from fastapi import APIRouter, File, Form, UploadFile
 
+from app.models.candle import TradeCandlesResponse
 from app.models.response import ApiResponse
 from app.models.trade import (
   TradeCreate,
@@ -13,7 +14,7 @@ from app.models.trade import (
   TradeUpdate,
   YearStatistics,
 )
-from app.services import screenshot_service, trade_service
+from app.services import chart_service, screenshot_service, trade_service
 
 router = APIRouter(prefix="/api/trades", tags=["trades"])
 
@@ -82,6 +83,14 @@ async def upload_screenshot(
     trade_id, file, timeframe_unit, timeframe_value, label
   )
   return ApiResponse(data=TradeScreenshotResponse(**screenshot))
+
+
+@router.get("/{trade_id}/candles")
+async def get_trade_candles(
+  trade_id: int, resolution: Optional[str] = None
+) -> TradeCandlesResponse:
+  result = await chart_service.get_trade_candles(trade_id, resolution)
+  return TradeCandlesResponse(**result)
 
 
 @router.get("/{trade_id}/screenshots")
