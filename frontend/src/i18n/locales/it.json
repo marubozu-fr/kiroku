@@ -667,8 +667,7 @@
       "chart": {
         "title": "Grafico",
         "no_ticker": "Collega questo asset a un ticker di dati di mercato nelle Impostazioni per visualizzare i grafici",
-        "no_data": "I dati del grafico non sono ancora disponibili — sincronizzazione automatica in corso",
-        "loading": "Caricamento dati grafico..."
+        "no_data": "I dati del grafico non sono ancora disponibili — sincronizzazione automatica in corso"
       }
     },
     "form": {

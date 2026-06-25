@@ -64,6 +64,17 @@ const ACCOUNT_TYPE_COLOR: Record<AccountType, string> = {
   test: 'gray',
 }
 
+// Map a trade's entry-timeframe token ('{value}{unit}', e.g. '15m') to a chart
+// resolution. Unmapped tokens fall back to 'M15' at the call site.
+const TF_TO_RESOLUTION: Record<string, string> = {
+  '1m': 'M1',
+  '5m': 'M5',
+  '15m': 'M15',
+  '1h': 'H1',
+  '4h': 'H4',
+  '1d': 'D1',
+}
+
 /**
  * Read-only detail view for a single trade.
  * Route: /journal/:id
@@ -193,14 +204,6 @@ export function TradeDetailPage() {
   }
 
   // --- Derived values (no hooks below this point) ---
-  const TF_TO_RESOLUTION: Record<string, string> = {
-    '1m': 'M1',
-    '5m': 'M5',
-    '15m': 'M15',
-    '1h': 'H1',
-    '4h': 'H4',
-    '1d': 'D1',
-  }
   const sortedActivities = [...trade.activities].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   )
@@ -308,7 +311,6 @@ export function TradeDetailPage() {
             </Title>
             <TradeChart
               tradeId={tradeId}
-              assetName={assetName}
               defaultResolution={
                 TF_TO_RESOLUTION[
                   `${trade.timeframe_value ?? ''}${(trade.timeframe_unit ?? '').toLowerCase()}`

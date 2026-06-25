@@ -667,8 +667,7 @@
       "chart": {
         "title": "Gráfico",
         "no_ticker": "Vincula este activo a un ticker de datos de mercado en Ajustes para mostrar gráficos",
-        "no_data": "Los datos del gráfico aún no están disponibles — se sincronizarán automáticamente",
-        "loading": "Cargando datos del gráfico..."
+        "no_data": "Los datos del gráfico aún no están disponibles — se sincronizarán automáticamente"
       }
     },
     "form": {

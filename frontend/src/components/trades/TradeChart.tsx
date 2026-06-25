@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   createChart,
@@ -19,7 +19,6 @@ import classes from './TradeChart.module.css'
 
 export interface TradeChartProps {
   tradeId: number
-  assetName: string
   defaultResolution: string
 }
 
@@ -183,89 +182,44 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
 
   const resolutionData = CHART_RESOLUTIONS.map((r) => ({ value: r, label: r }))
 
+  let content: ReactNode
   if (loading) {
-    return (
-      <Stack gap="sm">
-        <SegmentedControl
-          size="xs"
-          data={resolutionData}
-          value={resolution}
-          onChange={(v) => {
-            if (isValidResolution(v)) setResolution(v)
-          }}
-        />
-        <Skeleton height={320} />
-      </Stack>
+    content = <Skeleton height={320} />
+  } else if (error) {
+    content = (
+      <Alert
+        color="orange"
+        icon={<IconAlertTriangle size={20} />}
+        title={t('common.status.error')}
+      >
+        <Stack gap="sm" align="flex-start">
+          <Text size="sm">{error}</Text>
+          <Button variant="default" size="xs" onClick={reload}>
+            {t('common.actions.retry')}
+          </Button>
+        </Stack>
+      </Alert>
     )
-  }
-
-  if (error) {
-    return (
-      <Stack gap="sm">
-        <SegmentedControl
-          size="xs"
-          data={resolutionData}
-          value={resolution}
-          onChange={(v) => {
-            if (isValidResolution(v)) setResolution(v)
-          }}
-        />
-        <Alert
-          color="orange"
-          icon={<IconAlertTriangle size={20} />}
-          title={t('common.status.error')}
-        >
-          <Stack gap="sm" align="flex-start">
-            <Text size="sm">{error}</Text>
-            <Button variant="default" size="xs" onClick={reload}>
-              {t('common.actions.retry')}
-            </Button>
-          </Stack>
-        </Alert>
-      </Stack>
+  } else if (response?.data === null && response?.meta?.reason === 'no_ticker') {
+    // no_ticker — data is null and meta indicates no ticker linked
+    content = (
+      <div className={classes.placeholder}>
+        <Text size="sm" c="dimmed">
+          {t('trade.detail.chart.no_ticker')}
+        </Text>
+      </div>
     )
-  }
-
-  // no_ticker — data is null and meta indicates no ticker linked
-  if (response?.data === null && response?.meta?.reason === 'no_ticker') {
-    return (
-      <Stack gap="sm">
-        <SegmentedControl
-          size="xs"
-          data={resolutionData}
-          value={resolution}
-          onChange={(v) => {
-            if (isValidResolution(v)) setResolution(v)
-          }}
-        />
-        <div className={classes.placeholder}>
-          <Text size="sm" c="dimmed">
-            {t('trade.detail.chart.no_ticker')}
-          </Text>
-        </div>
-      </Stack>
+  } else if ((response?.data?.candles.length ?? 0) === 0) {
+    // pending — data present but candles array is empty
+    content = (
+      <div className={classes.placeholder}>
+        <Text size="sm" c="dimmed">
+          {t('trade.detail.chart.no_data')}
+        </Text>
+      </div>
     )
-  }
-
-  // pending — data present but candles array is empty
-  if (response?.data !== null && (response?.data?.candles.length ?? 0) === 0) {
-    return (
-      <Stack gap="sm">
-        <SegmentedControl
-          size="xs"
-          data={resolutionData}
-          value={resolution}
-          onChange={(v) => {
-            if (isValidResolution(v)) setResolution(v)
-          }}
-        />
-        <div className={classes.placeholder}>
-          <Text size="sm" c="dimmed">
-            {t('trade.detail.chart.no_data')}
-          </Text>
-        </div>
-      </Stack>
-    )
+  } else {
+    content = <div ref={containerRef} className={classes.container} />
   }
 
   return (
@@ -278,7 +232,7 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
           if (isValidResolution(v)) setResolution(v)
         }}
       />
-      <div ref={containerRef} className={classes.container} />
+      {content}
     </Stack>
   )
 }

@@ -667,8 +667,7 @@
       "chart": {
         "title": "Chart",
         "no_ticker": "Link this asset to a market data ticker in Settings to display charts",
-        "no_data": "Chart data not yet available — will sync automatically",
-        "loading": "Loading chart data..."
+        "no_data": "Chart data not yet available — will sync automatically"
       }
     },
     "form": {

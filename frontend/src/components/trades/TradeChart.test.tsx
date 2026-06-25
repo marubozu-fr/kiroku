@@ -191,7 +191,7 @@ describe('TradeChart', () => {
     mockCandles.mockReturnValue(new Promise<TradeCandlesResponse>(() => undefined))
 
     renderWithProviders(
-      <TradeChart tradeId={1} assetName="EURUSD" defaultResolution="M15" />,
+      <TradeChart tradeId={1} defaultResolution="M15" />,
     )
 
     // Mantine Skeleton renders as a div with the mantine-Skeleton-root class
@@ -209,7 +209,7 @@ describe('TradeChart', () => {
     mockCandles.mockResolvedValue(NO_TICKER_RESPONSE)
 
     renderWithProviders(
-      <TradeChart tradeId={2} assetName="GBPJPY" defaultResolution="M15" />,
+      <TradeChart tradeId={2} defaultResolution="M15" />,
     )
 
     expect(
@@ -226,7 +226,7 @@ describe('TradeChart', () => {
     mockCandles.mockResolvedValue(NO_DATA_RESPONSE)
 
     renderWithProviders(
-      <TradeChart tradeId={3} assetName="EURUSD" defaultResolution="M15" />,
+      <TradeChart tradeId={3} defaultResolution="M15" />,
     )
 
     expect(
@@ -240,7 +240,7 @@ describe('TradeChart', () => {
     mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
 
     renderWithProviders(
-      <TradeChart tradeId={4} assetName="EURUSD" defaultResolution="M15" />,
+      <TradeChart tradeId={4} defaultResolution="M15" />,
     )
 
     // Wait until the chart effect has run
@@ -292,7 +292,7 @@ describe('TradeChart', () => {
     mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
 
     renderWithProviders(
-      <TradeChart tradeId={5} assetName="EURUSD" defaultResolution="M15" />,
+      <TradeChart tradeId={5} defaultResolution="M15" />,
     )
 
     // Wait for the initial M15 fetch to complete
