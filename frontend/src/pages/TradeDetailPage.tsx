@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { TradeChart } from '@/components/trades/TradeChart'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -108,6 +109,13 @@ export function TradeDetailPage() {
     [screenshotGroups],
   )
 
+  const assetTicker = useMemo(() => {
+    const assetId = tradeFetch.data?.asset_id ?? null
+    if (assetId === null) return null
+    const match = (assetsFetch.data ?? []).find((a) => a.id === assetId)
+    return match?.massive_ticker ?? null
+  }, [tradeFetch.data, assetsFetch.data])
+
   const handleDelete = async () => {
     setDeletePending(true)
     try {
@@ -185,6 +193,14 @@ export function TradeDetailPage() {
   }
 
   // --- Derived values (no hooks below this point) ---
+  const TF_TO_RESOLUTION: Record<string, string> = {
+    '1m': 'M1',
+    '5m': 'M5',
+    '15m': 'M15',
+    '1h': 'H1',
+    '4h': 'H4',
+    '1d': 'D1',
+  }
   const sortedActivities = [...trade.activities].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   )
@@ -283,6 +299,24 @@ export function TradeDetailPage() {
             </Stack>
           </Card>
         </SimpleGrid>
+
+        {/* Chart */}
+        {assetTicker && (
+          <Card shadow="sm" radius="md" padding="md">
+            <Title order={4} mb="sm">
+              {t('trade.detail.chart.title')}
+            </Title>
+            <TradeChart
+              tradeId={tradeId}
+              assetName={assetName}
+              defaultResolution={
+                TF_TO_RESOLUTION[
+                  `${trade.timeframe_value ?? ''}${(trade.timeframe_unit ?? '').toLowerCase()}`
+                ] ?? 'M15'
+              }
+            />
+          </Card>
+        )}
 
         {/* Activities */}
         <Card shadow="sm" radius="md" padding="md">

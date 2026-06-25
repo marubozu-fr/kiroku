@@ -663,6 +663,12 @@
       "totals": {
         "quantity": "Gesamtmenge",
         "avg_price": "Ø Preis"
+      },
+      "chart": {
+        "title": "Diagramm",
+        "no_ticker": "Verknüpfe diesen Vermögenswert mit einem Marktdaten-Ticker in den Einstellungen, um Diagramme anzuzeigen",
+        "no_data": "Diagrammdaten noch nicht verfügbar — wird automatisch synchronisiert",
+        "loading": "Diagrammdaten werden geladen..."
       }
     },
     "form": {
