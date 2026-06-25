@@ -394,7 +394,13 @@
     },
     "general": {
       "language_label": "Langue",
-      "language_description": "Choisissez la langue d'affichage"
+      "language_description": "Choisissez la langue d'affichage",
+      "massive_api_key_label": "Clé API Massive",
+      "massive_api_key_hint": "Clé API gratuite de massive.com — active les données de graphique dans les trades",
+      "massive_api_key_link": "Obtenir une clé API gratuite",
+      "massive_api_key_valid": "Clé API vérifiée — les données de marché sont activées",
+      "massive_api_key_invalid": "Impossible de vérifier la clé API — vérifiez-la et réessayez",
+      "save_error": "Impossible d'enregistrer vos modifications"
     },
     "data_states": {
       "load_error": "Impossible de charger les données"
@@ -436,7 +442,11 @@
         "name_max": "Le nom ne doit pas dépasser 50 caractères",
         "category_required": "La catégorie est requise",
         "currency_max": "La devise ne doit pas dépasser 10 caractères",
-        "name_slash_hint": "Utilisez le champ Devise pour la devise de cotation (ex. nom : EUR, devise : USD)"
+        "name_slash_hint": "Utilisez le champ Devise pour la devise de cotation (ex. nom : EUR, devise : USD)",
+        "massive_ticker_label": "Ticker de données de marché",
+        "massive_ticker_hint": "Optionnel — associer aux données de marché pour l’affichage du graphique",
+        "massive_ticker_placeholder": "Rechercher des tickers...",
+        "massive_ticker_no_api_key": "Configurez votre clé API Massive dans Paramètres > Général pour activer ceci"
       },
       "notify": {
         "created": "{{name}} créé",

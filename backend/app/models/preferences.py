@@ -17,6 +17,9 @@ class PreferencesResponse(BaseModel):
   backup_directory: Optional[str]
   backup_reminder_days: int
   last_backup_at: Optional[str]
+  # Stored verbatim (empty string when unset). Single-user local app, so the
+  # raw key is returned to the client to prefill the Settings field.
+  massive_api_key: str
 
 
 class PreferencesUpdate(BaseModel):
@@ -30,3 +33,6 @@ class PreferencesUpdate(BaseModel):
   backup_directory: Optional[str] = Field(default=None)
   # 0 disables the reminder; other values are cadences in days.
   backup_reminder_days: Optional[Literal[0, 7, 14, 30]] = Field(default=None)
+  # Massive market-data API key. An empty string clears it (the column is
+  # NOT NULL DEFAULT ''); None is dropped before persisting.
+  massive_api_key: Optional[str] = Field(default=None, max_length=200)

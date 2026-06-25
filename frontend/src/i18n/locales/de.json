@@ -394,7 +394,13 @@
     },
     "general": {
       "language_label": "Sprache",
-      "language_description": "Wähle die Anzeigesprache"
+      "language_description": "Wähle die Anzeigesprache",
+      "massive_api_key_label": "Massive-API-Schlüssel",
+      "massive_api_key_hint": "Kostenloser API-Schlüssel von massive.com — aktiviert Chart-Daten in Trades",
+      "massive_api_key_link": "Kostenlosen API-Schlüssel erhalten",
+      "massive_api_key_valid": "API-Schlüssel verifiziert — Marktdaten sind aktiviert",
+      "massive_api_key_invalid": "API-Schlüssel konnte nicht verifiziert werden — bitte prüfen und erneut versuchen",
+      "save_error": "Änderungen konnten nicht gespeichert werden"
     },
     "data_states": {
       "load_error": "Daten konnten nicht geladen werden"
@@ -436,7 +442,11 @@
         "name_max": "Der Name darf höchstens 50 Zeichen lang sein",
         "category_required": "Kategorie ist erforderlich",
         "currency_max": "Die Währung darf höchstens 10 Zeichen lang sein",
-        "name_slash_hint": "Verwende das Feld Währung für die Notierungswährung (z. B. Name: EUR, Währung: USD)"
+        "name_slash_hint": "Verwende das Feld Währung für die Notierungswährung (z. B. Name: EUR, Währung: USD)",
+        "massive_ticker_label": "Marktdaten-Ticker",
+        "massive_ticker_hint": "Optional — mit Marktdaten für die Chart-Anzeige verknüpfen",
+        "massive_ticker_placeholder": "Ticker suchen...",
+        "massive_ticker_no_api_key": "Konfiguriere deinen Massive-API-Schlüssel unter Einstellungen > Allgemein, um dies zu aktivieren"
       },
       "notify": {
         "created": "{{name}} erstellt",

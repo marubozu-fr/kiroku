@@ -14,6 +14,7 @@ WRITABLE_COLUMNS = (
   "news_min_impact",
   "backup_directory",
   "backup_reminder_days",
+  "massive_api_key",
 )
 
 # Single-user app: preferences live in exactly one row, enforced by the

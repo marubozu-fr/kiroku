@@ -394,7 +394,13 @@
     },
     "general": {
       "language_label": "Language",
-      "language_description": "Choose the display language"
+      "language_description": "Choose the display language",
+      "massive_api_key_label": "Massive API Key",
+      "massive_api_key_hint": "Free API key from massive.com — enables chart data in trades",
+      "massive_api_key_link": "Get a free API key",
+      "massive_api_key_valid": "API key verified — market data is enabled",
+      "massive_api_key_invalid": "Could not verify the API key — check it and try again",
+      "save_error": "Could not save your changes"
     },
     "data_states": {
       "load_error": "Could not load data"
@@ -436,7 +442,11 @@
         "name_max": "Name must be at most 50 characters",
         "category_required": "Category is required",
         "currency_max": "Currency must be at most 10 characters",
-        "name_slash_hint": "Use the Currency field for the quote currency (e.g. name: EUR, currency: USD)"
+        "name_slash_hint": "Use the Currency field for the quote currency (e.g. name: EUR, currency: USD)",
+        "massive_ticker_label": "Market data ticker",
+        "massive_ticker_hint": "Optional — link to market data for chart display",
+        "massive_ticker_placeholder": "Search tickers...",
+        "massive_ticker_no_api_key": "Configure your Massive API key in Settings > General to enable this"
       },
       "notify": {
         "created": "{{name}} created",
