@@ -11,7 +11,7 @@ export interface TradeCount {
   trade_count: number
 }
 
-export type AssetCategory = 'Forex' | 'Crypto' | 'Stock' | 'ETF' | 'Indices'
+export type AssetCategory = 'Forex' | 'Crypto' | 'Stock' | 'ETF' | 'Indices' | 'Futures'
 
 export const ASSET_CATEGORIES: readonly AssetCategory[] = [
   'Forex',
@@ -19,6 +19,7 @@ export const ASSET_CATEGORIES: readonly AssetCategory[] = [
   'Stock',
   'ETF',
   'Indices',
+  'Futures',
 ]
 
 export interface Asset {

@@ -446,8 +446,10 @@
         "massive_ticker_label": "Ticker de dados de mercado",
         "massive_ticker_hint": "Opcional — vincular a dados de mercado para exibição do gráfico",
         "massive_ticker_placeholder": "Pesquisar tickers...",
-        "massive_ticker_no_api_key": "Configure a sua chave de API Massive em Configurações > Geral para ativar isto",
-        "massive_ticker_select_category": "Selecione primeiro uma categoria"
+        "massive_ticker_select_category": "Selecione primeiro uma categoria",
+        "futures_ticker_placeholder": "ex. NQ",
+        "futures_ticker_hint": "Insira o símbolo base (ex. NQ, ES, GC)",
+        "futures_ticker_invalid": "Use apenas letras, números e sublinhados"
       },
       "notify": {
         "created": "{{name}} criado",

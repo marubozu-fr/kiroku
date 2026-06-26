@@ -446,8 +446,10 @@
         "massive_ticker_label": "Market data ticker",
         "massive_ticker_hint": "Optional — link to market data for chart display",
         "massive_ticker_placeholder": "Search tickers...",
-        "massive_ticker_no_api_key": "Configure your Massive API key in Settings > General to enable this",
-        "massive_ticker_select_category": "Select a category first"
+        "massive_ticker_select_category": "Select a category first",
+        "futures_ticker_placeholder": "e.g. NQ",
+        "futures_ticker_hint": "Enter base symbol (e.g., NQ, ES, GC)",
+        "futures_ticker_invalid": "Use only letters, numbers, and underscores"
       },
       "notify": {
         "created": "{{name}} created",

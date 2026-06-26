@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { ChangeEvent } from 'react'
 import { Autocomplete, Button, Group, Modal, Select, Stack, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useDebouncedValue } from '@mantine/hooks'
@@ -13,14 +14,20 @@ import type { Asset, AssetCategory } from '@/types/referenceData'
 import { notifyError, notifySuccess } from './notify'
 
 // Each asset category maps to the Massive market its tickers live in, so the
-// autocomplete searches the right reference set (issue #204).
-const CATEGORY_TO_MARKET: Record<AssetCategory, MassiveMarket> = {
+// autocomplete searches the right reference set (issue #204). Futures are
+// excluded: their tickers aren't searchable, so the user types a base symbol
+// by hand instead of picking from the autocomplete (issue #209).
+const CATEGORY_TO_MARKET: Record<Exclude<AssetCategory, 'Futures'>, MassiveMarket> = {
   Forex: 'fx',
   Crypto: 'crypto',
   Stock: 'stocks',
   ETF: 'stocks',
   Indices: 'indices',
 }
+
+// Base symbols are short alphanumeric codes; underscore is the only allowed
+// separator (e.g. NQ, ES, GC, MES_1). Anything else is rejected (issue #209).
+const FUTURES_BASE_SYMBOL = /^[A-Za-z0-9_]+$/
 
 interface AssetModalProps {
   opened: boolean
@@ -71,6 +78,15 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
       category: (value) => (value ? null : t('settings.assets.form.category_required')),
       currency: (value) =>
         value.trim().length > 10 ? t('settings.assets.form.currency_max') : null,
+      // Only Futures take a hand-typed base symbol that needs format checking.
+      // Other categories store a ticker chosen from the autocomplete, which is
+      // already well-formed. Empty is allowed — the ticker link is optional.
+      massiveTicker: (value, values) => {
+        if (values.category !== 'Futures' || !value) return null
+        return FUTURES_BASE_SYMBOL.test(value)
+          ? null
+          : t('settings.assets.form.futures_ticker_invalid')
+      },
     },
   })
 
@@ -89,9 +105,15 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, asset])
 
+  // Futures take a free-text base symbol instead of an autocomplete search.
+  const isFutures = form.values.category === 'Futures'
+
   // The asset's category selects which Massive market the autocomplete queries.
-  // Null until a category is picked, which also gates the ticker field.
-  const market = form.values.category ? CATEGORY_TO_MARKET[form.values.category] : null
+  // Null until a (non-Futures) category is picked, which also gates the field.
+  const market =
+    form.values.category && form.values.category !== 'Futures'
+      ? CATEGORY_TO_MARKET[form.values.category]
+      : null
 
   // Fetch ticker matches once the debounced input reaches 2+ characters. Skip
   // when no market is selected yet, or when the input already equals the
@@ -145,6 +167,15 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
       form.setFieldValue('tickerInput', value)
       form.setFieldValue('massiveTicker', null)
     }
+  }
+
+  // Futures store the typed base symbol directly — there is no label/value
+  // resolution since nothing is fetched. Keep the visible input and the saved
+  // value in lockstep; an empty field clears the link.
+  const handleFuturesTickerChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.value
+    form.setFieldValue('tickerInput', value)
+    form.setFieldValue('massiveTicker', value === '' ? null : value)
   }
 
   // Suppress the dropdown once a ticker is chosen (input equals the selection)
@@ -216,22 +247,34 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
             placeholder={t('settings.assets.form.currency_placeholder')}
             {...form.getInputProps('currency')}
           />
-          <Autocomplete
-            label={t('settings.assets.form.massive_ticker_label')}
-            placeholder={t('settings.assets.form.massive_ticker_placeholder')}
-            description={
-              !hasApiKey
-                ? t('settings.assets.form.massive_ticker_no_api_key')
-                : !market
-                  ? t('settings.assets.form.massive_ticker_select_category')
-                  : t('settings.assets.form.massive_ticker_hint')
-            }
-            data={showTickerOptions ? tickerOptions : []}
-            value={form.values.tickerInput}
-            onChange={handleTickerChange}
-            disabled={!hasApiKey || !market}
-            clearable
-          />
+          {/* The ticker field only makes sense with a Massive API key: without
+              one there is no chart data to link, so hide it entirely (#209). */}
+          {hasApiKey &&
+            (isFutures ? (
+              <TextInput
+                label={t('settings.assets.form.massive_ticker_label')}
+                placeholder={t('settings.assets.form.futures_ticker_placeholder')}
+                description={t('settings.assets.form.futures_ticker_hint')}
+                value={form.values.tickerInput}
+                onChange={handleFuturesTickerChange}
+                error={form.errors.massiveTicker}
+              />
+            ) : (
+              <Autocomplete
+                label={t('settings.assets.form.massive_ticker_label')}
+                placeholder={t('settings.assets.form.massive_ticker_placeholder')}
+                description={
+                  !market
+                    ? t('settings.assets.form.massive_ticker_select_category')
+                    : t('settings.assets.form.massive_ticker_hint')
+                }
+                data={showTickerOptions ? tickerOptions : []}
+                value={form.values.tickerInput}
+                onChange={handleTickerChange}
+                disabled={!market}
+                clearable
+              />
+            ))}
           <Group justify="flex-end" mt="xs">
             <Button variant="default" onClick={onClose}>
               {t('common.actions.cancel')}
