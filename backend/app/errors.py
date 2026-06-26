@@ -16,3 +16,7 @@ class ValidationError(Exception):
 
 class BackupError(Exception):
   """Raised when a backup or restore operation fails at the OS/disk level."""
+
+
+class FuturesResolutionError(Exception):
+  """Raised when a futures base symbol cannot be resolved to an active contract."""
