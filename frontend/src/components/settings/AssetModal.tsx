@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { Autocomplete, Button, Group, Modal, Select, Stack, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
@@ -90,6 +90,11 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
     },
   })
 
+  // Skips the category-reset effect for the programmatic category set the
+  // prefill below performs, so opening an edited asset keeps its linked ticker.
+  // Only real user-driven category switches afterwards clear the ticker fields.
+  const skipCategoryReset = useRef(true)
+
   // Prefill (edit) or clear (add) the form each time the modal opens.
   useEffect(() => {
     if (opened) {
@@ -101,9 +106,24 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
         tickerInput: asset?.massive_ticker ?? '',
       })
       form.resetDirty()
+      skipCategoryReset.current = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opened, asset])
+
+  // Switching category changes which ticker is valid (a different Massive
+  // market, or Futures' free-text base symbol), so clear any value carried over
+  // from the previous category — both the input and stale autocomplete matches.
+  useEffect(() => {
+    if (skipCategoryReset.current) {
+      skipCategoryReset.current = false
+      return
+    }
+    form.setFieldValue('tickerInput', '')
+    form.setFieldValue('massiveTicker', null)
+    setTickerOptions([])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.values.category])
 
   // Futures take a free-text base symbol instead of an autocomplete search.
   const isFutures = form.values.category === 'Futures'
@@ -144,16 +164,6 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
     return () => controller.abort()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedTicker, hasApiKey, market])
-
-  // Changing the category switches the Massive market, so any ticker chosen for
-  // the old market no longer applies — clear the selection and stale matches.
-  const categoryProps = form.getInputProps('category')
-  const handleCategoryChange = (value: string | null) => {
-    categoryProps.onChange(value)
-    form.setFieldValue('massiveTicker', null)
-    form.setFieldValue('tickerInput', '')
-    setTickerOptions([])
-  }
 
   // Mantine's Autocomplete reports the option label on select and the raw text
   // while typing. Resolve a label back to its ticker value; any other change
@@ -239,8 +249,7 @@ export function AssetModal({ opened, asset, onClose, onSaved }: AssetModalProps)
             placeholder={t('settings.assets.form.category_placeholder')}
             withAsterisk
             data={[...ASSET_CATEGORIES]}
-            {...categoryProps}
-            onChange={handleCategoryChange}
+            {...form.getInputProps('category')}
           />
           <TextInput
             label={t('settings.assets.form.currency_label')}

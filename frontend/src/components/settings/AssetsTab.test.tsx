@@ -448,5 +448,60 @@ describe('AssetsTab', () => {
         ),
       )
     })
+
+    it('clears ticker when switching from Futures to another category', async () => {
+      const { dialog, fetchMock } = await openFuturesForm()
+
+      const futuresTicker = await within(dialog).findByLabelText('Market data ticker')
+      fireEvent.change(futuresTicker, { target: { value: 'NQ' } })
+      expect(futuresTicker).toHaveValue('NQ')
+
+      // Switching to Forex must drop the Futures base symbol.
+      fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
+      fireEvent.click(screen.getByText('Forex'))
+
+      const forexTicker = await within(dialog).findByLabelText('Market data ticker')
+      await waitFor(() => expect(forexTicker).toHaveValue(''))
+
+      // The stale ticker must not be submitted.
+      fireEvent.change(within(dialog).getByLabelText(/name/i), { target: { value: 'Euro' } })
+      fetchMock.mockClear()
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }))
+
+      await waitFor(() => {
+        const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')
+        expect(post).toBeTruthy()
+        expect(String(post?.[1]?.body)).toContain('"massive_ticker":null')
+      })
+    })
+
+    it('clears ticker when switching from a non-Futures category to Futures', async () => {
+      stubFetch({
+        assets: [],
+        prefs: preferences({ massive_api_key: 'valid-key' }),
+        tickers: [{ ticker: 'C:EURUSD', name: 'Euro', market: 'fx', active: true }],
+      })
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText(/no assets yet/i)
+
+      fireEvent.click(screen.getByRole('button', { name: /add asset/i }))
+      const dialog = await screen.findByRole('dialog')
+
+      // Pick Forex and select a ticker from the (mocked) autocomplete.
+      fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
+      fireEvent.click(screen.getByText('Forex'))
+
+      const tickerInput = await within(dialog).findByLabelText('Market data ticker')
+      fireEvent.change(tickerInput, { target: { value: 'EUR' } })
+      fireEvent.click(await screen.findByText('C:EURUSD — Euro'))
+      await waitFor(() => expect(tickerInput).toHaveValue('C:EURUSD'))
+
+      // Switching to Futures must clear the autocomplete-selected ticker.
+      fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
+      fireEvent.click(screen.getByText('Futures'))
+
+      const futuresTicker = await within(dialog).findByLabelText('Market data ticker')
+      await waitFor(() => expect(futuresTicker).toHaveValue(''))
+    })
   })
 })
