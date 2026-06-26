@@ -748,3 +748,93 @@ async def test_fetch_candles_returns_empty_when_both_attempts_429(
   result = await massive_service.fetch_candles("C:EURUSD", "2026-01-01", "2026-01-02")
 
   assert result == []
+
+
+# ---------------------------------------------------------------------------
+# 10. Futures contracts lookup (issue #208)
+# ---------------------------------------------------------------------------
+
+
+async def test_fetch_contracts_returns_results_and_hits_correct_url(
+  db: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  payload = {
+    "results": [
+      {"ticker": "NQH26", "first_trade_date": "2026-03-09", "last_trade_date": "2026-03-20"}
+    ]
+  }
+  await database.execute(
+    "UPDATE user_preferences SET massive_api_key = :k WHERE id = 1",
+    {"k": "test-key-123"},
+  )
+
+  factory, instance = _make_factory([_FakeResponse(payload)])
+  monkeypatch.setattr(massive_service.httpx, "AsyncClient", factory)
+
+  result = await massive_service.fetch_contracts("NQ", "2026-03-15")
+
+  assert result == payload["results"]
+  url_called, params_called = instance.calls[0]
+  assert "/futures/v1/contracts" in url_called
+  assert params_called is not None
+  assert params_called["product_code"] == "NQ"
+  assert params_called["date"] == "2026-03-15"
+  assert params_called["active"] == "true"
+
+
+async def test_fetch_contracts_accepts_bare_array_payload(
+  db: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  payload = [
+    {"ticker": "ESH26", "first_trade_date": "2026-03-09", "last_trade_date": "2026-03-20"}
+  ]
+  await database.execute(
+    "UPDATE user_preferences SET massive_api_key = :k WHERE id = 1",
+    {"k": "test-key-123"},
+  )
+
+  factory, _ = _make_factory([_FakeResponse(payload)])
+  monkeypatch.setattr(massive_service.httpx, "AsyncClient", factory)
+
+  result = await massive_service.fetch_contracts("ES", "2026-03-15")
+
+  assert result == payload
+
+
+async def test_fetch_contracts_returns_empty_without_api_key(
+  db: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  class _NeverCalled:
+    def __init__(self, **kwargs: Any) -> None:
+      pass
+
+    async def __aenter__(self) -> "_NeverCalled":
+      return self
+
+    async def __aexit__(self, *args: Any) -> None:
+      return None
+
+    async def get(self, *args: Any, **kwargs: Any) -> None:
+      raise AssertionError("HTTP must not be called when the API key is missing")
+
+  monkeypatch.setattr(massive_service.httpx, "AsyncClient", _NeverCalled)
+
+  result = await massive_service.fetch_contracts("NQ", "2026-03-15")
+
+  assert result == []
+
+
+async def test_fetch_contracts_returns_empty_on_network_error(
+  db: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  await database.execute(
+    "UPDATE user_preferences SET massive_api_key = :k WHERE id = 1",
+    {"k": "test-key-123"},
+  )
+
+  factory, _ = _make_factory([httpx.ConnectError("boom")])
+  monkeypatch.setattr(massive_service.httpx, "AsyncClient", factory)
+
+  result = await massive_service.fetch_contracts("NQ", "2026-03-15")
+
+  assert result == []

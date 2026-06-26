@@ -12,6 +12,7 @@ class AssetCategory(str, Enum):
   stock = "Stock"
   etf = "ETF"
   indices = "Indices"
+  futures = "Futures"
 
 
 class AssetCreate(BaseModel):

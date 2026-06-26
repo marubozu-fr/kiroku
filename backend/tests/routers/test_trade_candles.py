@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from httpx import Response
 
 from app.main import app
-from app.services import candle_service, massive_service
+from app.services import candle_service, futures_service, massive_service
 
 
 @pytest.fixture(autouse=True)
@@ -259,3 +259,92 @@ def test_empty_candles_reports_pending(monkeypatch: pytest.MonkeyPatch) -> None:
   body = response.json()
   assert body["data"]["candles"] == []
   assert body["meta"] == {"reason": "pending"}
+
+
+# ---------------------------------------------------------------------------
+# Futures contract resolution (issue #208)
+# ---------------------------------------------------------------------------
+
+
+def _create_futures_asset(client: TestClient, name: str = "Nasdaq 100") -> int:
+  response = client.post(
+    "/api/assets", json={"name": name, "category": "Futures", "currency": "USD"}
+  )
+  assert response.status_code == 201, response.text
+  return response.json()["data"]["id"]
+
+
+def test_futures_asset_resolves_contract_then_fetches_candles(
+  monkeypatch: pytest.MonkeyPatch,
+) -> None:
+  # The base symbol "NQ" must be resolved to the active contract before candles
+  # are fetched, and the resolved ticker must drive storage + response.
+  async def fake_contracts(product_code: str, date_str: str) -> list[dict]:
+    assert product_code == "NQ"
+    return [
+      {"ticker": "NQH24", "first_trade_date": "2023-12-15", "last_trade_date": "2024-03-20"}
+    ]
+
+  fetched: list[str] = []
+
+  async def fake_fetch(ticker: str, date_from: str, date_to: str) -> list[dict]:
+    fetched.append(ticker)
+    return [
+      {"o": 1.0, "h": 1.2, "l": 0.9, "c": 1.1, "v": 100.0, "t": _ms(2024, 3, 15, 9, 0)},
+    ]
+
+  monkeypatch.setattr(massive_service, "fetch_contracts", fake_contracts)
+  monkeypatch.setattr(massive_service, "fetch_candles", fake_fetch)
+
+  with TestClient(app) as client:
+    asset_id = _create_futures_asset(client)
+    _set_massive_ticker(asset_id, "NQ")
+    trade_id = _create_trade(client, asset_id)
+    response = client.get(f"/api/trades/{trade_id}/candles?resolution=M1")
+
+  data = response.json()["data"]
+  assert data["ticker"] == "NQH24"
+  assert len(data["candles"]) == 1
+  # Candles were fetched for the resolved contract, not the base symbol.
+  assert fetched == ["NQH24"]
+
+
+def test_futures_asset_unresolved_contract_returns_meta(
+  monkeypatch: pytest.MonkeyPatch,
+) -> None:
+  async def fake_contracts(product_code: str, date_str: str) -> list[dict]:
+    return []
+
+  def fail_fetch(*args: object, **kwargs: object) -> list[dict]:
+    raise AssertionError("candles must not be fetched when resolution fails")
+
+  monkeypatch.setattr(massive_service, "fetch_contracts", fake_contracts)
+  monkeypatch.setattr(massive_service, "fetch_candles", fail_fetch)
+
+  with TestClient(app) as client:
+    asset_id = _create_futures_asset(client)
+    _set_massive_ticker(asset_id, "NQ")
+    trade_id = _create_trade(client, asset_id)
+    response = client.get(f"/api/trades/{trade_id}/candles?resolution=M1")
+
+  body = response.json()
+  assert body["data"] is None
+  assert body["meta"] == {"reason": "contract_unresolved"}
+
+
+def test_futures_asset_without_ticker_short_circuits(
+  monkeypatch: pytest.MonkeyPatch,
+) -> None:
+  def fail_contracts(*args: object, **kwargs: object) -> list[dict]:
+    raise AssertionError("contract resolution must not run without a ticker")
+
+  monkeypatch.setattr(futures_service.massive_service, "fetch_contracts", fail_contracts)
+
+  with TestClient(app) as client:
+    asset_id = _create_futures_asset(client)  # no massive_ticker set
+    trade_id = _create_trade(client, asset_id)
+    response = client.get(f"/api/trades/{trade_id}/candles?resolution=M1")
+
+  body = response.json()
+  assert body["data"] is None
+  assert body["meta"] == {"reason": "no_ticker"}

@@ -8,9 +8,15 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
-from app.errors import ValidationError
+from app.errors import FuturesResolutionError, ValidationError
+from app.models.asset import AssetCategory
 from app.repositories import asset_repository, trade_repository
-from app.services import candle_service, massive_service, trade_service
+from app.services import (
+  candle_service,
+  futures_service,
+  massive_service,
+  trade_service,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +144,16 @@ async def get_trade_candles(
   # Compute the [start, end] window around the trade date.
   trade_date = trade.get("trade_date")
   anchor = _parse_date(trade_date) if trade_date else datetime.now(timezone.utc)
+
+  # Futures assets store a base product code (e.g. "NQ"); resolve the active
+  # contract at the trade date before any candle lookup.
+  if asset.get("category") == AssetCategory.futures.value:
+    try:
+      ticker = await futures_service.resolve_contract(ticker, anchor.date())
+    except FuturesResolutionError as exc:
+      logger.info("Futures contract resolution failed: %s", exc)
+      return {"data": None, "meta": {"reason": "contract_unresolved"}}
+
   start_date = (anchor - timedelta(days=WINDOW_DAYS)).date()
   end_date = (anchor + timedelta(days=WINDOW_DAYS)).date()
   start_str = start_date.isoformat()

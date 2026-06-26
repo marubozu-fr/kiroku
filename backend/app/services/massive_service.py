@@ -144,6 +144,30 @@ async def search_tickers(query: str, market: str) -> list[dict]:
   return data.get("results", [])
 
 
+async def fetch_contracts(product_code: str, trade_date: str) -> list[dict]:
+  """Fetch active futures contracts for a product on a point-in-time date.
+
+  Queries the Massive Contracts API:
+    GET /futures/v1/contracts?product_code=<code>&date=<YYYY-MM-DD>&active=true
+
+  Each contract dict carries at least: ticker, first_trade_date,
+  last_trade_date. Returns [] if the API key is missing or the request fails.
+  """
+  url = f"{MASSIVE_BASE_URL}/futures/v1/contracts"
+  params = {
+    "product_code": product_code,
+    "date": trade_date,
+    "active": "true",
+  }
+  data = await _rate_limited_get(url, params)
+  if data is None:
+    return []
+  # The endpoint may return a bare array or the usual {"results": [...]} envelope.
+  if isinstance(data, list):
+    return data
+  return data.get("results", [])
+
+
 async def fetch_candles(ticker: str, date_from: str, date_to: str) -> list[dict]:
   """Fetch 1-minute OHLCV candles for a ticker between two dates.
 
