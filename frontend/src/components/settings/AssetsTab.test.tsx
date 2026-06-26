@@ -253,7 +253,7 @@ describe('AssetsTab', () => {
   })
 
   describe('AssetModal — Massive ticker field', () => {
-    it('disables the ticker field and shows the no-API-key description when no key is configured', async () => {
+    it('hides the ticker field entirely when no API key is configured', async () => {
       stubFetch({ assets: [], prefs: preferences({ massive_api_key: '' }) })
       renderWithProviders(<AssetsTab />)
       await screen.findByText(/no assets yet/i)
@@ -261,13 +261,9 @@ describe('AssetsTab', () => {
       fireEvent.click(screen.getByRole('button', { name: /add asset/i }))
       const dialog = await screen.findByRole('dialog')
 
-      const tickerInput = await within(dialog).findByLabelText('Market data ticker')
-      expect(tickerInput).toBeDisabled()
-      expect(
-        within(dialog).getByText(
-          'Configure your Massive API key in Settings > General to enable this',
-        ),
-      ).toBeInTheDocument()
+      // The rest of the form renders, but the ticker field is absent.
+      await within(dialog).findByLabelText(/name/i)
+      expect(within(dialog).queryByLabelText('Market data ticker')).not.toBeInTheDocument()
     })
 
     it('keeps the ticker field disabled with a hint until a category is selected', async () => {
@@ -368,6 +364,144 @@ describe('AssetsTab', () => {
         expect(tickerCalls.length).toBeGreaterThan(0)
         expect(String(tickerCalls[0]?.[0])).toContain('search=EUR')
       })
+    })
+  })
+
+  describe('AssetModal — Futures ticker field', () => {
+    async function openFuturesForm(fetchMock = stubFetch({
+      assets: [],
+      prefs: preferences({ massive_api_key: 'valid-key' }),
+    })) {
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText(/no assets yet/i)
+
+      fireEvent.click(screen.getByRole('button', { name: /add asset/i }))
+      const dialog = await screen.findByRole('dialog')
+
+      fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
+      fireEvent.click(screen.getByText('Futures'))
+
+      return { dialog, fetchMock }
+    }
+
+    it('shows a free-text ticker input with base-symbol help and runs no search', async () => {
+      const { dialog, fetchMock } = await openFuturesForm()
+
+      const tickerInput = await within(dialog).findByLabelText('Market data ticker')
+      expect(tickerInput).not.toBeDisabled()
+      expect(
+        within(dialog).getByText('Enter base symbol (e.g., NQ, ES, GC)'),
+      ).toBeInTheDocument()
+
+      // Typing a base symbol is free text — no autocomplete request is made.
+      fireEvent.change(tickerInput, { target: { value: 'NQ' } })
+      expect(tickerInput).toHaveValue('NQ')
+      await waitFor(() =>
+        expect(
+          fetchMock.mock.calls.some(([url]) =>
+            String(url).startsWith('/api/massive/tickers'),
+          ),
+        ).toBe(false),
+      )
+    })
+
+    it('rejects an invalid base symbol on submit', async () => {
+      const { dialog, fetchMock } = await openFuturesForm()
+
+      fireEvent.change(within(dialog).getByLabelText(/name/i), { target: { value: 'Nasdaq' } })
+      const tickerInput = await within(dialog).findByLabelText('Market data ticker')
+      fireEvent.change(tickerInput, { target: { value: 'NQ$' } })
+
+      fetchMock.mockClear()
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }))
+
+      expect(
+        await within(dialog).findByText('Use only letters, numbers, and underscores'),
+      ).toBeInTheDocument()
+      expect(
+        fetchMock.mock.calls.some(([, init]) => init?.method === 'POST'),
+      ).toBe(false)
+    })
+
+    it('accepts a valid base symbol and submits it as the ticker', async () => {
+      const { dialog, fetchMock } = await openFuturesForm()
+
+      fireEvent.change(within(dialog).getByLabelText(/name/i), { target: { value: 'Nasdaq' } })
+      const tickerInput = await within(dialog).findByLabelText('Market data ticker')
+      fireEvent.change(tickerInput, { target: { value: 'NQ' } })
+
+      fetchMock.mockClear()
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }))
+
+      await waitFor(() =>
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/api/assets',
+          expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify({
+              name: 'Nasdaq',
+              category: 'Futures',
+              currency: null,
+              massive_ticker: 'NQ',
+            }),
+          }),
+        ),
+      )
+    })
+
+    it('clears ticker when switching from Futures to another category', async () => {
+      const { dialog, fetchMock } = await openFuturesForm()
+
+      const futuresTicker = await within(dialog).findByLabelText('Market data ticker')
+      fireEvent.change(futuresTicker, { target: { value: 'NQ' } })
+      expect(futuresTicker).toHaveValue('NQ')
+
+      // Switching to Forex must drop the Futures base symbol.
+      fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
+      fireEvent.click(screen.getByText('Forex'))
+
+      const forexTicker = await within(dialog).findByLabelText('Market data ticker')
+      await waitFor(() => expect(forexTicker).toHaveValue(''))
+
+      // The stale ticker must not be submitted.
+      fireEvent.change(within(dialog).getByLabelText(/name/i), { target: { value: 'Euro' } })
+      fetchMock.mockClear()
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Create' }))
+
+      await waitFor(() => {
+        const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')
+        expect(post).toBeTruthy()
+        expect(String(post?.[1]?.body)).toContain('"massive_ticker":null')
+      })
+    })
+
+    it('clears ticker when switching from a non-Futures category to Futures', async () => {
+      stubFetch({
+        assets: [],
+        prefs: preferences({ massive_api_key: 'valid-key' }),
+        tickers: [{ ticker: 'C:EURUSD', name: 'Euro', market: 'fx', active: true }],
+      })
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText(/no assets yet/i)
+
+      fireEvent.click(screen.getByRole('button', { name: /add asset/i }))
+      const dialog = await screen.findByRole('dialog')
+
+      // Pick Forex and select a ticker from the (mocked) autocomplete.
+      fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
+      fireEvent.click(screen.getByText('Forex'))
+
+      const tickerInput = await within(dialog).findByLabelText('Market data ticker')
+      fireEvent.change(tickerInput, { target: { value: 'EUR' } })
+      fireEvent.click(await screen.findByText('C:EURUSD — Euro'))
+      await waitFor(() => expect(tickerInput).toHaveValue('C:EURUSD'))
+
+      // Switching to Futures must clear the autocomplete-selected ticker.
+      fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
+      fireEvent.click(screen.getByText('Futures'))
+
+      const futuresTicker = await within(dialog).findByLabelText('Market data ticker')
+      await waitFor(() => expect(futuresTicker).toHaveValue(''))
     })
   })
 })
