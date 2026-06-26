@@ -97,11 +97,18 @@ def _build_markers(activities: list[dict[str, Any]]) -> list[dict[str, Any]]:
   return markers
 
 
-def _to_storage_candles(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
-  """Convert Massive candles ({o,h,l,c,v,t}) to storage shape."""
+def _to_storage_candles(
+  raw: list[dict[str, Any]], symbol: Optional[str] = None
+) -> list[dict[str, Any]]:
+  """Convert Massive candles ({o,h,l,c,v,t}) to storage shape.
+
+  *symbol* tags every candle with its contract ticker (Futures); it is None for
+  forex/stocks, which store a single un-symboled series.
+  """
   return [
     {
       "timestamp": int(c["t"]),
+      "symbol": symbol,
       "open": float(c["o"]),
       "high": float(c["h"]),
       "low": float(c["l"]),
@@ -110,6 +117,69 @@ def _to_storage_candles(raw: list[dict[str, Any]]) -> list[dict[str, Any]]:
     }
     for c in raw
   ]
+
+
+def _last_activity_date(
+  activities: list[dict[str, Any]], fallback: datetime
+) -> datetime:
+  """Return the latest activity datetime, used as the trade's exit anchor.
+
+  Falls back to *fallback* (the entry anchor) when no activity carries a date.
+  """
+  dates = [_parse_date(a["date"]) for a in activities if a.get("date")]
+  return max(dates) if dates else fallback
+
+
+def _chart_candle(row: dict[str, Any]) -> dict[str, Any]:
+  """Strip a stored row to the canonical OHLCV chart shape (drops symbol)."""
+  return {
+    "timestamp": row["timestamp"],
+    "open": row["open"],
+    "high": row["high"],
+    "low": row["low"],
+    "close": row["close"],
+    "volume": row["volume"],
+  }
+
+
+def _window_bounds(
+  start_anchor: datetime, end_anchor: datetime
+) -> tuple[str, str, int, int]:
+  """Return (start_str, end_str, start_ts, end_ts) for the padded date window.
+
+  The window is [start_anchor - WINDOW_DAYS, end_anchor + WINDOW_DAYS]; the upper
+  bound is the full end day (inclusive) in Unix milliseconds.
+  """
+  start_date = (start_anchor - timedelta(days=WINDOW_DAYS)).date()
+  end_date = (end_anchor + timedelta(days=WINDOW_DAYS)).date()
+  start_ts = _to_ms(
+    datetime(start_date.year, start_date.month, start_date.day, tzinfo=timezone.utc)
+  )
+  end_ts = (
+    _to_ms(datetime(end_date.year, end_date.month, end_date.day, tzinfo=timezone.utc))
+    + _MS_PER_DAY
+    - 1
+  )
+  return start_date.isoformat(), end_date.isoformat(), start_ts, end_ts
+
+
+def _add_segment(
+  segments: dict[Optional[str], dict[str, Any]],
+  symbol: Optional[str],
+  fetch_ticker: str,
+  when: datetime,
+) -> None:
+  """Register (or widen) a fetch segment keyed by its stored *symbol*.
+
+  Each segment records the contract ticker to fetch and the [start, end] anchor
+  range it must cover; repeated calls for the same symbol widen that range.
+  """
+  segment = segments.get(symbol)
+  if segment is None:
+    segments[symbol] = {"fetch_ticker": fetch_ticker, "start": when, "end": when}
+  else:
+    segment["start"] = min(segment["start"], when)
+    segment["end"] = max(segment["end"], when)
 
 
 async def get_trade_candles(
@@ -141,47 +211,81 @@ async def get_trade_candles(
   if not ticker:
     return {"data": None, "meta": {"reason": "no_ticker"}}
 
-  # Compute the [start, end] window around the trade date.
-  trade_date = trade.get("trade_date")
-  anchor = _parse_date(trade_date) if trade_date else datetime.now(timezone.utc)
+  activities = await trade_repository.get_activities(trade_id)
 
-  # Futures assets store a base product code (e.g. "NQ"); resolve the active
-  # contract at the trade date before any candle lookup.
+  # Anchor the window on the trade (entry) date.
+  trade_date = trade.get("trade_date")
+  entry_anchor = _parse_date(trade_date) if trade_date else datetime.now(timezone.utc)
+
+  # Build the set of series to fetch/store. `storage_ticker` is the parquet
+  # filename stem; `response_ticker` is what the chart reports. Each segment is
+  # keyed by the symbol stored in the file (the contract ticker for Futures,
+  # None for forex/stocks).
+  segments: dict[Optional[str], dict[str, Any]] = {}
   if asset.get("category") == AssetCategory.futures.value:
+    # Futures assets store a base product code (e.g. "NQ"); resolve the active
+    # contract at the entry date. A failure here is fatal — nothing to chart.
+    base_ticker = ticker
     try:
-      ticker = await futures_service.resolve_contract(ticker, anchor.date())
+      entry_contract = await futures_service.resolve_contract(
+        base_ticker, entry_anchor.date()
+      )
     except FuturesResolutionError as exc:
       logger.info("Futures contract resolution failed: %s", exc)
       return {"data": None, "meta": {"reason": "contract_unresolved"}}
 
-  start_date = (anchor - timedelta(days=WINDOW_DAYS)).date()
-  end_date = (anchor + timedelta(days=WINDOW_DAYS)).date()
-  start_str = start_date.isoformat()
-  end_str = end_date.isoformat()
-  start_ts = _to_ms(datetime(start_date.year, start_date.month, start_date.day, tzinfo=timezone.utc))
-  # Include the full end day (inclusive upper bound).
-  end_ts = (
-    _to_ms(datetime(end_date.year, end_date.month, end_date.day, tzinfo=timezone.utc))
-    + _MS_PER_DAY
-    - 1
-  )
+    storage_ticker = base_ticker
+    response_ticker = entry_contract
+    _add_segment(segments, entry_contract, entry_contract, entry_anchor)
 
-  # Read stored M1 candles; lazily fetch from Massive when the range is empty.
-  candles = candle_service.read_candles(ticker, start_ts, end_ts)
-  if not candles:
-    raw = await massive_service.fetch_candles(ticker, start_str, end_str)
-    if raw:
-      candle_service.store_candles(ticker, _to_storage_candles(raw))
-      candles = candle_service.read_candles(ticker, start_ts, end_ts)
+    # A trade can span a contract roll: resolve the contract active at the exit
+    # date too and accumulate both into the single base-product file. Failure
+    # here is non-fatal — the entry contract still charts on its own.
+    exit_anchor = _last_activity_date(activities, entry_anchor)
+    try:
+      exit_contract = await futures_service.resolve_contract(
+        base_ticker, exit_anchor.date()
+      )
+      _add_segment(segments, exit_contract, exit_contract, exit_anchor)
+    except FuturesResolutionError as exc:
+      logger.info("Futures exit contract resolution failed: %s", exc)
+  else:
+    storage_ticker = ticker
+    response_ticker = ticker
+    _add_segment(segments, None, ticker, entry_anchor)
+
+  # Lazily fetch each segment from Massive when its stored range is empty.
+  for symbol, segment in segments.items():
+    seg_start_str, seg_end_str, seg_start_ts, seg_end_ts = _window_bounds(
+      segment["start"], segment["end"]
+    )
+    stored = candle_service.read_candles(
+      storage_ticker, seg_start_ts, seg_end_ts, symbol=symbol
+    )
+    if not stored:
+      raw = await massive_service.fetch_candles(
+        segment["fetch_ticker"], seg_start_str, seg_end_str
+      )
+      if raw:
+        candle_service.store_candles(
+          storage_ticker, _to_storage_candles(raw, symbol=symbol)
+        )
+
+  # Read the merged window spanning every segment (entry through exit).
+  overall_start = min(segment["start"] for segment in segments.values())
+  overall_end = max(segment["end"] for segment in segments.values())
+  start_str, end_str, start_ts, end_ts = _window_bounds(overall_start, overall_end)
+
+  rows = candle_service.read_candles(storage_ticker, start_ts, end_ts)
+  candles = [_chart_candle(row) for row in rows]
 
   if timeframe != "M1":
     candles = candle_service.aggregate_candles(candles, timeframe)
 
-  activities = await trade_repository.get_activities(trade_id)
   markers = _build_markers(activities)
 
   data = {
-    "ticker": ticker,
+    "ticker": response_ticker,
     "resolution": timeframe,
     "candles": candles,
     "markers": markers,

@@ -19,9 +19,16 @@ logger = logging.getLogger(__name__)
 CANDLES_DIR = DB_PATH.parent / "candles"
 
 # Parquet schema for all candle files.
+#
+# `symbol` carries the contract ticker for Futures (e.g. NQH26), so a single
+# base-product file (NQ.parquet) can hold candles for multiple contracts. It is
+# nullable: forex/stocks files store None. Legacy files written before this
+# column existed are read without forcing the schema (see read_candles), and
+# their rows are treated as symbol=None.
 _SCHEMA = pa.schema(
   [
     ("timestamp", pa.int64()),
+    ("symbol", pa.string()),
     ("open", pa.float64()),
     ("high", pa.float64()),
     ("low", pa.float64()),
@@ -92,13 +99,16 @@ def migrate_candle_filenames() -> None:
 def store_candles(ticker: str, candles: list[dict]) -> int:
   """Append candles to the ticker's parquet file with upsert semantics.
 
-  Incoming candles whose timestamp already exists in the file replace the
-  existing row (the stored values are overwritten).  Only rows whose timestamp
-  was not previously present are counted as *new*.
+  Rows are keyed by ``(symbol, timestamp)`` so multiple Futures contracts can
+  coexist in one base-product file: a candle whose ``(symbol, timestamp)``
+  already exists replaces the stored row, while only previously-unseen pairs are
+  counted as *new*. Candles without a ``symbol`` key are stored as symbol=None
+  (the forex/stocks case), preserving the original timestamp-only semantics.
 
   Args:
     ticker:  Ticker symbol, used as the filename stem.
-    candles: List of dicts with keys: timestamp, open, high, low, close, volume.
+    candles: List of dicts with keys: timestamp, open, high, low, close, volume,
+             and an optional symbol (contract ticker for Futures).
 
   Returns:
     The number of *new* rows written (replacements are not counted).
@@ -109,21 +119,34 @@ def store_candles(ticker: str, candles: list[dict]) -> int:
 
   path = _candle_path(ticker)
 
-  # Read existing data into a dict keyed by timestamp so duplicates from the
-  # existing file are deduplicated along with incoming ones.
-  existing: dict[int, dict] = {}
+  # Read existing data into a dict keyed by (symbol, timestamp) so duplicates
+  # from the existing file are deduplicated along with incoming ones. The schema
+  # is not forced on read: legacy files lack the `symbol` column, and their rows
+  # are normalized to symbol=None below.
+  existing: dict[tuple[str | None, int], dict] = {}
   if path.exists():
-    table = pq.read_table(path, schema=_SCHEMA)
+    table = pq.read_table(path)
     for row in table.to_pylist():
-      existing[row["timestamp"]] = row
+      symbol = row.get("symbol")
+      existing[(symbol, row["timestamp"])] = {
+        "timestamp": row["timestamp"],
+        "symbol": symbol,
+        "open": row["open"],
+        "high": row["high"],
+        "low": row["low"],
+        "close": row["close"],
+        "volume": row["volume"],
+      }
 
-  existing_timestamps = set(existing.keys())
+  existing_keys = set(existing.keys())
 
   # Apply incoming candles: upsert into the existing dict.
   for candle in candles:
     ts = int(candle["timestamp"])
-    existing[ts] = {
+    symbol = candle.get("symbol")
+    existing[(symbol, ts)] = {
       "timestamp": ts,
+      "symbol": symbol,
       "open": float(candle["open"]),
       "high": float(candle["high"]),
       "low": float(candle["low"]),
@@ -131,12 +154,12 @@ def store_candles(ticker: str, candles: list[dict]) -> int:
       "volume": float(candle["volume"]),
     }
 
-  # Count only timestamps that were NOT present before this call.
-  incoming_timestamps = {int(c["timestamp"]) for c in candles}
-  new_count = len(incoming_timestamps - existing_timestamps)
+  # Count only (symbol, timestamp) pairs that were NOT present before this call.
+  incoming_keys = {(c.get("symbol"), int(c["timestamp"])) for c in candles}
+  new_count = len(incoming_keys - existing_keys)
 
-  # Sort merged rows ascending by timestamp and write back.
-  merged = sorted(existing.values(), key=lambda r: r["timestamp"])
+  # Sort merged rows ascending by timestamp, then symbol for a stable order.
+  merged = sorted(existing.values(), key=lambda r: (r["timestamp"], r["symbol"] or ""))
 
   path.parent.mkdir(parents=True, exist_ok=True)
   table = pa.Table.from_pylist(merged, schema=_SCHEMA)
@@ -150,25 +173,39 @@ def store_candles(ticker: str, candles: list[dict]) -> int:
   return new_count
 
 
-def read_candles(ticker: str, start_ts: int, end_ts: int) -> list[dict]:
+def read_candles(
+  ticker: str, start_ts: int, end_ts: int, symbol: str | None = None
+) -> list[dict]:
   """Return candles whose timestamp falls within [start_ts, end_ts] (inclusive).
 
   Args:
-    ticker:   Ticker symbol.
+    ticker:   Ticker symbol (filename stem; the base product code for Futures).
     start_ts: Lower bound timestamp in Unix milliseconds.
     end_ts:   Upper bound timestamp in Unix milliseconds.
+    symbol:   When given, keep only rows whose contract ticker matches; when
+              None, return rows for all contracts (no symbol filtering).
 
   Returns:
-    List of candle dicts (keys: timestamp, open, high, low, close, volume),
-    sorted ascending.  Returns [] if the parquet file does not exist.
+    List of candle dicts (keys: timestamp, symbol, open, high, low, close,
+    volume), sorted ascending. Returns [] if the parquet file does not exist.
+    Legacy files without a `symbol` column report symbol=None.
   """
   path = _candle_path(ticker)
   if not path.exists():
     return []
 
-  table = pq.read_table(path, schema=_SCHEMA)
-  rows = table.to_pylist()
-  return [r for r in rows if start_ts <= r["timestamp"] <= end_ts]
+  # No schema is forced: legacy files predate the `symbol` column and would
+  # otherwise fail to read. Missing symbols are normalized to None.
+  table = pq.read_table(path)
+  result: list[dict] = []
+  for row in table.to_pylist():
+    row_symbol = row.get("symbol")
+    if symbol is not None and row_symbol != symbol:
+      continue
+    if start_ts <= row["timestamp"] <= end_ts:
+      row["symbol"] = row_symbol
+      result.append(row)
+  return result
 
 
 def aggregate_candles(candles: list[dict], timeframe: str) -> list[dict]:
