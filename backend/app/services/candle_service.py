@@ -4,6 +4,7 @@ One parquet file per ticker under CANDLES_DIR.  All functions are synchronous;
 no database connection is involved.
 """
 import logging
+import re
 from pathlib import Path
 
 import pyarrow as pa
@@ -39,9 +40,53 @@ _TIMEFRAME_MS: dict[str, int] = {
 }
 
 
+# Characters forbidden in Windows filenames.
+_FORBIDDEN_RE = re.compile(r'[<>:"/\\|?*]')
+
+
+def _sanitize_ticker(ticker: str) -> str:
+  """Replace Windows-forbidden filename characters in *ticker* with underscores."""
+  return _FORBIDDEN_RE.sub("_", ticker)
+
+
 def _candle_path(ticker: str) -> Path:
-  """Return the parquet file path for *ticker*."""
-  return Path(CANDLES_DIR) / f"{ticker}.parquet"
+  """Return the parquet file path for *ticker* (sanitized for all platforms)."""
+  return Path(CANDLES_DIR) / f"{_sanitize_ticker(ticker)}.parquet"
+
+
+def migrate_candle_filenames() -> None:
+  """Rename existing candle files whose names contain forbidden characters.
+
+  Scans CANDLES_DIR for *.parquet files and renames any whose stem contains a
+  Windows-forbidden character to the sanitized equivalent.  Safe to call on
+  every startup: idempotent, skips already-clean files, and never overwrites an
+  existing sanitized target (logs a warning and skips instead).
+  """
+  candles_dir = Path(CANDLES_DIR)
+  if not candles_dir.exists():
+    return
+
+  for parquet_file in candles_dir.glob("*.parquet"):
+    stem = parquet_file.stem
+    sanitized_stem = _sanitize_ticker(stem)
+    if sanitized_stem == stem:
+      continue  # Already clean — nothing to do.
+
+    target = parquet_file.parent / f"{sanitized_stem}.parquet"
+    if target.exists():
+      logger.warning(
+        "migrate_candle_filenames: skipping %s → %s (target already exists)",
+        parquet_file.name,
+        target.name,
+      )
+      continue
+
+    parquet_file.rename(target)
+    logger.info(
+      "migrate_candle_filenames: renamed %s → %s",
+      parquet_file.name,
+      target.name,
+    )
 
 
 def store_candles(ticker: str, candles: list[dict]) -> int:
