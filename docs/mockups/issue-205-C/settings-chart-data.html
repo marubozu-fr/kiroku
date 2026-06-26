@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Settings · General · Chart Data provider</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #205-C — Settings refactor: "Chart Data" section with provider selector.
+    Design-only mockup. This page previews every required state side by side:
+      A) Desktop · Dark  · provider = Massive  (full General-tab context)
+      B) Desktop · Light · provider = Massive  (theme parity, enabled)
+      C) Desktop · Dark  · provider = None      (chart data disabled → info callout)
+      D) Desktop · Light · provider = None      (disabled callout, light parity)
+      E) Mobile  · Light · provider = Massive   (responsive, phone frame)
+
+    The "Chart Data" Card REPLACES the standalone "Massive API Key" card from
+    issue #183. It maps 1:1 to Mantine — see README.md for the component mapping
+    and the provider-extensibility notes.
+  -->
+  <div class="preview-page">
+    <h1>Settings → General · Chart Data</h1>
+    <p class="lede">
+      A single <strong>Chart Data</strong> card centralises market-data configuration:
+      a provider Select, the provider-specific config (Massive → API key), and an
+      info callout when chart data is disabled. Adding a future provider is one entry
+      in the provider list plus its config block — see <code>README.md</code>.
+    </p>
+
+    <div class="preview-grid">
+
+      <!-- ============================================================== -->
+      <!-- A) Desktop · Dark · Massive selected (full General-tab context) -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">A · Desktop · Dark · Provider = Massive</div>
+        <div class="preview-body">
+          <div class="tabs">
+            <div class="tabs-list">
+              <button class="tab active">General</button>
+              <button class="tab">Assets</button>
+              <button class="tab">Tags</button>
+              <button class="tab">Emotions</button>
+              <button class="tab">News</button>
+            </div>
+          </div>
+
+          <div class="tab-panel">
+            <!-- Card: Language (existing — shown for placement context) -->
+            <div class="card">
+              <h4 class="section-title">Language</h4>
+              <div class="field narrow">
+                <div class="field-desc">Choose the display language</div>
+                <select class="input">
+                  <option>English</option>
+                  <option>Français</option>
+                  <option>Español</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Card: Chart Data (NEW — issue #205-C) -->
+            <div class="card">
+              <h4 class="section-title">Chart Data</h4>
+
+              <!-- Provider Select (Mantine Select). Future providers are disabled
+                   options until implemented. -->
+              <div class="field narrow">
+                <label>Provider</label>
+                <select class="input">
+                  <option>None — chart data disabled</option>
+                  <option selected>Massive</option>
+                  <option disabled>Hyperliquid — coming soon</option>
+                  <option disabled>Interactive Brokers — coming soon</option>
+                </select>
+                <p class="provider-hint">
+                  Chart data is optional. Disable to use Kiroku without market data.
+                </p>
+              </div>
+
+              <!-- Provider config — rendered only for the active provider.
+                   {provider === 'massive' && <MassiveConfig/>} -->
+              <div class="provider-config">
+                <div class="field">
+                  <label>Massive API Key</label>
+                  <div class="input-with-toggle">
+                    <input class="input" type="password" value="msv_live_a83bc92e1f4d7" />
+                    <button class="reveal-btn" aria-label="Show API key">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                  <div class="field-desc">
+                    <a href="https://massive.com/dashboard/signup">Get a free API key</a> — enables price charts on your trades.
+                  </div>
+                </div>
+                <button class="btn light sm" style="margin-top:var(--sp-md)">Save key</button>
+              </div>
+            </div>
+
+            <!-- Card: Backup (existing, unchanged — context only) -->
+            <div class="card">
+              <h4 class="section-title">Backup</h4>
+              <div class="field">
+                <label>Backup directory</label>
+                <div class="field-desc">Absolute path where backups will be saved</div>
+                <input class="input" type="text" value="/Users/trader/kiroku-backups" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- B) Desktop · Light · Massive selected (Chart Data card focus)   -->
+      <!-- ============================================================== -->
+      <div class="preview-col theme-light">
+        <div class="preview-label">B · Desktop · Light · Provider = Massive</div>
+        <div class="preview-body">
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Chart Data</h4>
+              <div class="field narrow">
+                <label>Provider</label>
+                <select class="input">
+                  <option>None — chart data disabled</option>
+                  <option selected>Massive</option>
+                  <option disabled>Hyperliquid — coming soon</option>
+                  <option disabled>Interactive Brokers — coming soon</option>
+                </select>
+                <p class="provider-hint">
+                  Chart data is optional. Disable to use Kiroku without market data.
+                </p>
+              </div>
+              <div class="provider-config">
+                <div class="field">
+                  <label>Massive API Key</label>
+                  <div class="input-with-toggle">
+                    <input class="input" type="password" value="msv_live_a83bc92e1f4d7" />
+                    <button class="reveal-btn" aria-label="Show API key">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                  <div class="field-desc">
+                    <a href="https://massive.com/dashboard/signup">Get a free API key</a> — enables price charts on your trades.
+                  </div>
+                </div>
+                <button class="btn light sm" style="margin-top:var(--sp-md)">Save key</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- C) Desktop · Dark · None selected (chart data DISABLED)         -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">C · Desktop · Dark · Provider = None (disabled)</div>
+        <div class="preview-body">
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Chart Data</h4>
+              <div class="field narrow">
+                <label>Provider</label>
+                <select class="input">
+                  <option selected>None — chart data disabled</option>
+                  <option>Massive</option>
+                  <option disabled>Hyperliquid — coming soon</option>
+                  <option disabled>Interactive Brokers — coming soon</option>
+                </select>
+                <p class="provider-hint">
+                  Chart data is optional. Disable to use Kiroku without market data.
+                </p>
+              </div>
+
+              <!-- No provider config block. Instead, an INFO callout (neutral/blue,
+                   never orange/red) explains the consequence. -->
+              <div class="provider-config">
+                <div class="callout info">
+                  <span class="callout-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                  </span>
+                  <div class="callout-body">
+                    <span class="callout-title">Chart data is disabled</span>
+                    Trades won’t display price charts. Select a provider above to enable market data.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- D) Desktop · Light · None selected (disabled — theme parity)    -->
+      <!-- ============================================================== -->
+      <div class="preview-col theme-light">
+        <div class="preview-label">D · Desktop · Light · Provider = None (disabled)</div>
+        <div class="preview-body">
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Chart Data</h4>
+              <div class="field narrow">
+                <label>Provider</label>
+                <select class="input">
+                  <option selected>None — chart data disabled</option>
+                  <option>Massive</option>
+                  <option disabled>Hyperliquid — coming soon</option>
+                  <option disabled>Interactive Brokers — coming soon</option>
+                </select>
+                <p class="provider-hint">
+                  Chart data is optional. Disable to use Kiroku without market data.
+                </p>
+              </div>
+              <div class="provider-config">
+                <div class="callout info">
+                  <span class="callout-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                  </span>
+                  <div class="callout-body">
+                    <span class="callout-title">Chart data is disabled</span>
+                    Trades won’t display price charts. Select a provider above to enable market data.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- E) Mobile · Light · Massive selected (responsive, phone frame) -->
+      <!-- ============================================================== -->
+      <div class="preview-col theme-light span-all">
+        <div class="preview-label">E · Mobile · Light · Provider = Massive</div>
+        <div class="preview-body preview-phone">
+          <div class="phone-frame">
+            <div class="tabs">
+              <div class="tabs-list">
+                <button class="tab active">General</button>
+                <button class="tab">Assets</button>
+                <button class="tab">Tags</button>
+              </div>
+            </div>
+            <div class="tab-panel">
+              <div class="card">
+                <h4 class="section-title">Chart Data</h4>
+                <div class="field">
+                  <label>Provider</label>
+                  <select class="input">
+                    <option>None — chart data disabled</option>
+                    <option selected>Massive</option>
+                    <option disabled>Hyperliquid — coming soon</option>
+                  </select>
+                  <p class="provider-hint">
+                    Chart data is optional. Disable to use Kiroku without market data.
+                  </p>
+                </div>
+                <div class="provider-config">
+                  <div class="field">
+                    <label>Massive API Key</label>
+                    <div class="input-with-toggle">
+                      <input class="input" type="password" value="msv_live_a83bc92e1f4d7" />
+                      <button class="reveal-btn" aria-label="Show API key">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                      </button>
+                    </div>
+                    <div class="field-desc">
+                      <a href="https://massive.com/dashboard/signup">Get a free API key</a> — enables price charts.
+                    </div>
+                  </div>
+                  <button class="btn light sm" style="margin-top:var(--sp-md)">Save key</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
