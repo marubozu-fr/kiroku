@@ -1,4 +1,5 @@
 """Tests for app.services.candle_service (issue #193)."""
+import shutil
 from pathlib import Path
 
 import pytest
@@ -293,3 +294,124 @@ def test_aggregate_all_supported_timeframes_accepted() -> None:
   for tf in ("M5", "M15", "H1", "H4", "D1"):
     result = candle_service.aggregate_candles([candle], tf)
     assert len(result) == 1
+
+
+# ---------------------------------------------------------------------------
+# _sanitize_ticker / _candle_path
+# ---------------------------------------------------------------------------
+
+
+def test_sanitize_ticker_replaces_forbidden_chars() -> None:
+  """_sanitize_ticker replaces all Windows-forbidden chars with underscores."""
+  assert candle_service._sanitize_ticker("C:EURUSD") == "C_EURUSD"
+  assert candle_service._sanitize_ticker("X:BTCUSD") == "X_BTCUSD"
+  assert candle_service._sanitize_ticker('A<B>C"D/E\\F|G?H*I') == "A_B_C_D_E_F_G_H_I"
+
+
+def test_sanitize_ticker_leaves_clean_tickers_unchanged() -> None:
+  """_sanitize_ticker leaves tickers without forbidden chars untouched."""
+  assert candle_service._sanitize_ticker("AAPL") == "AAPL"
+  assert candle_service._sanitize_ticker("BTC-USD") == "BTC-USD"
+  assert candle_service._sanitize_ticker("TICK") == "TICK"
+
+
+def test_candle_path_colon_ticker_has_no_colon_in_name() -> None:
+  """_candle_path maps C:EURUSD to C_EURUSD.parquet (no colon in filename)."""
+  path = candle_service._candle_path("C:EURUSD")
+  assert ":" not in path.name
+  assert path.name == "C_EURUSD.parquet"
+
+
+def test_candle_path_clean_ticker_unchanged() -> None:
+  """_candle_path leaves clean tickers unchanged (AAPL → AAPL.parquet)."""
+  path = candle_service._candle_path("AAPL")
+  assert path.name == "AAPL.parquet"
+
+
+def test_store_read_roundtrip_colon_ticker() -> None:
+  """store_candles + read_candles round-trip works for a ticker containing ':'."""
+  candles = [_make_candle(1000, o=1.1), _make_candle(2000, o=2.2)]
+  candle_service.store_candles("C:EURUSD", candles)
+
+  result = candle_service.read_candles("C:EURUSD", 0, 9999)
+  assert len(result) == 2
+  assert result[0]["open"] == 1.1
+  assert result[1]["open"] == 2.2
+  # The stored file must have no ':' in its name.
+  path = candle_service._candle_path("C:EURUSD")
+  assert ":" not in path.name
+
+
+# ---------------------------------------------------------------------------
+# migrate_candle_filenames
+# ---------------------------------------------------------------------------
+
+
+def test_migrate_renames_forbidden_char_file() -> None:
+  """Migration renames C:EURUSD.parquet to C_EURUSD.parquet, preserving data."""
+  candles_dir = Path(candle_service.CANDLES_DIR)
+  candles_dir.mkdir(parents=True)
+
+  # Store via the sanitized path, then rename back to the old bad name to
+  # simulate a file written before the sanitization fix was applied.
+  candle_service.store_candles("C:EURUSD", [_make_candle(1000, o=1.1)])
+  good_path = candles_dir / "C_EURUSD.parquet"
+  bad_path = candles_dir / "C:EURUSD.parquet"
+  good_path.rename(bad_path)
+  assert bad_path.exists()
+  assert not good_path.exists()
+
+  candle_service.migrate_candle_filenames()
+
+  assert good_path.exists()
+  assert not bad_path.exists()
+  # Data is still readable via the (sanitized) ticker.
+  result = candle_service.read_candles("C:EURUSD", 0, 9999)
+  assert len(result) == 1
+  assert result[0]["open"] == 1.1
+
+
+def test_migrate_noop_when_candles_dir_missing() -> None:
+  """migrate_candle_filenames does nothing when CANDLES_DIR does not exist."""
+  assert not Path(candle_service.CANDLES_DIR).exists()
+  # Must not raise.
+  candle_service.migrate_candle_filenames()
+
+
+def test_migrate_does_not_clobber_existing_sanitized_target() -> None:
+  """Migration skips rename when the sanitized target already exists."""
+  candles_dir = Path(candle_service.CANDLES_DIR)
+  candles_dir.mkdir(parents=True)
+
+  # Write real data to the sanitized target.
+  candle_service.store_candles("C:EURUSD", [_make_candle(5000, o=5.5)])
+  good_path = candles_dir / "C_EURUSD.parquet"
+  assert good_path.exists()
+
+  # Also plant a bad-named file (copy the good one so it is a valid parquet).
+  bad_path = candles_dir / "C:EURUSD.parquet"
+  shutil.copy(good_path, bad_path)
+
+  candle_service.migrate_candle_filenames()
+
+  # Both files must still exist: the good file was NOT overwritten.
+  assert good_path.exists()
+  assert bad_path.exists()
+  # The sanitized target's data is intact.
+  result = candle_service.read_candles("C:EURUSD", 0, 9999)
+  assert len(result) == 1
+  assert result[0]["open"] == 5.5
+
+
+def test_migrate_leaves_clean_filenames_untouched() -> None:
+  """Migration does not touch parquet files whose names are already clean."""
+  candle_service.store_candles("AAPL", [_make_candle(1000)])
+  candles_dir = Path(candle_service.CANDLES_DIR)
+  aapl_path = candles_dir / "AAPL.parquet"
+  assert aapl_path.exists()
+  mtime_before = aapl_path.stat().st_mtime_ns
+
+  candle_service.migrate_candle_filenames()
+
+  assert aapl_path.exists()
+  assert aapl_path.stat().st_mtime_ns == mtime_before

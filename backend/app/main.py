@@ -28,12 +28,14 @@ from app.routers import (
   tags,
   trades,
 )
+from app.services.candle_service import migrate_candle_filenames
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
   """Initialize the database on startup, close it on shutdown."""
   await init_db()
+  migrate_candle_filenames()
   yield
   await close_db()
 
