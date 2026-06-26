@@ -149,9 +149,7 @@ async def get_trade_candles(
   # contract at the trade date before any candle lookup.
   if asset.get("category") == AssetCategory.futures.value:
     try:
-      ticker = await futures_service.FuturesService().resolve_contract(
-        ticker, anchor.date()
-      )
+      ticker = await futures_service.resolve_contract(ticker, anchor.date())
     except FuturesResolutionError as exc:
       logger.info("Futures contract resolution failed: %s", exc)
       return {"data": None, "meta": {"reason": "contract_unresolved"}}

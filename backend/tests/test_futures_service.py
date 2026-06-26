@@ -6,7 +6,7 @@ import pytest
 
 from app.errors import FuturesResolutionError
 from app.services import futures_service
-from app.services.futures_service import FuturesService
+from app.services.futures_service import resolve_contract
 
 # All 12 CME futures the acceptance criteria require resolution for.
 CME_PRODUCTS = (
@@ -43,7 +43,7 @@ async def test_resolve_contract_returns_active_ticker(monkeypatch: pytest.Monkey
     monkeypatch, [_contract("NQH26", "2026-03-09", "2026-03-20")]
   )
 
-  ticker = await FuturesService().resolve_contract("NQ", date(2026, 3, 15))
+  ticker = await resolve_contract("NQ", date(2026, 3, 15))
 
   assert ticker == "NQH26"
   # Product code and ISO date are passed straight through to the API client.
@@ -57,7 +57,7 @@ async def test_resolve_contract_works_for_all_cme_products(
   expected = f"{product}H26"
   _patch_contracts(monkeypatch, [_contract(expected, "2026-03-09", "2026-03-20")])
 
-  ticker = await FuturesService().resolve_contract(product, date(2026, 3, 15))
+  ticker = await resolve_contract(product, date(2026, 3, 15))
 
   assert ticker == expected
 
@@ -69,7 +69,7 @@ async def test_resolve_contract_uppercases_and_strips_base_symbol(
     monkeypatch, [_contract("ESH26", "2026-03-09", "2026-03-20")]
   )
 
-  ticker = await FuturesService().resolve_contract("  es  ", date(2026, 3, 15))
+  ticker = await resolve_contract("  es  ", date(2026, 3, 15))
 
   assert ticker == "ESH26"
   assert calls == [("ES", "2026-03-15")]
@@ -85,7 +85,7 @@ async def test_resolve_contract_includes_first_trade_date(
 ) -> None:
   _patch_contracts(monkeypatch, [_contract("NQH26", "2026-03-09", "2026-03-20")])
 
-  ticker = await FuturesService().resolve_contract("NQ", date(2026, 3, 9))
+  ticker = await resolve_contract("NQ", date(2026, 3, 9))
 
   assert ticker == "NQH26"
 
@@ -95,7 +95,7 @@ async def test_resolve_contract_includes_last_trade_date(
 ) -> None:
   _patch_contracts(monkeypatch, [_contract("NQH26", "2026-03-09", "2026-03-20")])
 
-  ticker = await FuturesService().resolve_contract("NQ", date(2026, 3, 20))
+  ticker = await resolve_contract("NQ", date(2026, 3, 20))
 
   assert ticker == "NQH26"
 
@@ -112,7 +112,7 @@ async def test_resolve_contract_picks_front_month_when_multiple_overlap(
     ],
   )
 
-  ticker = await FuturesService().resolve_contract("NQ", date(2026, 3, 15))
+  ticker = await resolve_contract("NQ", date(2026, 3, 15))
 
   assert ticker == "NQH26"
 
@@ -128,7 +128,7 @@ async def test_resolve_contract_raises_when_product_not_found(
   _patch_contracts(monkeypatch, [])
 
   with pytest.raises(FuturesResolutionError, match="No active contract"):
-    await FuturesService().resolve_contract("ZZ", date(2026, 3, 15))
+    await resolve_contract("ZZ", date(2026, 3, 15))
 
 
 async def test_resolve_contract_raises_when_no_contract_covers_date(
@@ -138,14 +138,14 @@ async def test_resolve_contract_raises_when_no_contract_covers_date(
   _patch_contracts(monkeypatch, [_contract("NQH26", "2026-03-09", "2026-03-20")])
 
   with pytest.raises(FuturesResolutionError, match="covers"):
-    await FuturesService().resolve_contract("NQ", date(2026, 4, 1))
+    await resolve_contract("NQ", date(2026, 4, 1))
 
 
 async def test_resolve_contract_raises_on_empty_base_symbol(
   monkeypatch: pytest.MonkeyPatch,
 ) -> None:
   with pytest.raises(FuturesResolutionError, match="empty"):
-    await FuturesService().resolve_contract("   ", date(2026, 3, 15))
+    await resolve_contract("   ", date(2026, 3, 15))
 
 
 async def test_resolve_contract_skips_contracts_with_malformed_dates(
@@ -159,7 +159,7 @@ async def test_resolve_contract_skips_contracts_with_malformed_dates(
     ],
   )
 
-  ticker = await FuturesService().resolve_contract("NQ", date(2026, 3, 15))
+  ticker = await resolve_contract("NQ", date(2026, 3, 15))
 
   assert ticker == "NQH26"
 
@@ -173,4 +173,4 @@ async def test_resolve_contract_raises_when_contract_has_no_ticker(
   )
 
   with pytest.raises(FuturesResolutionError, match="no ticker"):
-    await FuturesService().resolve_contract("NQ", date(2026, 3, 15))
+    await resolve_contract("NQ", date(2026, 3, 15))

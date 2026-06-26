@@ -144,7 +144,7 @@ async def search_tickers(query: str, market: str) -> list[dict]:
   return data.get("results", [])
 
 
-async def fetch_contracts(product_code: str, date: str) -> list[dict]:
+async def fetch_contracts(product_code: str, trade_date: str) -> list[dict]:
   """Fetch active futures contracts for a product on a point-in-time date.
 
   Queries the Massive Contracts API:
@@ -156,7 +156,7 @@ async def fetch_contracts(product_code: str, date: str) -> list[dict]:
   url = f"{MASSIVE_BASE_URL}/futures/v1/contracts"
   params = {
     "product_code": product_code,
-    "date": date,
+    "date": trade_date,
     "active": "true",
   }
   data = await _rate_limited_get(url, params)
