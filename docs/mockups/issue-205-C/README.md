@@ -56,7 +56,7 @@ existing Language / Backup / Restore cards are unchanged; the *Market data* card
 |------------|-------------------|-------|
 | Card container (`.card`) | `Card withBorder padding="md" radius="md"` | Sits between the Language card and the Backup card |
 | Section title (`.section-title`) | `Title order={4}` | `t('settings.chart_data.title')` → "Chart Data" |
-| Provider selector (`.field.narrow > select`) | `Select` `maw={320}` `allowDeselect={false}` | `label` = "Provider"; `data` = provider list (below); future providers are `{ disabled: true }` items |
+| Provider selector (`.field > select`) | `Select` `allowDeselect={false}` | `label` = "Provider"; `data` = provider list (below); future providers are `{ disabled: true }` items |
 | Provider help (`.provider-hint`) | `Select` `description` **or** `Text c="dimmed" fz="xs"` | "Chart data is optional. Disable to use Kiroku without market data." |
 | Provider config block (`.provider-config`) | conditional render | `{provider === 'massive' && <MassiveConfig/>}` — top border separates it from the Select |
 | Massive API key (`.input-with-toggle`) | `PasswordInput` | `label` = "Massive API Key"; show/hide via Mantine's built-in `visibilityToggleIcon` |
@@ -131,12 +131,11 @@ EN is the source of truth; mirror into FR/ES/IT/DE/PT. Reuse the existing
 ## Responsive notes
 
 - **Desktop:** the General `tab-panel` keeps `maw={520}` (Stack gap="md"). The
-  Provider `Select` is `maw={320}` (`.field.narrow`); the API-key `PasswordInput`
-  spans the card width.
+  Provider `Select` and the API-key `PasswordInput` both span the card width.
 - **Mobile (≤768px, Mantine `sm`):** the sidebar collapses to the hamburger
   drawer, the tab strip scrolls horizontally, and the panel goes full-width
   (`.tab-panel { max-width: 100% }`) — all inherited from the base stylesheet.
-  Panel **D** previews this in the `.phone-frame`. The provider config block and
+  Panel **E** previews this in the `.phone-frame`. The provider config block and
   callout reflow naturally; nothing is fixed-width.
 - The mockup's `.preview-grid` collapses from two columns to one at ≤900px so the
   preview page itself stays readable on narrow screens.
