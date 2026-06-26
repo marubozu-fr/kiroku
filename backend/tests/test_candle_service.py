@@ -2,6 +2,8 @@
 import shutil
 from pathlib import Path
 
+import pyarrow as pa
+import pyarrow.parquet as pq
 import pytest
 
 from app.services import candle_service
@@ -25,8 +27,19 @@ def isolated_candles_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Non
 # ---------------------------------------------------------------------------
 
 
-def _make_candle(ts: int, o: float = 1.0, h: float = 2.0, lo: float = 0.5, c: float = 1.5, v: float = 100.0) -> dict:
-  return {"timestamp": ts, "open": o, "high": h, "low": lo, "close": c, "volume": v}
+def _make_candle(
+  ts: int,
+  o: float = 1.0,
+  h: float = 2.0,
+  lo: float = 0.5,
+  c: float = 1.5,
+  v: float = 100.0,
+  symbol: str | None = None,
+) -> dict:
+  candle = {"timestamp": ts, "open": o, "high": h, "low": lo, "close": c, "volume": v}
+  if symbol is not None:
+    candle["symbol"] = symbol
+  return candle
 
 
 # ---------------------------------------------------------------------------
@@ -160,6 +173,148 @@ def test_read_candles_returns_correct_fields() -> None:
   assert row["low"] == 0.3
   assert row["close"] == 1.8
   assert row["volume"] == 500.0
+
+
+# ---------------------------------------------------------------------------
+# symbol column — multi-contract Futures storage (issue #205-D)
+# ---------------------------------------------------------------------------
+
+# The schema all candle files are written with.
+_LEGACY_SCHEMA = pa.schema(
+  [
+    ("timestamp", pa.int64()),
+    ("open", pa.float64()),
+    ("high", pa.float64()),
+    ("low", pa.float64()),
+    ("close", pa.float64()),
+    ("volume", pa.float64()),
+  ]
+)
+
+
+def test_schema_includes_symbol_column() -> None:
+  """The parquet schema carries a nullable `symbol` column."""
+  assert "symbol" in candle_service._SCHEMA.names
+  field = candle_service._SCHEMA.field("symbol")
+  assert field.type == pa.string()
+  assert field.nullable
+
+
+def test_store_two_contracts_in_one_file() -> None:
+  """Two contracts coexist in a single base-product file via the symbol column."""
+  candle_service.store_candles(
+    "NQ",
+    [
+      _make_candle(1000, o=1.1, symbol="NQH26"),
+      _make_candle(2000, o=2.2, symbol="NQM26"),
+    ],
+  )
+
+  # Only one file is written, named after the base product.
+  assert candle_service._candle_path("NQ").exists()
+  assert not candle_service._candle_path("NQH26").exists()
+
+  stored = candle_service.read_candles("NQ", 0, 9999)
+  assert {r["symbol"] for r in stored} == {"NQH26", "NQM26"}
+
+
+def test_read_candles_filters_by_symbol() -> None:
+  """read_candles with a symbol returns only that contract's rows."""
+  candle_service.store_candles(
+    "NQ",
+    [
+      _make_candle(1000, o=1.1, symbol="NQH26"),
+      _make_candle(2000, o=2.2, symbol="NQM26"),
+      _make_candle(3000, o=3.3, symbol="NQH26"),
+    ],
+  )
+
+  h26 = candle_service.read_candles("NQ", 0, 9999, symbol="NQH26")
+  assert [r["timestamp"] for r in h26] == [1000, 3000]
+  assert all(r["symbol"] == "NQH26" for r in h26)
+
+  m26 = candle_service.read_candles("NQ", 0, 9999, symbol="NQM26")
+  assert [r["timestamp"] for r in m26] == [2000]
+
+
+def test_read_candles_no_symbol_returns_all_contracts() -> None:
+  """read_candles without a symbol returns every contract's rows merged."""
+  candle_service.store_candles(
+    "NQ",
+    [
+      _make_candle(1000, symbol="NQH26"),
+      _make_candle(2000, symbol="NQM26"),
+    ],
+  )
+
+  merged = candle_service.read_candles("NQ", 0, 9999)
+  assert len(merged) == 2
+
+
+def test_store_dedup_keyed_by_symbol_and_timestamp() -> None:
+  """Same timestamp under different symbols are distinct rows, not a collision."""
+  new_count = candle_service.store_candles(
+    "NQ",
+    [
+      _make_candle(1000, o=1.1, symbol="NQH26"),
+      _make_candle(1000, o=2.2, symbol="NQM26"),
+    ],
+  )
+
+  # Same timestamp but different contracts → two new rows.
+  assert new_count == 2
+  stored = candle_service.read_candles("NQ", 0, 9999)
+  assert len(stored) == 2
+
+
+def test_store_upsert_within_same_symbol() -> None:
+  """A repeat (symbol, timestamp) overwrites and is not counted as new."""
+  candle_service.store_candles("NQ", [_make_candle(1000, o=1.1, symbol="NQH26")])
+  new_count = candle_service.store_candles(
+    "NQ", [_make_candle(1000, o=9.9, symbol="NQH26")]
+  )
+
+  assert new_count == 0
+  stored = candle_service.read_candles("NQ", 0, 9999, symbol="NQH26")
+  assert len(stored) == 1
+  assert stored[0]["open"] == 9.9
+
+
+def test_read_legacy_file_without_symbol_column() -> None:
+  """A pre-symbol forex/stocks file reads back with symbol=None (backward compat)."""
+  path = candle_service._candle_path("C:EURUSD")
+  path.parent.mkdir(parents=True, exist_ok=True)
+  legacy = pa.Table.from_pylist(
+    [{"timestamp": 1000, "open": 1.1, "high": 1.2, "low": 1.0, "close": 1.15, "volume": 50.0}],
+    schema=_LEGACY_SCHEMA,
+  )
+  pq.write_table(legacy, path)
+
+  stored = candle_service.read_candles("C:EURUSD", 0, 9999)
+  assert len(stored) == 1
+  assert stored[0]["symbol"] is None
+  assert stored[0]["open"] == 1.1
+
+
+def test_append_to_legacy_file_adds_symbol_column() -> None:
+  """Appending to a legacy file rewrites it with the symbol column intact."""
+  path = candle_service._candle_path("C:EURUSD")
+  path.parent.mkdir(parents=True, exist_ok=True)
+  legacy = pa.Table.from_pylist(
+    [{"timestamp": 1000, "open": 1.1, "high": 1.2, "low": 1.0, "close": 1.15, "volume": 50.0}],
+    schema=_LEGACY_SCHEMA,
+  )
+  pq.write_table(legacy, path)
+
+  # Legacy row has symbol=None; appending a None-symbol candle must not duplicate it.
+  new_count = candle_service.store_candles("C:EURUSD", [_make_candle(2000)])
+  assert new_count == 1
+
+  table = pq.read_table(path)
+  assert "symbol" in table.column_names
+  stored = candle_service.read_candles("C:EURUSD", 0, 9999)
+  assert [r["timestamp"] for r in stored] == [1000, 2000]
+  assert all(r["symbol"] is None for r in stored)
 
 
 # ---------------------------------------------------------------------------
