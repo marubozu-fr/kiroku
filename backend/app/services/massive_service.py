@@ -67,12 +67,14 @@ async def _rate_limited_get(url: str, params: dict) -> dict | None:
   # Two attempts at most: the second covers a single retry after a 429.
   for attempt in range(2):
     await _await_rate_limit_slot()
+    # Record the call before issuing it so concurrent coroutines see the slot
+    # as taken and don't all rush past the limit at once. The provider counts
+    # failed calls too, so leaving the timestamp on error is conservative but
+    # correct.
+    _call_times.append(time.monotonic())
     try:
       async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as client:
         response = await client.get(url, params=full_params)
-        # Record the call as soon as the server responds: the provider counts
-        # it against the rate limit even when it returns an error status.
-        _call_times.append(time.monotonic())
         response.raise_for_status()
         return response.json()
     except httpx.HTTPStatusError as exc:

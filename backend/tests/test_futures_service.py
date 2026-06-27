@@ -14,9 +14,16 @@ CME_PRODUCTS = (
 )
 
 
-def _contract(ticker: str, first: str, last: str) -> dict[str, Any]:
+def _contract(
+  ticker: str, first: str, last: str, contract_type: str = "single"
+) -> dict[str, Any]:
   """Build a minimal Massive contract dict."""
-  return {"ticker": ticker, "first_trade_date": first, "last_trade_date": last}
+  return {
+    "ticker": ticker,
+    "first_trade_date": first,
+    "last_trade_date": last,
+    "type": contract_type,
+  }
 
 
 def _patch_contracts(
@@ -115,6 +122,38 @@ async def test_resolve_contract_picks_front_month_when_multiple_overlap(
   ticker = await resolve_contract("NQ", date(2026, 3, 15))
 
   assert ticker == "NQH26"
+
+
+async def test_resolve_contract_skips_combo_contracts(
+  monkeypatch: pytest.MonkeyPatch,
+) -> None:
+  # A combo (spread) has an earlier last_trade_date and would win the
+  # front-month sort, but only the actual single contract must be selected.
+  _patch_contracts(
+    monkeypatch,
+    [
+      _contract("YM:BF U6-Z6-H7", "2026-01-01", "2026-03-12", contract_type="combo"),
+      _contract("YMH26", "2026-01-01", "2026-03-20"),
+    ],
+  )
+
+  ticker = await resolve_contract("YM", date(2026, 3, 15))
+
+  assert ticker == "YMH26"
+
+
+async def test_resolve_contract_raises_when_only_combos_cover_date(
+  monkeypatch: pytest.MonkeyPatch,
+) -> None:
+  # With no single contract covering the date, resolution must fail rather
+  # than fall back to a spread ticker.
+  _patch_contracts(
+    monkeypatch,
+    [_contract("YM:BF U6-Z6-H7", "2026-01-01", "2026-03-20", contract_type="combo")],
+  )
+
+  with pytest.raises(FuturesResolutionError, match="covers"):
+    await resolve_contract("YM", date(2026, 3, 15))
 
 
 # ---------------------------------------------------------------------------
