@@ -20,7 +20,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  // ⚠️ Server config is infrastructure — do not remove host, port, or allowedHosts.
   server: {
+    host: '127.0.0.1',
     port: 5173,
     allowedHosts: ['kiroku'],
     proxy: {
