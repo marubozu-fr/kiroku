@@ -163,6 +163,19 @@ def _window_bounds(
   return start_date.isoformat(), end_date.isoformat(), start_ts, end_ts
 
 
+def _symbol_at(rows: list[dict[str, Any]], anchor: datetime) -> Optional[str]:
+  """Return the `symbol` of the stored row whose timestamp is nearest *anchor*.
+
+  Used to recover the entry contract ticker from already-stored Futures candles
+  without calling Massive. Returns None when *rows* is empty.
+  """
+  if not rows:
+    return None
+  target = _to_ms(anchor)
+  nearest = min(rows, key=lambda row: abs(row["timestamp"] - target))
+  return nearest.get("symbol")
+
+
 def _add_segment(
   segments: dict[Optional[str], dict[str, Any]],
   symbol: Optional[str],
@@ -223,35 +236,51 @@ async def get_trade_candles(
   # None for forex/stocks).
   segments: dict[Optional[str], dict[str, Any]] = {}
   if asset.get("category") == AssetCategory.futures.value:
-    # Futures assets store a base product code (e.g. "NQ"); resolve the active
-    # contract at the entry date. A failure here is fatal — nothing to chart.
+    # Futures assets store a base product code (e.g. "NQ"). Contract resolution
+    # calls Massive every time and is not cached, so check parquet first: when
+    # candles already cover the trade window, the contract ticker is recovered
+    # from the stored `symbol` column and Massive is never touched.
     base_ticker = ticker
-    try:
-      entry_contract = await futures_service.resolve_contract(
-        base_ticker, entry_anchor.date()
-      )
-    except FuturesResolutionError as exc:
-      logger.info("Futures contract resolution failed: %s", exc)
-      return {"data": None, "meta": {"reason": "contract_unresolved"}}
-
     storage_ticker = base_ticker
-    response_ticker = entry_contract
-    _add_segment(segments, entry_contract, entry_contract, entry_anchor)
-
-    # A trade can span a contract roll: resolve the contract active at the exit
-    # date too and accumulate both into the single base-product file. Failure
-    # here is non-fatal — the entry contract still charts on its own.
     exit_anchor = _last_activity_date(activities, entry_anchor)
-    try:
-      exit_contract = await futures_service.resolve_contract(
-        base_ticker, exit_anchor.date()
-      )
-      _add_segment(segments, exit_contract, exit_contract, exit_anchor)
-    except FuturesResolutionError as exc:
-      logger.info("Futures exit contract resolution failed: %s", exc)
+    overall_start, overall_end = entry_anchor, exit_anchor
+
+    _, _, win_start_ts, win_end_ts = _window_bounds(entry_anchor, exit_anchor)
+    stored = candle_service.read_candles(storage_ticker, win_start_ts, win_end_ts)
+    if stored:
+      # The entry contract is the symbol of the candle nearest the entry anchor.
+      response_ticker = _symbol_at(stored, entry_anchor) or base_ticker
+    else:
+      # No stored candles — resolve the active contract at the entry date. A
+      # failure here is fatal: there is nothing to chart.
+      try:
+        entry_contract = await futures_service.resolve_contract(
+          base_ticker, entry_anchor.date()
+        )
+      except FuturesResolutionError as exc:
+        logger.info("Futures contract resolution failed: %s", exc)
+        return {"data": None, "meta": {"reason": "contract_unresolved"}}
+
+      response_ticker = entry_contract
+      _add_segment(segments, entry_contract, entry_contract, entry_anchor)
+
+      # A trade can span a contract roll: resolve the contract active at the
+      # exit date too and accumulate both into the single base-product file.
+      # Skip the call when entry and exit fall on the same date (day trades) —
+      # the contract is identical. Failure here is non-fatal: the entry
+      # contract still charts on its own.
+      if exit_anchor.date() != entry_anchor.date():
+        try:
+          exit_contract = await futures_service.resolve_contract(
+            base_ticker, exit_anchor.date()
+          )
+          _add_segment(segments, exit_contract, exit_contract, exit_anchor)
+        except FuturesResolutionError as exc:
+          logger.info("Futures exit contract resolution failed: %s", exc)
   else:
     storage_ticker = ticker
     response_ticker = ticker
+    overall_start = overall_end = entry_anchor
     _add_segment(segments, None, ticker, entry_anchor)
 
   # Lazily fetch each segment from Massive when its stored range is empty.
@@ -271,9 +300,7 @@ async def get_trade_candles(
           storage_ticker, _to_storage_candles(raw, symbol=symbol)
         )
 
-  # Read the merged window spanning every segment (entry through exit).
-  overall_start = min(segment["start"] for segment in segments.values())
-  overall_end = max(segment["end"] for segment in segments.values())
+  # Read the merged window spanning the trade (entry through exit).
   start_str, end_str, start_ts, end_ts = _window_bounds(overall_start, overall_end)
 
   rows = candle_service.read_candles(storage_ticker, start_ts, end_ts)

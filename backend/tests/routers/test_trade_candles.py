@@ -309,6 +309,91 @@ def test_futures_asset_resolves_contract_then_fetches_candles(
   assert fetched == ["NQH24"]
 
 
+def test_futures_day_trade_resolves_contract_once(
+  monkeypatch: pytest.MonkeyPatch,
+) -> None:
+  # A day trade (entry and exit on the same date) must resolve the contract only
+  # once — the exit resolution is skipped because the contract is identical.
+  resolved: list[str] = []
+
+  async def fake_contracts(product_code: str, date_str: str) -> list[dict]:
+    resolved.append(date_str)
+    return [
+      {"ticker": "NQH24", "first_trade_date": "2023-12-15", "last_trade_date": "2024-03-20"}
+    ]
+
+  async def fake_fetch(ticker: str, date_from: str, date_to: str) -> list[dict]:
+    return [
+      {"o": 1.0, "h": 1.2, "l": 0.9, "c": 1.1, "v": 100.0, "t": _ms(2024, 3, 15, 9, 0)},
+    ]
+
+  monkeypatch.setattr(massive_service, "fetch_contracts", fake_contracts)
+  monkeypatch.setattr(massive_service, "fetch_candles", fake_fetch)
+
+  with TestClient(app) as client:
+    asset_id = _create_futures_asset(client)
+    _set_massive_ticker(asset_id, "NQ")
+    # Single-day trade: both activities on 2024-03-15.
+    response = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "activities": [
+          {"type": "Buy", "price": 18000.0, "quantity": 1.0, "date": "2024-03-15"},
+          {"type": "Sell", "price": 18100.0, "quantity": 1.0, "date": "2024-03-15"},
+        ],
+      },
+    )
+    assert response.status_code == 201, response.text
+    trade_id = response.json()["data"]["id"]
+    response = client.get(f"/api/trades/{trade_id}/candles?resolution=M1")
+
+  assert response.status_code == 200, response.text
+  assert response.json()["data"]["ticker"] == "NQH24"
+  # resolve_contract was called exactly once despite an entry and an exit.
+  assert resolved == ["2024-03-15"]
+
+
+def test_futures_stored_candles_skip_contract_resolution(
+  monkeypatch: pytest.MonkeyPatch,
+) -> None:
+  # When candles for the base product already exist in parquet, the chart must
+  # be built from storage without any Massive contract resolution or fetch.
+  candle_service.store_candles(
+    "NQ",
+    [
+      {
+        "timestamp": _ms(2024, 3, 15, 9, 0),
+        "symbol": "NQH24",
+        "open": 1.0,
+        "high": 1.2,
+        "low": 0.9,
+        "close": 1.1,
+        "volume": 100.0,
+      }
+    ],
+  )
+
+  def fail_contracts(*args: object, **kwargs: object) -> list[dict]:
+    raise AssertionError("contracts must not be resolved when candles are stored")
+
+  def fail_fetch(*args: object, **kwargs: object) -> list[dict]:
+    raise AssertionError("candles must not be fetched when already stored")
+
+  monkeypatch.setattr(massive_service, "fetch_contracts", fail_contracts)
+  monkeypatch.setattr(massive_service, "fetch_candles", fail_fetch)
+
+  with TestClient(app) as client:
+    asset_id = _create_futures_asset(client)
+    _set_massive_ticker(asset_id, "NQ")
+    trade_id = _create_trade(client, asset_id)
+    response = client.get(f"/api/trades/{trade_id}/candles?resolution=M1")
+
+  data = response.json()["data"]
+  assert data["ticker"] == "NQH24"
+  assert len(data["candles"]) == 1
+
+
 def test_futures_asset_unresolved_contract_returns_meta(
   monkeypatch: pytest.MonkeyPatch,
 ) -> None:

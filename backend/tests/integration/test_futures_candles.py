@@ -149,13 +149,13 @@ def test_chart_request_returns_merged_candles_from_storage(
     ],
   )
 
-  async def fake_contracts(product_code: str, date_str: str) -> list[dict]:
-    return [NQH26, NQM26]
+  def fail_contracts(*args: object, **kwargs: object) -> list[dict]:
+    raise AssertionError("contracts must not be resolved when candles are stored")
 
   def fail_fetch(*args: object, **kwargs: object) -> list[dict]:
     raise AssertionError("candles must not be refetched when already stored")
 
-  monkeypatch.setattr(massive_service, "fetch_contracts", fake_contracts)
+  monkeypatch.setattr(massive_service, "fetch_contracts", fail_contracts)
   monkeypatch.setattr(massive_service, "fetch_candles", fail_fetch)
 
   with TestClient(app) as client:
@@ -167,6 +167,9 @@ def test_chart_request_returns_merged_candles_from_storage(
   data = response.json()["data"]
   assert len(data["candles"]) == 2
   assert response.json()["meta"] is None
+  # The chart ticker is recovered from the stored `symbol` column (the contract
+  # nearest the entry date), not from a Massive contract resolution.
+  assert data["ticker"] == "NQH26"
 
 
 # ---------------------------------------------------------------------------
