@@ -40,6 +40,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
     })
   } catch (cause) {
+    // Propagate aborts unwrapped so callers can detect them via `name`
+    // (e.g. React StrictMode cleanup cancelling an in-flight fetch).
+    if (cause instanceof DOMException && cause.name === 'AbortError') {
+      throw cause
+    }
     throw new ApiError(
       cause instanceof Error ? cause.message : 'Network request failed',
       0,
