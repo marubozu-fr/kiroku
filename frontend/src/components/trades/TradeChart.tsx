@@ -73,19 +73,13 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
     [tradeId, resolution],
   )
 
-  const { data: response, loading, error, reload } = useFetch<TradeCandlesResponse>(fetcher)
-
-  // useFetch only re-fetches on nonce bump (reload). Re-fetch when resolution
-  // changes after mount by calling reload(). The initial mount fetch is
-  // handled by useFetch itself (nonce starts at 0).
-  const isFirstRender = useRef(true)
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      return
-    }
-    reload()
-  }, [resolution, reload])
+  // Re-fetch whenever the trade or resolution changes. useFetch aborts the
+  // in-flight request in its cleanup, so StrictMode's double-mount fires at
+  // most one effective request instead of stacking duplicates.
+  const { data: response, loading, error, reload } = useFetch<TradeCandlesResponse>(fetcher, [
+    tradeId,
+    resolution,
+  ])
 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const chartRef = useRef<IChartApi | null>(null)

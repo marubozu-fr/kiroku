@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useMantineColorScheme } from '@mantine/core'
@@ -375,9 +376,35 @@ describe('TradeChart', () => {
     // Select H1 in the SegmentedControl
     fireEvent.click(screen.getByRole('radio', { name: 'H1' }))
 
-    // The component calls reload() on resolution change; assert the new fetch
+    // useFetch re-runs when the resolution dep changes; assert the new fetch
     await waitFor(() => {
       expect(mockCandles).toHaveBeenCalledWith(5, 'H1', expect.anything())
     })
+  })
+
+  it('fires a single effective candle request under StrictMode double-mount', async () => {
+    mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
+
+    renderWithProviders(
+      <StrictMode>
+        <TradeChart tradeId={8} defaultResolution="M15" />
+      </StrictMode>,
+    )
+
+    // The chart is built once the surviving request resolves.
+    await waitFor(() => {
+      expect(mockCreateChart).toHaveBeenCalled()
+    })
+
+    // StrictMode mounts, unmounts (aborting the first request), then remounts.
+    // That yields at most one extra in-flight request — never the triple seen
+    // when a ref-based "skip first render" guard re-triggered reload() (#231).
+    expect(mockCandles.mock.calls.length).toBeLessThanOrEqual(2)
+
+    // Every request targeted the same resolution; none was a stray reload.
+    for (const call of mockCandles.mock.calls) {
+      expect(call[0]).toBe(8)
+      expect(call[1]).toBe('M15')
+    }
   })
 })
