@@ -98,6 +98,29 @@ describe('GeneralTab', () => {
     ).toBeInTheDocument()
   })
 
+  it('renders the theme selector pre-set to the current color scheme', async () => {
+    stubFetch()
+    renderWithProviders(<GeneralTab />)
+
+    const input = screen.getByRole('textbox', {
+      description: 'Choose the color scheme',
+    })
+    expect(input).toBeInTheDocument()
+    // MantineProvider defaults to the light color scheme in tests.
+    expect(input).toHaveValue('Light')
+  })
+
+  it('switches the color scheme when a different option is picked', async () => {
+    stubFetch()
+    renderWithProviders(<GeneralTab />)
+
+    const input = screen.getByRole('textbox', { description: 'Choose the color scheme' })
+    fireEvent.click(input)
+    fireEvent.click(await screen.findByText('Dark'))
+
+    await waitFor(() => expect(input).toHaveValue('Dark'))
+  })
+
   it('renders the backup directory input empty when none is configured', async () => {
     stubFetch()
     renderWithProviders(<GeneralTab />)

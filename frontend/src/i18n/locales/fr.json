@@ -31,7 +31,6 @@
     }
   },
   "app": {
-    "toggle_color_scheme": "Basculer le thème de couleur",
     "logo_alt": "Logo Kiroku"
   },
   "nav": {
@@ -395,6 +394,10 @@
     "general": {
       "language_label": "Langue",
       "language_description": "Choisissez la langue d'affichage",
+      "theme_label": "Thème",
+      "theme_description": "Choisissez le thème de couleur",
+      "theme_light": "Clair",
+      "theme_dark": "Sombre",
       "massive_api_key_label": "Clé API Massive",
       "massive_api_key_hint": "Clé API gratuite de massive.com — active les données de graphique dans les trades",
       "massive_api_key_link": "Obtenir une clé API gratuite",

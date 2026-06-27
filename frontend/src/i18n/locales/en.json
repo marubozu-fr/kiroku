@@ -31,7 +31,6 @@
     }
   },
   "app": {
-    "toggle_color_scheme": "Toggle color scheme",
     "logo_alt": "Kiroku logo"
   },
   "nav": {
@@ -395,6 +394,10 @@
     "general": {
       "language_label": "Language",
       "language_description": "Choose the display language",
+      "theme_label": "Theme",
+      "theme_description": "Choose the color scheme",
+      "theme_light": "Light",
+      "theme_dark": "Dark",
       "massive_api_key_label": "Massive API Key",
       "massive_api_key_hint": "Free API key from massive.com — enables chart data in trades",
       "massive_api_key_link": "Get a free API key",

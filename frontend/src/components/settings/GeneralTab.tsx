@@ -16,6 +16,7 @@ import {
   TextInput,
   Title,
   Tooltip,
+  useMantineColorScheme,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { IconAlertTriangle, IconUpload } from '@tabler/icons-react'
@@ -62,6 +63,21 @@ export function GeneralTab() {
   const handleLanguageChange = (value: string | null) => {
     if (value) {
       i18n.changeLanguage(value)
+    }
+  }
+
+  // Theme is a localStorage-backed visual preference managed by Mantine. The app
+  // defaults to dark, so treat anything other than "light" as dark in the Select.
+  const { colorScheme, setColorScheme } = useMantineColorScheme()
+  const themeValue = colorScheme === 'light' ? 'light' : 'dark'
+  const themeOptions = [
+    { value: 'light', label: t('settings.general.theme_light') },
+    { value: 'dark', label: t('settings.general.theme_dark') },
+  ]
+
+  const handleThemeChange = (value: string | null) => {
+    if (value === 'light' || value === 'dark') {
+      setColorScheme(value)
     }
   }
 
@@ -237,6 +253,20 @@ export function GeneralTab() {
             data={LANGUAGE_OPTIONS}
             value={current}
             onChange={handleLanguageChange}
+            allowDeselect={false}
+            maw={320}
+          />
+        </Stack>
+      </Card>
+
+      <Card withBorder padding="md" radius="md">
+        <Stack gap="md">
+          <Title order={4}>{t('settings.general.theme_label')}</Title>
+          <Select
+            description={t('settings.general.theme_description')}
+            data={themeOptions}
+            value={themeValue}
+            onChange={handleThemeChange}
             allowDeselect={false}
             maw={320}
           />
