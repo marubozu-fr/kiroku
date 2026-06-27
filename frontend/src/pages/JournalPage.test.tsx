@@ -7,6 +7,33 @@ import type { TradeSummary } from '@/types/trade'
 import { jsonResponse, renderWithProviders } from '@/test/utils'
 import { assertDefined } from '@/test/helpers'
 
+// ---------------------------------------------------------------------------
+// localStorage mock
+//
+// Node 25 receives --localstorage-file without a valid path from the vitest
+// worker, which installs a non-functional native localStorage stub as the
+// global. JournalPage reads/writes the account-type filter, so we replace the
+// global with a simple in-memory implementation shared by the component and
+// the tests.
+// ---------------------------------------------------------------------------
+
+function makeLocalStorage(): Storage {
+  const store: Record<string, string> = {}
+  return {
+    getItem: (key: string) => (Object.prototype.hasOwnProperty.call(store, key) ? store[key] : null),
+    setItem: (key: string, value: string) => { store[key] = value },
+    removeItem: (key: string) => { delete store[key] },
+    clear: () => { Object.keys(store).forEach((k) => delete store[k]) },
+    get length() { return Object.keys(store).length },
+    key: (index: number) => Object.keys(store)[index] ?? null,
+  } as Storage
+}
+
+const mockStorage = makeLocalStorage()
+vi.stubGlobal('localStorage', mockStorage)
+
+const ACCOUNT_TYPES_KEY = 'kiroku_journal_account_types'
+
 function trade(overrides: Partial<TradeSummary> = {}): TradeSummary {
   return {
     id: 1,
@@ -81,7 +108,10 @@ function renderJournal() {
 }
 
 afterEach(() => {
+  mockStorage.clear()
   vi.unstubAllGlobals()
+  // Re-install the localStorage mock that unstubAllGlobals just removed.
+  vi.stubGlobal('localStorage', mockStorage)
 })
 
 describe('JournalPage', () => {
@@ -321,5 +351,62 @@ describe('JournalPage account-type toggles', () => {
     // "Demo", so assert at least the badge is present in addition).
     const demoBadges = screen.getAllByText('Demo')
     expect(demoBadges.length).toBeGreaterThan(1)
+  })
+})
+
+describe('JournalPage account-type persistence', () => {
+  function stubMixed() {
+    return stubApi({
+      years: [2026],
+      assets: [asset, assetGbp, assetJpy],
+      trades: () => [
+        trade({ id: 1, account_type: 'live', asset_id: 1, trade_date: '2026-06-04T08:00:00.000Z' }),
+        trade({ id: 2, account_type: 'demo', asset_id: 2, trade_date: '2026-06-05T08:00:00.000Z' }),
+        trade({ id: 3, account_type: 'test', asset_id: 3, trade_date: '2026-06-06T08:00:00.000Z' }),
+      ],
+    })
+  }
+
+  it('persists the selection to localStorage when a chip is toggled', async () => {
+    stubMixed()
+    renderJournal()
+    await screen.findAllByText(/EUR\/USD/)
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Demo' }))
+    await screen.findAllByText(/GBP\/USD/)
+
+    expect(JSON.parse(localStorage.getItem(ACCOUNT_TYPES_KEY) ?? '[]').sort()).toEqual(
+      ['demo', 'live'],
+    )
+  })
+
+  it('restores the persisted selection on mount', async () => {
+    localStorage.setItem(ACCOUNT_TYPES_KEY, JSON.stringify(['live', 'demo']))
+    stubMixed()
+    renderJournal()
+
+    // Demo trades visible from the first paint, without toggling.
+    expect((await screen.findAllByText(/GBP\/USD/)).length).toBeGreaterThan(0)
+    expect(screen.getByRole('checkbox', { name: 'Demo' })).toBeChecked()
+    // Test remains hidden — it was not persisted.
+    expect(screen.queryByText(/JPY\/USD/)).not.toBeInTheDocument()
+  })
+
+  it('defaults to live-only when no value is persisted', async () => {
+    stubMixed()
+    renderJournal()
+
+    expect((await screen.findAllByText(/EUR\/USD/)).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/GBP\/USD/)).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Demo' })).not.toBeChecked()
+  })
+
+  it('falls back to live-only when the persisted value is malformed', async () => {
+    localStorage.setItem(ACCOUNT_TYPES_KEY, 'not-json')
+    stubMixed()
+    renderJournal()
+
+    expect((await screen.findAllByText(/EUR\/USD/)).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/GBP\/USD/)).not.toBeInTheDocument()
   })
 })

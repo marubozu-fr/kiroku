@@ -32,6 +32,34 @@ import type { AccountType } from '@/types/trade'
 
 type JournalView = 'calendar' | 'list'
 
+const ACCOUNT_TYPES_KEY = 'kiroku_journal_account_types'
+const ACCOUNT_TYPES: readonly AccountType[] = ['live', 'demo', 'test']
+
+/**
+ * Read the persisted account-type filter from localStorage.
+ *
+ * Falls back to `live`-only when nothing is stored or the value is malformed.
+ * `live` is always re-added since it can never be turned off.
+ */
+function readAccountTypes(): Set<AccountType> {
+  const fallback = new Set<AccountType>(['live'])
+  const stored = localStorage.getItem(ACCOUNT_TYPES_KEY)
+  if (stored === null) return fallback
+  try {
+    const parsed: unknown = JSON.parse(stored)
+    if (!Array.isArray(parsed)) return fallback
+    const next = new Set<AccountType>(
+      parsed.filter((v): v is AccountType =>
+        (ACCOUNT_TYPES as readonly unknown[]).includes(v),
+      ),
+    )
+    next.add('live') // Live can never be turned off.
+    return next
+  } catch {
+    return fallback
+  }
+}
+
 /**
  * Main journal page.
  *
@@ -49,9 +77,14 @@ export function JournalPage() {
   const [view, setView] = useState<JournalView>('calendar')
   // Account types rendered in the calendar/list. Live is always on; Demo/Test
   // are opt-in. Stats and reviews stay live-only regardless of this selection.
-  const [selectedAccountTypes, setSelectedAccountTypes] = useState<Set<AccountType>>(
-    () => new Set<AccountType>(['live']),
-  )
+  // The selection persists in localStorage across navigations and sessions.
+  const [selectedAccountTypes, setSelectedAccountTypes] =
+    useState<Set<AccountType>>(readAccountTypes)
+
+  // Persist the filter whenever it changes.
+  useEffect(() => {
+    localStorage.setItem(ACCOUNT_TYPES_KEY, JSON.stringify([...selectedAccountTypes]))
+  }, [selectedAccountTypes])
 
   const currentYear = new Date().getFullYear()
   const yearOptions = useMemo(() => {
