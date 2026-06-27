@@ -451,7 +451,7 @@
         "massive_ticker_placeholder": "Buscar tickers...",
         "massive_ticker_select_category": "Selecciona primero una categoría",
         "futures_ticker_placeholder": "ej. NQ",
-        "futures_ticker_hint": "Introduce el símbolo base (ej. NQ, ES, GC)",
+        "futures_ticker_hint": "Introduce el código de producto (ej. NQ, ES, GC) — el contrato activo se resuelve automáticamente.",
         "futures_ticker_invalid": "Usa solo letras, números y guiones bajos"
       },
       "notify": {
