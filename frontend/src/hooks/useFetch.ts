@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type DependencyList } from 'react'
 import { ApiError } from '@/services/api'
 
 interface FetchState<T> {
@@ -12,10 +12,18 @@ interface FetchState<T> {
  * Fetch data on mount and expose loading/error/reload state.
  *
  * The fetcher receives an `AbortSignal`; in-flight requests are aborted when
- * the component unmounts or a reload is triggered, so stale responses never
- * overwrite fresh state.
+ * the component unmounts, the dependencies change, or a reload is triggered,
+ * so stale responses never overwrite fresh state.
+ *
+ * Pass `deps` to re-fetch when inputs change (e.g. a selected resolution).
+ * Keeping the re-fetch inside the effect means a single cleanup aborts the
+ * previous request, avoiding duplicate in-flight requests under StrictMode's
+ * double-mount — where a ref-based "skip first render" guard would not survive.
  */
-export function useFetch<T>(fetcher: (signal: AbortSignal) => Promise<T>): FetchState<T> {
+export function useFetch<T>(
+  fetcher: (signal: AbortSignal) => Promise<T>,
+  deps: DependencyList = [],
+): FetchState<T> {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,6 +41,11 @@ export function useFetch<T>(fetcher: (signal: AbortSignal) => Promise<T>): Fetch
 
     fetcher(controller.signal)
       .then((result) => {
+        // A superseded request (unmount, dep change, reload) is aborted before
+        // its promise settles; ignore it so it never overwrites fresh state.
+        if (controller.signal.aborted) {
+          return
+        }
         setData(result)
         setLoading(false)
       })
@@ -45,9 +58,10 @@ export function useFetch<T>(fetcher: (signal: AbortSignal) => Promise<T>): Fetch
       })
 
     return () => controller.abort()
-    // `fetcher` is recreated each render by callers, so depend on `nonce` only.
+    // `fetcher` is recreated each render by callers, so re-run on `nonce` (reload)
+    // and the caller-provided `deps` only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nonce])
+  }, [nonce, ...deps])
 
   return { data, loading, error, reload }
 }
