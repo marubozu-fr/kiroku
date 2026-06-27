@@ -451,7 +451,7 @@
         "massive_ticker_placeholder": "Ticker suchen...",
         "massive_ticker_select_category": "Wähle zuerst eine Kategorie",
         "futures_ticker_placeholder": "z. B. NQ",
-        "futures_ticker_hint": "Basissymbol eingeben (z. B. NQ, ES, GC)",
+        "futures_ticker_hint": "Produktcode eingeben (z. B. NQ, ES, GC) — der aktive Kontrakt wird automatisch aufgelöst.",
         "futures_ticker_invalid": "Nur Buchstaben, Zahlen und Unterstriche verwenden"
       },
       "notify": {
