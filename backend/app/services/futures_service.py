@@ -57,12 +57,18 @@ async def resolve_contract(base_symbol: str, trade_date: date) -> str:
 def _select_active_contract(contracts: list[dict], trade_date: date) -> dict | None:
   """Pick the contract whose trading window contains *trade_date*.
 
-  A contract is eligible when first_trade_date <= trade_date <= last_trade_date
-  (bounds inclusive). When several qualify, the front month — the one expiring
-  soonest — is returned. Contracts with malformed or missing dates are skipped.
+  Only "single" contracts are considered: the Massive Contracts API also
+  returns "combo" entries (spreads like "YM:BF U6-Z6-H7") whose earlier
+  last_trade_date would otherwise win the front-month sort. A contract is
+  eligible when its type is "single" and first_trade_date <= trade_date <=
+  last_trade_date (bounds inclusive). When several qualify, the front month —
+  the one expiring soonest — is returned. Contracts with malformed or missing
+  dates are skipped.
   """
   eligible: list[tuple[date, dict]] = []
   for contract in contracts:
+    if (contract.get("type") or "single") != "single":
+      continue
     first = _parse_iso_date(contract.get("first_trade_date"))
     last = _parse_iso_date(contract.get("last_trade_date"))
     if first is None or last is None:

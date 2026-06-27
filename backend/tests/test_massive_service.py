@@ -1,4 +1,5 @@
 """Tests for app.services.massive_service — Massive API client (issue #185)."""
+import asyncio
 import time
 from typing import Any
 
@@ -534,6 +535,73 @@ async def test_rate_limiter_prunes_old_timestamps_and_does_not_sleep(
 
   # All 5 old timestamps must have been pruned, so no rate-limit sleep fires.
   assert sleep_durations == []
+
+
+async def test_rate_limiter_blocks_sixth_concurrent_call(
+  db: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  """Six concurrent calls: the first 5 reserve slots, the 6th must wait.
+
+  Each call records its timestamp *before* issuing the HTTP request, so a
+  concurrent coroutine sees the slot as taken instead of all six rushing past
+  the limiter at once. The HTTP get blocks on an event, so every coroutine
+  reaches the rate-limit check before any request completes.
+  """
+  # Capture the real sleep before the limiter's sleep is patched out, so we
+  # can still pump the event loop deterministically.
+  real_sleep = asyncio.sleep
+
+  async def _fake_get_key() -> str:
+    return "test-key-123"
+
+  monkeypatch.setattr(massive_service, "_get_api_key", _fake_get_key)
+
+  sleep_durations: list[float] = []
+
+  async def _fake_sleep(seconds: float) -> None:
+    # Return immediately so the rate-limited 6th coroutine can proceed.
+    sleep_durations.append(seconds)
+
+  monkeypatch.setattr(massive_service.asyncio, "sleep", _fake_sleep)
+
+  release = asyncio.Event()
+
+  class _BlockingClient:
+    def __init__(self, **kwargs: Any) -> None:
+      pass
+
+    async def __aenter__(self) -> "_BlockingClient":
+      return self
+
+    async def __aexit__(self, *args: Any) -> None:
+      return None
+
+    async def get(self, url: str, params: dict[str, Any] | None = None) -> Any:
+      await release.wait()
+      return _FakeResponse({"results": []})
+
+  monkeypatch.setattr(massive_service.httpx, "AsyncClient", _BlockingClient)
+
+  tasks = [
+    asyncio.ensure_future(
+      massive_service._rate_limited_get("https://api.massive.com/v3/test", {})
+    )
+    for _ in range(6)
+  ]
+
+  # Pump the loop so every coroutine advances to either the blocking HTTP get
+  # (first 5) or the rate-limit sleep (the 6th).
+  for _ in range(20):
+    await real_sleep(0)
+
+  # The 6th call hit the limiter and had to wait.
+  assert len(sleep_durations) == 1
+  assert sleep_durations[0] > 0
+
+  # Release the blocked requests and let every call finish.
+  release.set()
+  results = await asyncio.gather(*tasks)
+  assert all(r == {"results": []} for r in results)
 
 
 # ---------------------------------------------------------------------------
