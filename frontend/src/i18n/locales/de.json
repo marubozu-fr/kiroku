@@ -31,7 +31,6 @@
     }
   },
   "app": {
-    "toggle_color_scheme": "Farbschema umschalten",
     "logo_alt": "Kiroku-Logo"
   },
   "nav": {
@@ -395,6 +394,10 @@
     "general": {
       "language_label": "Sprache",
       "language_description": "Wähle die Anzeigesprache",
+      "theme_label": "Design",
+      "theme_description": "Wähle das Farbschema",
+      "theme_light": "Hell",
+      "theme_dark": "Dunkel",
       "massive_api_key_label": "Massive-API-Schlüssel",
       "massive_api_key_hint": "Kostenloser API-Schlüssel von massive.com — aktiviert Chart-Daten in Trades",
       "massive_api_key_link": "Kostenlosen API-Schlüssel erhalten",
