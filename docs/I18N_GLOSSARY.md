@@ -46,6 +46,8 @@ English form. Do not translate, transliterate, or adapt them.
 | Day Trading | — | Intraday trading style |
 | Timeframe | TF | Chart time period (M15, H1, D1, etc.) |
 | Setup | — | Predefined trade entry pattern/criteria |
+| Trade | — | A single position from entry to exit |
+| Tags | — | User-defined labels attached to trades |
 
 ## Charts & Dashboard
 

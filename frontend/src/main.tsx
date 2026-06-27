@@ -28,7 +28,9 @@ createRoot(rootElement).render(
       defaultColorScheme="dark"
     >
       <Notifications />
-      <BrowserRouter>
+      <BrowserRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
         <App />
       </BrowserRouter>
     </MantineProvider>
