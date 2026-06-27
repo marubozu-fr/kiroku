@@ -390,7 +390,9 @@ describe('AssetsTab', () => {
       const tickerInput = await within(dialog).findByLabelText('Market data ticker')
       expect(tickerInput).not.toBeDisabled()
       expect(
-        within(dialog).getByText('Enter base symbol (e.g., NQ, ES, GC)'),
+        within(dialog).getByText(
+          'Enter the product code (e.g., NQ, ES, GC) — the active contract is resolved automatically.',
+        ),
       ).toBeInTheDocument()
 
       // Typing a base symbol is free text — no autocomplete request is made.
