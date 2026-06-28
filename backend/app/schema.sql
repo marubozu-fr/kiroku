@@ -120,7 +120,10 @@ CREATE TABLE IF NOT EXISTS user_preferences (
   backup_directory TEXT,
   backup_reminder_days INTEGER NOT NULL DEFAULT 7,
   last_backup_at TEXT,
-  massive_api_key TEXT NOT NULL DEFAULT ''
+  massive_api_key TEXT NOT NULL DEFAULT '',
+  chart_timeframes_default TEXT NOT NULL DEFAULT '[]',
+  entry_timeframe_unit_default TEXT,
+  entry_timeframe_value_default INTEGER
 );
 
 INSERT OR IGNORE INTO user_preferences (id, risk_per_trade_default) VALUES (1, 1.0);

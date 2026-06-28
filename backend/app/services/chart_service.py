@@ -23,6 +23,10 @@ logger = logging.getLogger(__name__)
 # Supported chart resolutions. M1 is the stored (un-aggregated) timeframe.
 RESOLUTIONS: tuple[str, ...] = ("M1", "M5", "M15", "H1", "H4", "D1")
 
+# Soft cap on the number of configured chart timeframes. Past this the frontend
+# shows a non-blocking warning; the backend enforces no hard limit (issue #235).
+CHART_TIMEFRAMES_WARNING_THRESHOLD = 8
+
 # Map a trade's entry-timeframe token ('{value}{unit}', e.g. '15m') to a
 # resolution. Unmapped tokens fall back to DEFAULT_RESOLUTION.
 _TF_TOKEN_TO_RESOLUTION: dict[str, str] = {
@@ -48,6 +52,14 @@ def _resolve_timeframe(resolution: Optional[str], trade: dict[str, Any]) -> str:
   RESOLUTIONS (raising ValidationError -> HTTP 400 otherwise). When omitted it
   is derived from the trade's entry timeframe, falling back to
   DEFAULT_RESOLUTION when that is unset or not mappable.
+
+  NOTE (issue #235 / #236): RESOLUTIONS still gates validation here because
+  `aggregate_candles` (candle_service) only understands old-style tokens
+  ("M5", "H1", "D1", ...). Free-form TradingView-casing resolution strings
+  ("15m", "4h", "1D") will be supported once issue #236 updates the aggregator.
+  Until then removing the RESOLUTIONS whitelist would break candle aggregation,
+  so the gate is intentionally kept. CHART_TIMEFRAMES_WARNING_THRESHOLD has
+  been added above as the only required chart-preferences constant from #235.
   """
   if resolution is not None:
     normalized = resolution.strip().upper()
