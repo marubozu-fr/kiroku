@@ -570,3 +570,109 @@ def test_migrate_leaves_clean_filenames_untouched() -> None:
 
   assert aapl_path.exists()
   assert aapl_path.stat().st_mtime_ns == mtime_before
+
+
+# ---------------------------------------------------------------------------
+# timeframe_to_ms (issue #236)
+# ---------------------------------------------------------------------------
+
+# Week constant not defined in the aggregate section above.
+_W1 = 7 * _D1
+
+
+def test_timeframe_to_ms_all_legacy_tokens() -> None:
+  """All six legacy tokens map to their canonical millisecond durations."""
+  assert candle_service.timeframe_to_ms("M1") == _M1
+  assert candle_service.timeframe_to_ms("M5") == _M5
+  assert candle_service.timeframe_to_ms("M15") == _M15
+  assert candle_service.timeframe_to_ms("H1") == _H1
+  assert candle_service.timeframe_to_ms("H4") == _H4
+  assert candle_service.timeframe_to_ms("D1") == _D1
+
+
+def test_timeframe_to_ms_tradingview_minute_tokens() -> None:
+  """Arbitrary minute tokens ('{N}m') resolve to the correct millisecond count."""
+  assert candle_service.timeframe_to_ms("3m") == 3 * _M1
+  assert candle_service.timeframe_to_ms("12m") == 12 * _M1
+
+
+def test_timeframe_to_ms_tradingview_hour_tokens() -> None:
+  """Arbitrary hour tokens ('{N}h') resolve correctly."""
+  assert candle_service.timeframe_to_ms("2h") == 2 * _H1
+  assert candle_service.timeframe_to_ms("12h") == 12 * _H1
+
+
+def test_timeframe_to_ms_tradingview_day_tokens() -> None:
+  """Day tokens ('{N}D') resolve correctly."""
+  assert candle_service.timeframe_to_ms("1D") == _D1
+  assert candle_service.timeframe_to_ms("2D") == 2 * _D1
+
+
+def test_timeframe_to_ms_tradingview_week_token() -> None:
+  """Week token '1W' resolves to seven days in milliseconds."""
+  assert candle_service.timeframe_to_ms("1W") == _W1
+
+
+def test_timeframe_to_ms_invalid_legacy_style_tokens_raise() -> None:
+  """Tokens that look like legacy format but are not in the known set raise ValueError."""
+  for bad in ("W1", "M3", "D2"):
+    with pytest.raises(ValueError, match="Unknown timeframe"):
+      candle_service.timeframe_to_ms(bad)
+
+
+def test_timeframe_to_ms_invalid_unit_raises() -> None:
+  """TradingView tokens with an unrecognised unit character raise ValueError."""
+  for bad in ("1X", "abc", "5Q"):
+    with pytest.raises(ValueError):
+      candle_service.timeframe_to_ms(bad)
+
+
+def test_timeframe_to_ms_zero_value_raises() -> None:
+  """A TradingView token with value 0 raises ValueError."""
+  with pytest.raises(ValueError, match="Timeframe value must be positive"):
+    candle_service.timeframe_to_ms("0m")
+
+
+# ---------------------------------------------------------------------------
+# aggregate_candles — arbitrary TradingView tokens (issue #236)
+# ---------------------------------------------------------------------------
+
+
+def test_aggregate_3m_token_buckets_m1_candles() -> None:
+  """'3m' token correctly groups M1 candles into 3-minute buckets.
+
+  09:00 UTC is always on a 3-minute boundary (32400 s ÷ 180 s = 180 exactly),
+  so three candles at 09:00-09:02 form one bucket and two at 09:03-09:04 form
+  the next.
+  """
+  _3M = 3 * _M1  # 180_000 ms
+  candles = [
+    _make_candle(0 * _M1, v=10.0),  # bucket 0
+    _make_candle(1 * _M1, v=10.0),  # bucket 0
+    _make_candle(2 * _M1, v=10.0),  # bucket 0
+    _make_candle(3 * _M1, v=20.0),  # bucket 1 (start = 3 * 60_000 ms)
+    _make_candle(4 * _M1, v=20.0),  # bucket 1
+  ]
+  result = candle_service.aggregate_candles(candles, "3m")
+  assert len(result) == 2
+  assert result[0]["timestamp"] == 0
+  assert result[0]["volume"] == 30.0
+  assert result[1]["timestamp"] == _3M
+  assert result[1]["volume"] == 40.0
+
+
+def test_aggregate_12h_token_buckets_h1_candles() -> None:
+  """'12h' token correctly groups candles into 12-hour windows."""
+  _12H = 12 * _H1  # 43_200_000 ms
+  candles = [
+    _make_candle(0, v=1.0),          # bucket 0 (midnight)
+    _make_candle(_H1, v=1.0),        # bucket 0 (1 h)
+    _make_candle(6 * _H1, v=1.0),    # bucket 0 (6 h)
+    _make_candle(_12H, v=2.0),       # bucket 1 (12 h)
+  ]
+  result = candle_service.aggregate_candles(candles, "12h")
+  assert len(result) == 2
+  assert result[0]["timestamp"] == 0
+  assert result[0]["volume"] == 3.0
+  assert result[1]["timestamp"] == _12H
+  assert result[1]["volume"] == 2.0

@@ -37,14 +37,53 @@ _SCHEMA = pa.schema(
   ]
 )
 
-# Millisecond durations for each supported timeframe.
-_TIMEFRAME_MS: dict[str, int] = {
+# Millisecond durations for the legacy timeframe tokens (issue #189).
+_LEGACY_TIMEFRAME_MS: dict[str, int] = {
+  "M1": 60 * 1000,
   "M5": 5 * 60 * 1000,
   "M15": 15 * 60 * 1000,
   "H1": 60 * 60 * 1000,
   "H4": 4 * 60 * 60 * 1000,
   "D1": 24 * 60 * 60 * 1000,
 }
+
+# Millisecond duration of one unit, TradingView casing convention (issue #236):
+# 'm' minutes, 'h' hours, 'D' days, 'W' weeks.
+_UNIT_MS: dict[str, int] = {
+  "m": 60 * 1000,
+  "h": 60 * 60 * 1000,
+  "D": 24 * 60 * 60 * 1000,
+  "W": 7 * 24 * 60 * 60 * 1000,
+}
+
+# A free-form TradingView resolution token: a positive integer followed by a
+# valid unit, e.g. '3m', '12h', '2D', '1W'.
+_TF_TOKEN_RE = re.compile(r"^(\d+)([mhDW])$")
+
+
+def timeframe_to_ms(timeframe: str) -> int:
+  """Return the millisecond duration of a resolution token.
+
+  Accepts both legacy tokens (M1, M5, M15, H1, H4, D1) and arbitrary
+  TradingView-casing tokens ('{value}{unit}', e.g. '3m', '12h', '2D', '1W').
+
+  Raises:
+    ValueError: when *timeframe* matches neither form, or its value is not a
+      positive integer.
+  """
+  if timeframe in _LEGACY_TIMEFRAME_MS:
+    return _LEGACY_TIMEFRAME_MS[timeframe]
+  match = _TF_TOKEN_RE.match(timeframe)
+  if match is None:
+    raise ValueError(
+      f"Unknown timeframe '{timeframe}'. Expected a legacy token "
+      f"({', '.join(_LEGACY_TIMEFRAME_MS)}) or a '{{value}}{{unit}}' token "
+      "like '3m', '12h', '2D', '1W'."
+    )
+  value = int(match.group(1))
+  if value <= 0:
+    raise ValueError(f"Timeframe value must be positive, got {value}")
+  return value * _UNIT_MS[match.group(2)]
 
 
 # Characters forbidden in Windows filenames.
@@ -225,23 +264,19 @@ def aggregate_candles(candles: list[dict], timeframe: str) -> list[dict]:
   Args:
     candles:   List of M1 candle dicts, assumed sorted ascending (sorted
                defensively inside this function).
-    timeframe: One of M5, M15, H1, H4, D1.
+    timeframe: A legacy token (M5, M15, H1, H4, D1) or a TradingView-casing
+               token ('{value}{unit}', e.g. '3m', '12h', '2D', '1W').
 
   Returns:
     List of aggregated candle dicts sorted ascending.  Returns [] for empty input.
 
   Raises:
-    ValueError: When *timeframe* is not one of the supported values.
+    ValueError: When *timeframe* is not a recognised token (see timeframe_to_ms).
   """
-  if timeframe not in _TIMEFRAME_MS:
-    raise ValueError(
-      f"Unknown timeframe '{timeframe}'. Supported: {', '.join(_TIMEFRAME_MS)}"
-    )
+  bucket_ms = timeframe_to_ms(timeframe)
 
   if not candles:
     return []
-
-  bucket_ms = _TIMEFRAME_MS[timeframe]
   sorted_candles = sorted(candles, key=lambda c: c["timestamp"])
 
   buckets: dict[int, list[dict]] = {}

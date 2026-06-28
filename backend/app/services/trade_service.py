@@ -5,7 +5,7 @@ from typing import Any, Optional
 from app.database import SCREENSHOTS_DIR, database
 from app.errors import NotFoundError
 from app.models.trade import TradeCreate, TradeUpdate
-from app.repositories import trade_repository
+from app.repositories import preferences_repository, trade_repository
 
 EPS = 1e-9
 
@@ -125,12 +125,19 @@ async def _validate_related_entities(
 
 async def _assemble_detail(trade_id: int) -> dict[str, Any]:
   """Fetch a trade row and all its children; return as a single dict."""
+  # Local import avoids a circular dependency: chart_service imports trade_service.
+  from app.services import chart_service
+
   trade = await trade_repository.get_trade_by_id(trade_id)
   assert trade is not None
   trade["activities"] = await trade_repository.get_activities(trade_id)
   trade["tags"] = await trade_repository.get_tags(trade_id)
   trade["emotions"] = await trade_repository.get_emotions(trade_id)
   trade["screenshots"] = await trade_repository.get_screenshots(trade_id)
+  preferences = await preferences_repository.get()
+  trade["resolved_chart_timeframes"] = chart_service.resolve_chart_timeframes(
+    trade, preferences
+  )
   return trade
 
 
@@ -199,6 +206,13 @@ async def get_trade(trade_id: int) -> dict[str, Any]:
 async def create_trade(payload: TradeCreate) -> dict[str, Any]:
   await _validate_related_entities(payload.asset_id, payload.tag_ids, payload.emotion_ids)
 
+  # Validate the per-trade chart timeframe override when provided (None falls
+  # back to the user's defaults; [] charts only the entry timeframe).
+  if payload.chart_timeframes is not None:
+    from app.services import chart_service
+
+    chart_service.validate_chart_timeframes(payload.chart_timeframes)
+
   # Convert activity models to plain dicts so _compute_metrics can mutate them.
   activities = [a.model_dump() for a in payload.activities]
   metrics = _compute_metrics(activities, payload.stop_loss)
@@ -212,6 +226,7 @@ async def create_trade(payload: TradeCreate) -> dict[str, Any]:
     "risk_per_trade": payload.risk_per_trade,
     "timeframe_unit": payload.timeframe_unit,
     "timeframe_value": payload.timeframe_value,
+    "chart_timeframes": payload.chart_timeframes,
     "status": metrics["status"],
     "direction": metrics["direction"],
     "trade_date": metrics["trade_date"],
@@ -239,6 +254,14 @@ async def update_trade(trade_id: int, payload: TradeUpdate) -> dict[str, Any]:
     raise TradeNotFoundError(f"Trade {trade_id} not found")
 
   updates = payload.model_dump(exclude_unset=True)
+
+  # Validate the chart timeframe override when the client sent a list. An
+  # explicit null (reset to defaults) or [] (entry-only) skips validation; both
+  # are valid and handled by the repository (null -> SQL NULL, [] -> '[]').
+  if updates.get("chart_timeframes") is not None:
+    from app.services import chart_service
+
+    chart_service.validate_chart_timeframes(updates["chart_timeframes"])
 
   # Separate junction/activity fields from scalar trade fields.
   new_activities_raw: Optional[list[dict[str, Any]]] = None

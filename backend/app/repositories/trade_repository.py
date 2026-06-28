@@ -1,3 +1,4 @@
+import json
 from typing import Any, Optional
 
 from app.database import database
@@ -20,8 +21,20 @@ WRITABLE_COLUMNS = (
   "performance_r",
   "timeframe_unit",
   "timeframe_value",
+  "chart_timeframes",
   "trade_date",
 )
+
+
+def _serialize_chart_timeframes(fields: dict[str, Any]) -> dict[str, Any]:
+  """Return a copy of *fields* with chart_timeframes JSON-encoded for storage.
+
+  SQLite has no array type, so the list is persisted as a JSON TEXT column
+  (None is left as-is and stored as SQL NULL). Other keys pass through unchanged.
+  """
+  if fields.get("chart_timeframes") is None:
+    return fields
+  return {**fields, "chart_timeframes": json.dumps(fields["chart_timeframes"])}
 
 
 async def asset_exists(asset_id: int) -> bool:
@@ -43,9 +56,18 @@ async def emotion_exists(emotion_id: int) -> bool:
 
 
 async def get_trade_by_id(trade_id: int) -> Optional[dict[str, Any]]:
-  """Return a single trade row by id, or None if it does not exist."""
+  """Return a single trade row by id, or None if it does not exist.
+
+  `chart_timeframes` is stored as a JSON TEXT column and decoded back to a list;
+  a SQL NULL (no per-trade override) is returned as None.
+  """
   row = await database.fetch_one("SELECT * FROM trades WHERE id = :id", {"id": trade_id})
-  return dict(row) if row is not None else None
+  if row is None:
+    return None
+  trade = dict(row)
+  raw = trade.get("chart_timeframes")
+  trade["chart_timeframes"] = json.loads(raw) if raw is not None else None
+  return trade
 
 
 async def list_trades(
@@ -161,6 +183,7 @@ async def distinct_years() -> list[int]:
 
 async def insert_trade(fields: dict[str, Any], now: str) -> int:
   """Insert a new trade row and return its generated id."""
+  fields = _serialize_chart_timeframes(fields)
   cols = list(fields.keys())
   col_clause = ", ".join(cols) + ", created_at, updated_at"
   val_clause = ", ".join(f":{c}" for c in cols) + ", :now, :now"
@@ -170,6 +193,7 @@ async def insert_trade(fields: dict[str, Any], now: str) -> int:
 
 async def update_trade(trade_id: int, fields: dict[str, Any], now: str) -> None:
   """Update the given writable columns of a trade."""
+  fields = _serialize_chart_timeframes(fields)
   set_clause = ", ".join(f"{col} = :{col}" for col in fields)
   query = f"UPDATE trades SET {set_clause}, updated_at = :updated_at WHERE id = :id"
   await database.execute(query, {**fields, "updated_at": now, "id": trade_id})

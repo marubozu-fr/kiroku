@@ -56,6 +56,11 @@ CREATE TABLE IF NOT EXISTS trades (
   performance_r REAL,
   timeframe_unit TEXT,
   timeframe_value INTEGER,
+  -- Per-trade chart timeframe overrides (issue #236). JSON array of
+  -- {"unit": "m"|"h"|"D"|"W", "value": <positive int>} objects. NULL means
+  -- "use the user's chart_timeframes_default from preferences"; an explicit
+  -- empty array '[]' means "no chart timeframes beyond the entry timeframe".
+  chart_timeframes TEXT,
   trade_date TEXT,
   created_at TEXT,
   updated_at TEXT

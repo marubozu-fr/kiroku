@@ -78,6 +78,10 @@ class TradeCreate(BaseModel):
   risk_per_trade: Optional[float] = None
   timeframe_unit: Optional[str] = Field(default=None, max_length=20)
   timeframe_value: Optional[int] = None
+  # Per-trade chart timeframe overrides (issue #236). None falls back to the
+  # user's chart_timeframes_default; [] means "entry timeframe only". Validated
+  # in trade_service. Each item is {"unit": "m"|"h"|"D"|"W", "value": <int>}.
+  chart_timeframes: Optional[list[dict]] = None
   activities: list[TradeActivityCreate] = Field(min_length=1)
   tag_ids: list[int] = Field(default_factory=list)
   emotion_ids: list[int] = Field(default_factory=list)
@@ -96,6 +100,10 @@ class TradeUpdate(BaseModel):
   risk_per_trade: Optional[float] = None
   timeframe_unit: Optional[str] = Field(default=None, max_length=20)
   timeframe_value: Optional[int] = None
+  # Per-trade chart timeframe overrides (issue #236). Omitted = leave unchanged
+  # (exclude_unset); explicit null = reset to user defaults (store NULL);
+  # [] = clear overrides and chart only the entry timeframe.
+  chart_timeframes: Optional[list[dict]] = None
   activities: Optional[list[TradeActivityCreate]] = Field(default=None, min_length=1)
   tag_ids: Optional[list[int]] = None
   emotion_ids: Optional[list[int]] = None
@@ -125,9 +133,26 @@ class TradeSummary(BaseModel):
   updated_at: Optional[str] = None
 
 
+class ResolvedTimeframe(BaseModel):
+  """One effective chart timeframe for a trade (issue #236).
+
+  `resolution` is the `{value}{unit}` token passed to the candles endpoint;
+  `is_entry` flags the trade's entry timeframe within the resolved list.
+  """
+
+  unit: str
+  value: int
+  resolution: str
+  is_entry: bool
+
+
 class TradeResponse(TradeSummary):
   """Full trade detail, including nested activities, tags, emotions, screenshots."""
 
+  # Raw per-trade override as stored (None = inherit user defaults), plus the
+  # computed effective list the frontend renders (always present) — issue #236.
+  chart_timeframes: Optional[list[dict]] = None
+  resolved_chart_timeframes: list[ResolvedTimeframe] = Field(default_factory=list)
   activities: list[TradeActivityResponse] = Field(default_factory=list)
   tags: list[TagResponse] = Field(default_factory=list)
   emotions: list[EmotionResponse] = Field(default_factory=list)

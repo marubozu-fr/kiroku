@@ -922,3 +922,325 @@ def test_update_account_type_invalid_value_returns_422() -> None:
 
   assert response.status_code == 422
   assert response.json()["data"] is None
+
+
+# ---------------------------------------------------------------------------
+# 15. chart_timeframes — per-trade override (issue #236)
+# ---------------------------------------------------------------------------
+
+
+def test_create_trade_with_chart_timeframes_override_stores_and_resolves() -> None:
+  """POST with explicit chart_timeframes stores the raw list and computes resolved_chart_timeframes."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    response = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "timeframe_unit": "m",
+        "timeframe_value": 15,
+        "chart_timeframes": [
+          {"unit": "m", "value": 5},
+          {"unit": "h", "value": 1},
+        ],
+        "activities": [
+          {"type": "Buy", "price": 1.1000, "quantity": 1.0, "date": "2024-03-15"},
+        ],
+      },
+    )
+
+  assert response.status_code == 201
+  data = response.json()["data"]
+  # Raw override is stored as-is.
+  assert data["chart_timeframes"] == [{"unit": "m", "value": 5}, {"unit": "h", "value": 1}]
+  # Resolved list = entry 15m + override 5m + override 1h, sorted ascending.
+  resolved = data["resolved_chart_timeframes"]
+  assert len(resolved) == 3
+  assert [(r["unit"], r["value"]) for r in resolved] == [("m", 5), ("m", 15), ("h", 1)]
+  # Only the entry tf (15m) is flagged.
+  entry_items = [r for r in resolved if r["is_entry"]]
+  assert len(entry_items) == 1
+  assert entry_items[0]["value"] == 15
+  assert entry_items[0]["resolution"] == "15m"
+
+
+def test_create_trade_no_chart_timeframes_falls_back_to_user_defaults() -> None:
+  """POST without chart_timeframes stores NULL and resolved falls back to user prefs."""
+  with TestClient(app) as client:
+    # Establish a non-empty user default before creating the trade.
+    pref_resp = client.patch(
+      "/api/preferences",
+      json={"chart_timeframes_default": [{"unit": "D", "value": 1}]},
+    )
+    assert pref_resp.status_code == 200
+    asset_id = _create_asset(client)
+    response = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "timeframe_unit": "h",
+        "timeframe_value": 4,
+        "activities": [
+          {"type": "Buy", "price": 1.1000, "quantity": 1.0, "date": "2024-03-15"},
+        ],
+      },
+    )
+
+  assert response.status_code == 201
+  data = response.json()["data"]
+  assert data["chart_timeframes"] is None
+  resolved = data["resolved_chart_timeframes"]
+  # Resolved: 4h (entry) + D1 (user default), sorted h then D.
+  assert len(resolved) == 2
+  assert [(r["unit"], r["value"]) for r in resolved] == [("h", 4), ("D", 1)]
+  entry_items = [r for r in resolved if r["is_entry"]]
+  assert len(entry_items) == 1
+  assert entry_items[0]["unit"] == "h"
+  assert entry_items[0]["value"] == 4
+
+
+def test_get_trade_detail_includes_resolved_chart_timeframes() -> None:
+  """GET /api/trades/{id} includes resolved_chart_timeframes in the response body."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "timeframe_unit": "m",
+        "timeframe_value": 15,
+        "chart_timeframes": [{"unit": "m", "value": 5}],
+        "activities": [
+          {"type": "Buy", "price": 1.1000, "quantity": 1.0, "date": "2024-03-15"},
+        ],
+      },
+    ).json()["data"]["id"]
+    detail = client.get(f"/api/trades/{trade_id}")
+
+  assert detail.status_code == 200
+  data = detail.json()["data"]
+  assert "resolved_chart_timeframes" in data
+  resolved = data["resolved_chart_timeframes"]
+  # 5m + 15m (entry) → sorted m5, m15.
+  assert len(resolved) == 2
+  assert [(r["unit"], r["value"]) for r in resolved] == [("m", 5), ("m", 15)]
+  entry_items = [r for r in resolved if r["is_entry"]]
+  assert len(entry_items) == 1
+  assert entry_items[0]["value"] == 15
+
+
+def test_put_chart_timeframes_sets_override() -> None:
+  """PUT with a chart_timeframes list replaces the existing override."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = _create(client, asset_id).json()["data"]["id"]
+    response = client.put(
+      f"/api/trades/{trade_id}",
+      json={"chart_timeframes": [{"unit": "m", "value": 5}, {"unit": "D", "value": 1}]},
+    )
+
+  assert response.status_code == 200
+  data = response.json()["data"]
+  assert data["chart_timeframes"] == [{"unit": "m", "value": 5}, {"unit": "D", "value": 1}]
+  # Resolved has both entries.
+  assert len(data["resolved_chart_timeframes"]) == 2
+
+
+def test_put_chart_timeframes_empty_list_clears_to_entry_only() -> None:
+  """PUT with chart_timeframes=[] removes all overrides; resolved shows only the entry tf."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "timeframe_unit": "h",
+        "timeframe_value": 4,
+        "chart_timeframes": [{"unit": "m", "value": 5}],
+        "activities": [
+          {"type": "Buy", "price": 1.1000, "quantity": 1.0, "date": "2024-03-15"},
+        ],
+      },
+    ).json()["data"]["id"]
+    response = client.put(f"/api/trades/{trade_id}", json={"chart_timeframes": []})
+
+  assert response.status_code == 200
+  data = response.json()["data"]
+  assert data["chart_timeframes"] == []
+  resolved = data["resolved_chart_timeframes"]
+  # Only the entry tf (4h) remains.
+  assert len(resolved) == 1
+  assert resolved[0]["unit"] == "h"
+  assert resolved[0]["value"] == 4
+  assert resolved[0]["is_entry"] is True
+  assert resolved[0]["resolution"] == "4h"
+
+
+def test_put_chart_timeframes_null_resets_to_user_defaults() -> None:
+  """PUT with chart_timeframes=null stores NULL and resolved falls back to user defaults."""
+  with TestClient(app) as client:
+    client.patch(
+      "/api/preferences",
+      json={"chart_timeframes_default": [{"unit": "D", "value": 1}]},
+    )
+    asset_id = _create_asset(client)
+    trade_id = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "timeframe_unit": "h",
+        "timeframe_value": 1,
+        "chart_timeframes": [{"unit": "m", "value": 5}],
+        "activities": [
+          {"type": "Buy", "price": 1.1000, "quantity": 1.0, "date": "2024-03-15"},
+        ],
+      },
+    ).json()["data"]["id"]
+    # Explicitly reset to null → stored as SQL NULL, resolved uses user prefs.
+    response = client.put(f"/api/trades/{trade_id}", json={"chart_timeframes": None})
+
+  assert response.status_code == 200
+  data = response.json()["data"]
+  assert data["chart_timeframes"] is None
+  resolved = data["resolved_chart_timeframes"]
+  units_values = [(r["unit"], r["value"]) for r in resolved]
+  assert ("h", 1) in units_values  # entry tf
+  assert ("D", 1) in units_values  # from user defaults
+  entry_items = [r for r in resolved if r["is_entry"]]
+  assert len(entry_items) == 1
+  assert entry_items[0]["unit"] == "h"
+  assert entry_items[0]["value"] == 1
+
+
+def test_put_omitting_chart_timeframes_leaves_existing_value_unchanged() -> None:
+  """PUT without chart_timeframes in the payload does not modify the stored override."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "chart_timeframes": [{"unit": "m", "value": 5}],
+        "activities": [
+          {"type": "Buy", "price": 1.1000, "quantity": 1.0, "date": "2024-03-15"},
+        ],
+      },
+    ).json()["data"]["id"]
+    # PUT that only touches notes — chart_timeframes must be unchanged.
+    response = client.put(f"/api/trades/{trade_id}", json={"notes": "no timeframe change"})
+
+  assert response.status_code == 200
+  data = response.json()["data"]
+  assert data["chart_timeframes"] == [{"unit": "m", "value": 5}]
+
+
+# ---------------------------------------------------------------------------
+# 16. chart_timeframes validation (issue #236)
+# ---------------------------------------------------------------------------
+
+
+def test_create_trade_chart_timeframes_invalid_unit_returns_400() -> None:
+  """POST with an invalid chart_timeframes unit character returns 400."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    response = _create(client, asset_id, chart_timeframes=[{"unit": "x", "value": 5}])
+
+  assert response.status_code == 400
+  body = response.json()
+  assert body["data"] is None
+  assert body["error"] is not None
+
+
+def test_create_trade_chart_timeframes_zero_value_returns_400() -> None:
+  """POST with a chart_timeframes value of 0 returns 400."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    response = _create(client, asset_id, chart_timeframes=[{"unit": "m", "value": 0}])
+
+  assert response.status_code == 400
+  body = response.json()
+  assert body["data"] is None
+  assert body["error"] is not None
+
+
+def test_create_trade_chart_timeframes_duplicate_pairs_returns_400() -> None:
+  """POST with duplicate (unit, value) pairs in chart_timeframes returns 400."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    response = _create(
+      client,
+      asset_id,
+      chart_timeframes=[{"unit": "m", "value": 5}, {"unit": "m", "value": 5}],
+    )
+
+  assert response.status_code == 400
+  body = response.json()
+  assert body["data"] is None
+  assert body["error"] is not None
+
+
+def test_put_trade_chart_timeframes_invalid_unit_returns_400() -> None:
+  """PUT with an invalid chart_timeframes unit returns 400 before any DB write."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = _create(client, asset_id).json()["data"]["id"]
+    response = client.put(
+      f"/api/trades/{trade_id}",
+      json={"chart_timeframes": [{"unit": "M", "value": 5}]},
+    )
+
+  assert response.status_code == 400
+  body = response.json()
+  assert body["data"] is None
+  assert body["error"] is not None
+
+
+def test_put_trade_chart_timeframes_negative_value_returns_400() -> None:
+  """PUT with a negative chart_timeframes value returns 400."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    trade_id = _create(client, asset_id).json()["data"]["id"]
+    response = client.put(
+      f"/api/trades/{trade_id}",
+      json={"chart_timeframes": [{"unit": "h", "value": -1}]},
+    )
+
+  assert response.status_code == 400
+  body = response.json()
+  assert body["data"] is None
+  assert body["error"] is not None
+
+
+# ---------------------------------------------------------------------------
+# 17. Backward compat — NULL chart_timeframes resolves correctly (issue #236)
+# ---------------------------------------------------------------------------
+
+
+def test_backward_compat_null_chart_timeframes_with_entry_tf_resolves_to_entry_only() -> None:
+  """A trade with NULL chart_timeframes and an entry tf resolves using user defaults + entry."""
+  with TestClient(app) as client:
+    # Conftest seeds user prefs with chart_timeframes_default=[] (empty).
+    asset_id = _create_asset(client)
+    trade_id = client.post(
+      "/api/trades",
+      json={
+        "asset_id": asset_id,
+        "timeframe_unit": "m",
+        "timeframe_value": 15,
+        "activities": [
+          {"type": "Buy", "price": 1.1000, "quantity": 1.0, "date": "2024-03-15"},
+        ],
+      },
+    ).json()["data"]["id"]
+    detail = client.get(f"/api/trades/{trade_id}")
+
+  assert detail.status_code == 200
+  data = detail.json()["data"]
+  assert data["chart_timeframes"] is None
+  resolved = data["resolved_chart_timeframes"]
+  # User defaults are empty; only the entry tf (15m) is injected.
+  assert len(resolved) == 1
+  assert resolved[0]["unit"] == "m"
+  assert resolved[0]["value"] == 15
+  assert resolved[0]["is_entry"] is True
+  assert resolved[0]["resolution"] == "15m"
