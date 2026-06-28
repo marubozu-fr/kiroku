@@ -3,6 +3,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useMantineColorScheme } from '@mantine/core'
 import type { TradeCandlesResponse } from '@/types/candle'
+import type { ResolvedTimeframe } from '@/types/trade'
 import { renderWithProviders } from '@/test/utils'
 
 // ---------------------------------------------------------------------------
@@ -97,6 +98,13 @@ import { TradeChart } from '@/components/trades/TradeChart'
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
+
+// Backend-sorted resolved timeframes (weight descending). M15 is the entry.
+const RESOLVED_TFS: ResolvedTimeframe[] = [
+  { unit: 'h', value: 1, resolution: 'H1', is_entry: false },
+  { unit: 'm', value: 15, resolution: 'M15', is_entry: true },
+  { unit: 'm', value: 5, resolution: 'M5', is_entry: false },
+]
 
 const NO_TICKER_RESPONSE: TradeCandlesResponse = {
   data: null,
@@ -193,12 +201,12 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe('TradeChart', () => {
-  it('renders a Skeleton and the SegmentedControl while data is loading', async () => {
+  it('renders a Skeleton and the timeframe buttons while data is loading', async () => {
     // Never resolves during the test
     mockCandles.mockReturnValue(new Promise<TradeCandlesResponse>(() => undefined))
 
     renderWithProviders(
-      <TradeChart tradeId={1} defaultResolution="M15" />,
+      <TradeChart tradeId={1} resolvedTimeframes={RESOLVED_TFS} />,
     )
 
     // Mantine Skeleton renders as a div with the mantine-Skeleton-root class
@@ -207,16 +215,16 @@ describe('TradeChart', () => {
       expect(skeleton).not.toBeNull()
     })
 
-    // All resolution segments are visible
-    expect(screen.getByRole('radio', { name: 'M15' })).toBeInTheDocument()
-    expect(screen.getByRole('radio', { name: 'H1' })).toBeInTheDocument()
+    // All timeframe buttons are visible
+    expect(screen.getByRole('button', { name: 'M15' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'H1' })).toBeInTheDocument()
   })
 
   it('renders the no_ticker placeholder when the asset has no linked ticker', async () => {
     mockCandles.mockResolvedValue(NO_TICKER_RESPONSE)
 
     renderWithProviders(
-      <TradeChart tradeId={2} defaultResolution="M15" />,
+      <TradeChart tradeId={2} resolvedTimeframes={RESOLVED_TFS} />,
     )
 
     expect(
@@ -225,29 +233,29 @@ describe('TradeChart', () => {
       ),
     ).toBeInTheDocument()
 
-    // SegmentedControl is present in every state
-    expect(screen.getByRole('radio', { name: 'M15' })).toBeInTheDocument()
+    // The timeframe buttons are present in every state
+    expect(screen.getByRole('button', { name: 'M15' })).toBeInTheDocument()
   })
 
   it('renders the no_data placeholder when candles are empty (pending state)', async () => {
     mockCandles.mockResolvedValue(NO_DATA_RESPONSE)
 
     renderWithProviders(
-      <TradeChart tradeId={3} defaultResolution="M15" />,
+      <TradeChart tradeId={3} resolvedTimeframes={RESOLVED_TFS} />,
     )
 
     expect(
       await screen.findByText('Chart data not yet available — will sync automatically'),
     ).toBeInTheDocument()
 
-    expect(screen.getByRole('radio', { name: 'M15' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'M15' })).toBeInTheDocument()
   })
 
   it('calls chart API methods with correct data on success and renders the chart container', async () => {
     mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
 
     renderWithProviders(
-      <TradeChart tradeId={4} defaultResolution="M15" />,
+      <TradeChart tradeId={4} resolvedTimeframes={RESOLVED_TFS} />,
     )
 
     // Wait until the chart effect has run
@@ -299,7 +307,7 @@ describe('TradeChart', () => {
     mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
 
     renderWithProviders(
-      <TradeChart tradeId={6} defaultResolution="M15" />,
+      <TradeChart tradeId={6} resolvedTimeframes={RESOLVED_TFS} />,
     )
 
     await waitFor(() => {
@@ -329,7 +337,7 @@ describe('TradeChart', () => {
     renderWithProviders(
       <>
         <ColorSchemeToggle />
-        <TradeChart tradeId={7} defaultResolution="M15" />
+        <TradeChart tradeId={7} resolvedTimeframes={RESOLVED_TFS} />
       </>,
     )
 
@@ -361,11 +369,11 @@ describe('TradeChart', () => {
     expect(chartOptions.layout).toBeDefined()
   })
 
-  it('re-fetches with the new resolution when the SegmentedControl changes', async () => {
+  it('re-fetches with the new resolution when a timeframe button is clicked', async () => {
     mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
 
     renderWithProviders(
-      <TradeChart tradeId={5} defaultResolution="M15" />,
+      <TradeChart tradeId={5} resolvedTimeframes={RESOLVED_TFS} />,
     )
 
     // Wait for the initial M15 fetch to complete
@@ -373,13 +381,82 @@ describe('TradeChart', () => {
       expect(mockCandles).toHaveBeenCalledWith(5, 'M15', expect.anything())
     })
 
-    // Select H1 in the SegmentedControl
-    fireEvent.click(screen.getByRole('radio', { name: 'H1' }))
+    // Select H1 in the timeframe button row
+    fireEvent.click(screen.getByRole('button', { name: 'H1' }))
 
-    // useFetch re-runs when the resolution dep changes; assert the new fetch
+    // The fetch effect re-runs when the resolution changes; assert the new fetch
     await waitFor(() => {
       expect(mockCandles).toHaveBeenCalledWith(5, 'H1', expect.anything())
     })
+  })
+
+  it('defaults the active timeframe to the entry timeframe (is_entry)', async () => {
+    mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
+
+    renderWithProviders(
+      <TradeChart tradeId={10} resolvedTimeframes={RESOLVED_TFS} />,
+    )
+
+    // The first fetch targets M15 — the only is_entry timeframe — not the
+    // first (heaviest) entry H1 in the list.
+    await waitFor(() => {
+      expect(mockCandles).toHaveBeenCalledWith(10, 'M15', expect.anything())
+    })
+    expect(mockCandles).not.toHaveBeenCalledWith(10, 'H1', expect.anything())
+  })
+
+  it('serves a revisited timeframe from cache without re-fetching', async () => {
+    mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
+
+    renderWithProviders(
+      <TradeChart tradeId={11} resolvedTimeframes={RESOLVED_TFS} />,
+    )
+
+    // Initial entry (M15) fetch.
+    await waitFor(() => {
+      expect(mockCandles).toHaveBeenCalledWith(11, 'M15', expect.anything())
+    })
+
+    // Visit H1 (cache miss → one fetch).
+    fireEvent.click(screen.getByRole('button', { name: 'H1' }))
+    await waitFor(() => {
+      expect(mockCandles).toHaveBeenCalledWith(11, 'H1', expect.anything())
+    })
+
+    // Return to M15 — already cached, so no second M15 request is issued.
+    fireEvent.click(screen.getByRole('button', { name: 'M15' }))
+    await waitFor(() => {
+      expect(mockCandles).toHaveBeenCalledWith(11, 'H1', expect.anything())
+    })
+    const m15Calls = mockCandles.mock.calls.filter((c) => c[1] === 'M15')
+    expect(m15Calls).toHaveLength(1)
+  })
+
+  it('marks the entry timeframe button with the entry indicator class', async () => {
+    mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
+
+    renderWithProviders(
+      <TradeChart tradeId={12} resolvedTimeframes={RESOLVED_TFS} />,
+    )
+
+    // M15 is the entry timeframe; H1 is not.
+    expect(screen.getByRole('button', { name: 'M15' }).className).toMatch(/entryButton/)
+    expect(screen.getByRole('button', { name: 'H1' }).className).not.toMatch(/entryButton/)
+  })
+
+  it('falls back to a single timeframe button when none are resolved', async () => {
+    mockCandles.mockResolvedValue(SUCCESS_RESPONSE)
+
+    renderWithProviders(
+      <TradeChart tradeId={13} resolvedTimeframes={[]} fallbackResolution="M15" />,
+    )
+
+    // Only the fallback button is rendered, and it drives the initial fetch.
+    await waitFor(() => {
+      expect(mockCandles).toHaveBeenCalledWith(13, 'M15', expect.anything())
+    })
+    expect(screen.getByRole('button', { name: 'M15' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'H1' })).not.toBeInTheDocument()
   })
 
   it('fires a single effective candle request under StrictMode double-mount', async () => {
@@ -387,7 +464,7 @@ describe('TradeChart', () => {
 
     renderWithProviders(
       <StrictMode>
-        <TradeChart tradeId={8} defaultResolution="M15" />
+        <TradeChart tradeId={8} resolvedTimeframes={RESOLVED_TFS} />
       </StrictMode>,
     )
 

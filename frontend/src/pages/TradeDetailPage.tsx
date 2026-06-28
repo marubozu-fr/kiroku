@@ -310,8 +310,10 @@ export function TradeDetailPage() {
               {t('trade.detail.chart.title')}
             </Title>
             <TradeChart
+              key={tradeId}
               tradeId={tradeId}
-              defaultResolution={
+              resolvedTimeframes={trade.resolved_chart_timeframes}
+              fallbackResolution={
                 TF_TO_RESOLUTION[
                   `${trade.timeframe_value ?? ''}${(trade.timeframe_unit ?? '').toLowerCase()}`
                 ] ?? 'M15'
