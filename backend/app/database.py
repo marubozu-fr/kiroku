@@ -159,6 +159,13 @@ async def apply_migrations() -> None:
           "ALTER TABLE user_preferences ADD COLUMN entry_timeframe_value_default INTEGER"
         )
 
+    # chart_timeframes (issue #236): per-trade chart timeframe overrides, a JSON
+    # array stored as TEXT. Nullable (NULL = fall back to the user's defaults),
+    # so existing trades need no back-fill. Guarded by a column-presence check so
+    # it is a no-op once the database is current.
+    if "chart_timeframes" not in columns:
+      await connection.execute("ALTER TABLE trades ADD COLUMN chart_timeframes TEXT")
+
     # Normalise timeframe unit casing to TradingView convention (issue #235):
     # 'd' → 'D' (day) and 'w' → 'W' (week). Lowercase 'm' and 'h' are already
     # correct. These UPDATEs are idempotent: after the first run no rows match

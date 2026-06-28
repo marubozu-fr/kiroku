@@ -433,3 +433,81 @@ def test_futures_asset_without_ticker_short_circuits(
   body = response.json()
   assert body["data"] is None
   assert body["meta"] == {"reason": "no_ticker"}
+
+
+# ---------------------------------------------------------------------------
+# Arbitrary TradingView resolution tokens (issue #236)
+# ---------------------------------------------------------------------------
+
+
+def test_resolution_3m_returns_200_and_aggregates_into_buckets() -> None:
+  """resolution='3m' is accepted and candles are grouped into 3-minute buckets.
+
+  09:00 UTC is always on a 3-minute boundary (32400 s / 180 s = 180 exactly),
+  so candles at 09:00-09:02 fall in one bucket and 09:03-09:05 in the next.
+  """
+  candle_service.store_candles(
+    "C:EURUSD",
+    [
+      _candle(_ms(2024, 3, 15, 9, 0), 1.00, 1.10, 0.90, 1.05, 10.0),
+      _candle(_ms(2024, 3, 15, 9, 1), 1.05, 1.15, 0.95, 1.10, 10.0),
+      _candle(_ms(2024, 3, 15, 9, 2), 1.10, 1.20, 1.00, 1.15, 10.0),
+      _candle(_ms(2024, 3, 15, 9, 3), 1.15, 1.25, 1.05, 1.20, 20.0),
+      _candle(_ms(2024, 3, 15, 9, 4), 1.20, 1.30, 1.10, 1.25, 20.0),
+      _candle(_ms(2024, 3, 15, 9, 5), 1.25, 1.35, 1.15, 1.30, 20.0),
+    ],
+  )
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _set_massive_ticker(asset_id, "C:EURUSD")
+    trade_id = _create_trade(client, asset_id)
+    response = client.get(f"/api/trades/{trade_id}/candles?resolution=3m")
+  assert response.status_code == 200
+  data = response.json()["data"]
+  assert data["resolution"] == "3m"
+  assert len(data["candles"]) == 2
+  assert data["candles"][0]["volume"] == 30.0
+  assert data["candles"][1]["volume"] == 60.0
+
+
+def test_resolution_12h_returns_200_with_correct_token() -> None:
+  """resolution='12h' is accepted and the exact token is echoed in the response."""
+  candle_service.store_candles(
+    "C:EURUSD",
+    [_candle(_ms(2024, 3, 15, 9, 0), 1.0, 1.2, 0.9, 1.1, 100.0)],
+  )
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _set_massive_ticker(asset_id, "C:EURUSD")
+    trade_id = _create_trade(client, asset_id)
+    response = client.get(f"/api/trades/{trade_id}/candles?resolution=12h")
+  assert response.status_code == 200
+  data = response.json()["data"]
+  assert data["resolution"] == "12h"
+
+
+def test_resolution_1D_tradingview_day_token_returns_200() -> None:
+  """resolution='1D' (TradingView notation, distinct from legacy 'D1') is accepted."""
+  candle_service.store_candles(
+    "C:EURUSD",
+    [_candle(_ms(2024, 3, 15, 9, 0), 1.0, 1.2, 0.9, 1.1, 100.0)],
+  )
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _set_massive_ticker(asset_id, "C:EURUSD")
+    trade_id = _create_trade(client, asset_id)
+    response = client.get(f"/api/trades/{trade_id}/candles?resolution=1D")
+  assert response.status_code == 200
+  data = response.json()["data"]
+  assert data["resolution"] == "1D"
+
+
+def test_resolution_W1_invalid_token_returns_400() -> None:
+  """resolution='W1' (invalid legacy-style token) is rejected with HTTP 400."""
+  with TestClient(app) as client:
+    asset_id = _create_asset(client)
+    _set_massive_ticker(asset_id, "C:EURUSD")
+    trade_id = _create_trade(client, asset_id)
+    response = client.get(f"/api/trades/{trade_id}/candles?resolution=W1")
+  assert response.status_code == 400
+  assert response.json()["error"] is not None

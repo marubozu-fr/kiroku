@@ -20,12 +20,22 @@ from app.services import (
 
 logger = logging.getLogger(__name__)
 
-# Supported chart resolutions. M1 is the stored (un-aggregated) timeframe.
+# Supported legacy chart resolutions. M1 is the stored (un-aggregated) timeframe.
+# These coexist with free-form TradingView-casing tokens ('15m', '4h', '1D')
+# accepted since issue #236.
 RESOLUTIONS: tuple[str, ...] = ("M1", "M5", "M15", "H1", "H4", "D1")
 
 # Soft cap on the number of configured chart timeframes. Past this the frontend
 # shows a non-blocking warning; the backend enforces no hard limit (issue #235).
 CHART_TIMEFRAMES_WARNING_THRESHOLD = 8
+
+# Sort weight per timeframe unit, TradingView casing convention (issue #236):
+# minutes < hours < days < weeks. Used to order resolved chart timeframes.
+UNIT_WEIGHTS: dict[str, int] = {"m": 1, "h": 2, "D": 3, "W": 4}
+
+# Valid timeframe unit characters; derived from UNIT_WEIGHTS so the two stay in
+# sync. Same convention as preferences (issue #235).
+VALID_TIMEFRAME_UNITS: frozenset[str] = frozenset(UNIT_WEIGHTS)
 
 # Map a trade's entry-timeframe token ('{value}{unit}', e.g. '15m') to a
 # resolution. Unmapped tokens fall back to DEFAULT_RESOLUTION.
@@ -48,26 +58,32 @@ _MS_PER_DAY = 24 * 60 * 60 * 1000
 def _resolve_timeframe(resolution: Optional[str], trade: dict[str, Any]) -> str:
   """Return a validated resolution string.
 
-  When *resolution* is provided it is upper-cased and validated against
-  RESOLUTIONS (raising ValidationError -> HTTP 400 otherwise). When omitted it
-  is derived from the trade's entry timeframe, falling back to
-  DEFAULT_RESOLUTION when that is unset or not mappable.
+  When *resolution* is provided it is validated and returned. Both legacy tokens
+  (case-insensitive: "M1", "M5", "H1", ...) and free-form TradingView-casing
+  tokens ("15m", "4h", "1D", "2W") are accepted; anything else raises
+  ValidationError (-> HTTP 400). When omitted it is derived from the trade's
+  entry timeframe, falling back to DEFAULT_RESOLUTION when that is unset or not
+  mappable.
 
-  NOTE (issue #235 / #236): RESOLUTIONS still gates validation here because
-  `aggregate_candles` (candle_service) only understands old-style tokens
-  ("M5", "H1", "D1", ...). Free-form TradingView-casing resolution strings
-  ("15m", "4h", "1D") will be supported once issue #236 updates the aggregator.
-  Until then removing the RESOLUTIONS whitelist would break candle aggregation,
-  so the gate is intentionally kept. CHART_TIMEFRAMES_WARNING_THRESHOLD has
-  been added above as the only required chart-preferences constant from #235.
+  Issue #236 lifted the old RESOLUTIONS-only gate now that `aggregate_candles`
+  (candle_service) understands arbitrary `{value}{unit}` durations.
   """
   if resolution is not None:
-    normalized = resolution.strip().upper()
-    if normalized not in RESOLUTIONS:
+    token = resolution.strip()
+    legacy = token.upper()
+    if legacy in RESOLUTIONS:
+      return legacy
+    # candle_service.timeframe_to_ms raises ValueError for anything that is
+    # neither a legacy token nor a valid `{value}{unit}` TradingView token.
+    try:
+      candle_service.timeframe_to_ms(token)
+    except ValueError as exc:
       raise ValidationError(
-        f"Invalid resolution '{resolution}'. Supported: {', '.join(RESOLUTIONS)}"
-      )
-    return normalized
+        f"Invalid resolution '{resolution}'. Expected a legacy token "
+        f"({', '.join(RESOLUTIONS)}) or a '{{value}}{{unit}}' token like "
+        "'15m', '4h', '1D'."
+      ) from exc
+    return token
 
   value = trade.get("timeframe_value")
   unit = trade.get("timeframe_unit")
@@ -75,6 +91,96 @@ def _resolve_timeframe(resolution: Optional[str], trade: dict[str, Any]) -> str:
     token = f"{value}{unit}".lower()
     return _TF_TOKEN_TO_RESOLUTION.get(token, DEFAULT_RESOLUTION)
   return DEFAULT_RESOLUTION
+
+
+def validate_chart_timeframes(tfs: Any) -> None:
+  """Raise ValidationError when a chart-timeframes list is malformed.
+
+  Each entry must be a {"unit", "value"} object with a valid TradingView unit
+  ('m', 'h', 'D', 'W') and a positive integer value; duplicate (unit, value)
+  pairs are rejected. Mirrors the preferences validation (issue #235).
+  """
+  if not isinstance(tfs, list):
+    raise ValidationError("chart_timeframes must be a list")
+  seen: set[tuple[str, int]] = set()
+  for item in tfs:
+    if not isinstance(item, dict):
+      raise ValidationError(
+        "Each chart_timeframes item must be an object with 'unit' and 'value'"
+      )
+    unit = item.get("unit")
+    value = item.get("value")
+    if unit not in VALID_TIMEFRAME_UNITS:
+      raise ValidationError(
+        f"Invalid timeframe unit '{unit}'. Valid units: m, h, D, W"
+      )
+    # bool is a subclass of int in Python; reject it explicitly.
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+      raise ValidationError(
+        f"Timeframe value must be a positive integer, got {value!r}"
+      )
+    pair = (unit, value)
+    if pair in seen:
+      raise ValidationError(f"Duplicate timeframe {unit}{value} in chart_timeframes")
+    seen.add(pair)
+
+
+def resolve_chart_timeframes(
+  trade: dict[str, Any], user_preferences: dict[str, Any]
+) -> list[dict[str, Any]]:
+  """Compute the effective chart-timeframe list for a trade (issue #236).
+
+  Resolution order:
+    1. source = trade['chart_timeframes'] when not None, else
+       user_preferences['chart_timeframes_default'], else [].
+    2. The trade's entry timeframe (timeframe_unit/value) is injected so it is
+       always present.
+    3. Entries are de-duplicated by (unit, value), keeping the first occurrence.
+    4. The entry timeframe is flagged with is_entry=True.
+    5. The list is sorted ascending by unit weight (m < h < D < W), then value.
+
+  Each returned entry is {"unit", "value", "resolution", "is_entry"} where
+  `resolution` is the `{value}{unit}` token the candles endpoint expects.
+  """
+  raw = trade.get("chart_timeframes")
+  source = raw if raw is not None else (user_preferences.get("chart_timeframes_default") or [])
+
+  entry_unit = trade.get("timeframe_unit")
+  entry_value = trade.get("timeframe_value")
+  has_entry = (
+    entry_unit in VALID_TIMEFRAME_UNITS
+    and isinstance(entry_value, int)
+    and not isinstance(entry_value, bool)
+    and entry_value > 0
+  )
+  entry_pair = (entry_unit, entry_value) if has_entry else None
+
+  # Inject the entry timeframe first so it survives the keep-first dedup.
+  candidates: list[dict[str, Any]] = []
+  if entry_pair is not None:
+    candidates.append({"unit": entry_unit, "value": entry_value})
+  candidates.extend(source)
+
+  seen: set[tuple[Any, Any]] = set()
+  resolved: list[dict[str, Any]] = []
+  for item in candidates:
+    unit = item.get("unit")
+    value = item.get("value")
+    pair = (unit, value)
+    if pair in seen:
+      continue
+    seen.add(pair)
+    resolved.append(
+      {
+        "unit": unit,
+        "value": value,
+        "resolution": f"{value}{unit}",
+        "is_entry": pair == entry_pair,
+      }
+    )
+
+  resolved.sort(key=lambda tf: (UNIT_WEIGHTS.get(tf["unit"], 99), tf["value"]))
+  return resolved
 
 
 def _parse_date(value: str) -> datetime:
@@ -318,7 +424,9 @@ async def get_trade_candles(
   rows = candle_service.read_candles(storage_ticker, start_ts, end_ts)
   candles = [_chart_candle(row) for row in rows]
 
-  if timeframe != "M1":
+  # "M1" (legacy) and "1m" (TradingView) are the stored base timeframe — no
+  # aggregation needed; any other token is aggregated up from M1.
+  if timeframe not in ("M1", "1m"):
     candles = candle_service.aggregate_candles(candles, timeframe)
 
   markers = _build_markers(activities)
