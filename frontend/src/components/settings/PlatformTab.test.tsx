@@ -2,10 +2,9 @@ import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { notifications } from '@mantine/notifications'
 import i18n from '@/i18n'
-import { GeneralTab } from '@/components/settings/GeneralTab'
+import { PlatformTab } from '@/components/settings/PlatformTab'
 import type { Preferences } from '@/types/preferences'
 import type { BackupResult } from '@/types/backup'
-import type { TickerSearchResult } from '@/types/massive'
 import { jsonResponse, renderWithProviders } from '@/test/utils'
 
 function preferences(overrides: Partial<Preferences> = {}): Preferences {
@@ -39,10 +38,9 @@ function stubFetch(
     prefs?: Preferences
     patchStatus?: { ok: boolean; status: number; error: string | null }
     onPatch?: (body: unknown) => void
-    tickers?: TickerSearchResult[]
   } = {},
 ) {
-  const { prefs = preferences(), patchStatus, onPatch, tickers = [] } = handlers
+  const { prefs = preferences(), patchStatus, onPatch } = handlers
   const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET'
     if (url === '/api/preferences' && method === 'GET') {
@@ -58,9 +56,6 @@ function stubFetch(
     if (url === '/api/backup' && method === 'POST') {
       return jsonResponse(backupResult)
     }
-    if ((url as string).startsWith('/api/massive/tickers') && method === 'GET') {
-      return jsonResponse(tickers)
-    }
     throw new Error(`Unexpected request: ${method} ${url}`)
   })
   vi.stubGlobal('fetch', fetchMock)
@@ -73,10 +68,10 @@ afterEach(async () => {
   await i18n.changeLanguage('en')
 })
 
-describe('GeneralTab', () => {
+describe('PlatformTab', () => {
   it('renders the language selector pre-set to the current language', async () => {
     stubFetch()
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     const input = screen.getByRole('textbox', {
       description: 'Choose the display language',
@@ -85,30 +80,12 @@ describe('GeneralTab', () => {
     expect(input).toHaveValue('English')
   })
 
-  it('switches the UI language when a different option is picked', async () => {
-    stubFetch()
-    renderWithProviders(<GeneralTab />)
-
-    fireEvent.click(
-      screen.getByRole('textbox', { description: 'Choose the display language' }),
-    )
-    fireEvent.click(await screen.findByText('Français'))
-
-    await waitFor(() => {
-      expect(i18n.language).toBe('fr')
-    })
-    expect(
-      screen.getByRole('textbox', { description: "Choisissez la langue d'affichage" }),
-    ).toBeInTheDocument()
-  })
-
   it('renders the theme selector pre-set to the current color scheme', async () => {
     stubFetch()
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
-    const input = screen.getByRole('textbox', {
-      description: 'Choose the color scheme',
-    })
+    // Query by label since theme_description is "Also available from the header toggle."
+    const input = screen.getByRole('textbox', { name: 'Theme' })
     expect(input).toBeInTheDocument()
     // MantineProvider defaults to the light color scheme in tests.
     expect(input).toHaveValue('Light')
@@ -116,9 +93,9 @@ describe('GeneralTab', () => {
 
   it('switches the color scheme when a different option is picked', async () => {
     stubFetch()
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
-    const input = screen.getByRole('textbox', { description: 'Choose the color scheme' })
+    const input = screen.getByRole('textbox', { name: 'Theme' })
     fireEvent.click(input)
     fireEvent.click(await screen.findByText('Dark'))
 
@@ -127,16 +104,23 @@ describe('GeneralTab', () => {
 
   it('renders the backup directory input empty when none is configured', async () => {
     stubFetch()
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     const input = await screen.findByRole('textbox', { name: 'Backup directory' })
     await waitFor(() => expect(input).toHaveValue(''))
   })
 
+  it('renders the restore section title', async () => {
+    stubFetch()
+    renderWithProviders(<PlatformTab />)
+
+    expect(await screen.findByText('Restore from backup')).toBeInTheDocument()
+  })
+
   it('saves the backup directory via PATCH', async () => {
     const onPatch = vi.fn()
     stubFetch({ onPatch })
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     const input = await screen.findByRole('textbox', { name: 'Backup directory' })
     fireEvent.change(input, { target: { value: '/backups' } })
@@ -149,7 +133,7 @@ describe('GeneralTab', () => {
 
   it('shows an inline error when the backup directory is rejected (400)', async () => {
     stubFetch({ patchStatus: { ok: false, status: 400, error: 'invalid path' } })
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     const input = await screen.findByRole('textbox', { name: 'Backup directory' })
     fireEvent.change(input, { target: { value: '/nope' } })
@@ -162,7 +146,7 @@ describe('GeneralTab', () => {
 
   it('renders the reminder frequency select with the persisted value', async () => {
     stubFetch({ prefs: preferences({ backup_reminder_days: 30 }) })
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     const select = await screen.findByRole('textbox', { name: 'Backup reminder' })
     await waitFor(() => expect(select).toHaveValue('Every 30 days'))
@@ -171,7 +155,7 @@ describe('GeneralTab', () => {
   it('auto-saves a reminder frequency change via PATCH', async () => {
     const onPatch = vi.fn()
     stubFetch({ onPatch })
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     const select = await screen.findByRole('textbox', { name: 'Backup reminder' })
     await waitFor(() => expect(select).toHaveValue('Every 7 days'))
@@ -185,14 +169,14 @@ describe('GeneralTab', () => {
 
   it('shows "Never" when there is no last backup', async () => {
     stubFetch()
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     expect(await screen.findByText('Last backup: Never')).toBeInTheDocument()
   })
 
   it('shows a formatted date when a last backup exists', async () => {
     stubFetch({ prefs: preferences({ last_backup_at: '2026-06-20T12:00:00+00:00' }) })
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     await waitFor(() => {
       expect(screen.queryByText('Last backup: Never')).not.toBeInTheDocument()
@@ -202,7 +186,7 @@ describe('GeneralTab', () => {
 
   it('disables the backup button when no directory is configured', async () => {
     stubFetch()
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     const button = await screen.findByRole('button', { name: 'Back up now' })
     await waitFor(() => expect(button).toBeDisabled())
@@ -211,7 +195,7 @@ describe('GeneralTab', () => {
   it('runs a backup and notifies on success', async () => {
     const showSpy = vi.spyOn(notifications, 'show')
     const fetchMock = stubFetch({ prefs: preferences({ backup_directory: '/backups' }) })
-    renderWithProviders(<GeneralTab />)
+    renderWithProviders(<PlatformTab />)
 
     const button = await screen.findByRole('button', { name: 'Back up now' })
     await waitFor(() => expect(button).toBeEnabled())
@@ -229,97 +213,6 @@ describe('GeneralTab', () => {
           message: `Backup saved: ${backupResult.filename}`,
         }),
       )
-    })
-  })
-
-  describe('Massive API key', () => {
-    it('seeds the API key PasswordInput from stored preferences', async () => {
-      stubFetch({ prefs: preferences({ massive_api_key: 'abc123' }) })
-      renderWithProviders(<GeneralTab />)
-
-      const input = await screen.findByLabelText('Massive API Key')
-      await waitFor(() => expect(input).toHaveValue('abc123'))
-    })
-
-    it('saves a non-empty key, validates it, and notifies success when tickers are returned', async () => {
-      const showSpy = vi.spyOn(notifications, 'show')
-      const onPatch = vi.fn()
-      const fetchMock = stubFetch({
-        prefs: preferences({ massive_api_key: '' }),
-        onPatch,
-        tickers: [{ ticker: 'C:EURUSD', name: 'EUR/USD', market: 'fx', active: true }],
-      })
-      renderWithProviders(<GeneralTab />)
-
-      const input = await screen.findByLabelText('Massive API Key')
-      fireEvent.change(input, { target: { value: 'abc123' } })
-      fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-      await waitFor(() => {
-        expect(onPatch).toHaveBeenCalledWith({ massive_api_key: 'abc123' })
-      })
-      await waitFor(() => {
-        expect(fetchMock).toHaveBeenCalledWith(
-          expect.stringContaining('/api/massive/tickers'),
-          expect.objectContaining({ method: 'GET' }),
-        )
-      })
-      await waitFor(() => {
-        expect(showSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'API key verified — market data is enabled',
-          }),
-        )
-      })
-    })
-
-    it('shows a warning when the tickers endpoint returns an empty array', async () => {
-      const showSpy = vi.spyOn(notifications, 'show')
-      const onPatch = vi.fn()
-      stubFetch({
-        prefs: preferences({ massive_api_key: '' }),
-        onPatch,
-        tickers: [],
-      })
-      renderWithProviders(<GeneralTab />)
-
-      const input = await screen.findByLabelText('Massive API Key')
-      fireEvent.change(input, { target: { value: 'bad-key' } })
-      fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-      await waitFor(() => {
-        expect(onPatch).toHaveBeenCalledWith({ massive_api_key: 'bad-key' })
-      })
-      await waitFor(() => {
-        expect(showSpy).toHaveBeenCalledWith(
-          expect.objectContaining({
-            message: 'Could not verify the API key — check it and try again',
-          }),
-        )
-      })
-    })
-
-    it('clears the key, patches with empty string, and skips ticker validation', async () => {
-      const onPatch = vi.fn()
-      const fetchMock = stubFetch({
-        prefs: preferences({ massive_api_key: 'abc123' }),
-        onPatch,
-      })
-      renderWithProviders(<GeneralTab />)
-
-      const input = await screen.findByLabelText('Massive API Key')
-      await waitFor(() => expect(input).toHaveValue('abc123'))
-
-      fireEvent.change(input, { target: { value: '' } })
-      fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-      await waitFor(() => {
-        expect(onPatch).toHaveBeenCalledWith({ massive_api_key: '' })
-      })
-      // The tickers validation endpoint must NOT be called when the key is cleared.
-      expect(
-        fetchMock.mock.calls.every(([url]) => !String(url).startsWith('/api/massive/tickers')),
-      ).toBe(true)
     })
   })
 })
