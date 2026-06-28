@@ -405,6 +405,24 @@
       "massive_api_key_invalid": "Impossibile verificare la chiave API — controllala e riprova",
       "save_error": "Impossibile salvare le modifiche"
     },
+    "chart_timeframes": {
+      "title": "Timeframes dei grafici",
+      "entry_default_label": "Timeframe di ingresso predefinito",
+      "entry_default_description": "Precompila il timeframe di ingresso quando crei un nuovo trade.",
+      "chart_default_label": "Timeframes dei grafici predefiniti",
+      "chart_default_description": "Mostrati di default su ogni grafico di trade. Aggiungi o rimuovi come preferisci.",
+      "value_placeholder": "Valore",
+      "add_timeframe": "Aggiungi",
+      "warning_too_many": "Il caricamento dei grafici può essere più lento con più di {{count}} timeframes",
+      "error_duplicate": "Questo timeframe è già nella lista",
+      "entry_incomplete": "Inserisci sia un valore sia un'unità, oppure lascia entrambi vuoti.",
+      "empty": "Nessun timeframe predefinito configurato. Solo il timeframe di ingresso apparirà sui grafici.",
+      "count": "{{count}} timeframes",
+      "remove_aria": "Rimuovi {{timeframe}}",
+      "save_aria": "Salva timeframes predefiniti",
+      "saved": "Timeframes predefiniti salvati",
+      "save_error": "Impossibile salvare i tuoi timeframes predefiniti"
+    },
     "data_states": {
       "load_error": "Impossibile caricare i dati"
     },
@@ -737,8 +755,8 @@
       "timeframe_units": {
         "m": "Minuti",
         "h": "Ore",
-        "d": "Giorni",
-        "w": "Settimane"
+        "D": "Giorni",
+        "W": "Settimane"
       },
       "validation": {
         "asset_required": "L'asset è obbligatorio",

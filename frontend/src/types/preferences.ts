@@ -5,6 +5,16 @@
 export type NewsMinImpact = 'HIGH' | 'MEDIUM' | 'LOW'
 
 /**
+ * A single chart timeframe. `unit` follows the TradingView casing convention
+ * (`m`, `h`, `D`, `W`); `value` is a positive integer (e.g. `{ value: 15,
+ * unit: 'm' }` → "15m").
+ */
+export interface ChartTimeframe {
+  unit: string
+  value: number
+}
+
+/**
  * Application-level business defaults stored in the backend (issue #62).
  * Visual preferences (theme, language) stay in localStorage and are not part
  * of this type.
@@ -19,6 +29,13 @@ export interface Preferences {
   last_backup_at: string | null
   /** Massive market-data API key; empty string when not configured. */
   massive_api_key: string
+  /** Ordered list of chart timeframes pre-filled on every trade chart. */
+  chart_timeframes_default: ChartTimeframe[]
+  /** Entry-timeframe defaults; both null together when unset. */
+  entry_timeframe_unit_default: string | null
+  entry_timeframe_value_default: number | null
+  /** Soft limit past which the UI warns about chart load times. */
+  chart_timeframes_warning_threshold: number
 }
 
 /**
@@ -35,5 +52,8 @@ export type PreferencesUpdate = Partial<
     | 'backup_directory'
     | 'backup_reminder_days'
     | 'massive_api_key'
+    | 'chart_timeframes_default'
+    | 'entry_timeframe_unit_default'
+    | 'entry_timeframe_value_default'
   >
 >

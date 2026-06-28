@@ -77,12 +77,21 @@ const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
 
 const ACCOUNT_TYPES: readonly AccountType[] = ['test', 'demo', 'live']
 
+// TradingView casing: lowercase minutes/hours, uppercase days/weeks.
 const TIMEFRAME_UNITS: readonly { value: string }[] = [
   { value: 'm' },
   { value: 'h' },
-  { value: 'd' },
-  { value: 'w' },
+  { value: 'D' },
+  { value: 'W' },
 ]
+
+// Map legacy lowercase day/week units onto the canonical casing so trades
+// saved before this convention still resolve to a Select option when edited.
+function normalizeTimeframeUnit(unit: string | null): string | null {
+  if (unit === 'd') return 'D'
+  if (unit === 'w') return 'W'
+  return unit
+}
 
 interface TradeFormValues {
   asset_id: string | null
@@ -354,7 +363,7 @@ export function TradeFormPage() {
       exits,
       tag_ids: trade.tags.map((tag) => String(tag.id)),
       emotion_ids: trade.emotions.map((emotion) => String(emotion.id)),
-      timeframe_unit: trade.timeframe_unit ?? null,
+      timeframe_unit: normalizeTimeframeUnit(trade.timeframe_unit ?? null),
       timeframe_value: trade.timeframe_value ?? '',
       notes: trade.notes ?? '',
       missed_opportunity: trade.missed_opportunity,

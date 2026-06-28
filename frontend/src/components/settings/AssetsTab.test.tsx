@@ -30,6 +30,10 @@ function preferences(overrides: Partial<Preferences> = {}): Preferences {
     backup_reminder_days: 7,
     last_backup_at: null,
     massive_api_key: '',
+    chart_timeframes_default: [],
+    entry_timeframe_unit_default: null,
+    entry_timeframe_value_default: null,
+    chart_timeframes_warning_threshold: 8,
     ...overrides,
   }
 }
