@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { TradeFormPage } from '@/pages/TradeFormPage'
 import { EMOTION_PRESETS } from '@/data/emotionPresets'
 import type { Asset, Emotion, Tag } from '@/types/referenceData'
-import type { TradeDetail } from '@/types/trade'
+import type { ChartTimeframe, TradeDetail } from '@/types/trade'
 import { jsonResponse, renderWithProviders } from '@/test/utils'
 import { assertDefined } from '@/test/helpers'
 
@@ -103,6 +103,8 @@ function makeTrade(overrides: Partial<TradeDetail> = {}): TradeDetail {
     tags: tags.slice(0, 1),
     emotions: (emotionsGrouped['Emotional State'] ?? []).slice(0, 1),
     screenshots: [],
+    chart_timeframes: null,
+    resolved_chart_timeframes: [],
     ...overrides,
   }
 }
@@ -115,6 +117,10 @@ interface StubOptions {
   trade?: TradeDetail
   saveError?: string
   defaultRisk?: number
+  chartTimeframesDefault?: ChartTimeframe[]
+  entryTimeframeUnitDefault?: string | null
+  entryTimeframeValueDefault?: number | null
+  chartTimeframesWarningThreshold?: number
 }
 
 /**
@@ -124,7 +130,15 @@ interface StubOptions {
  * The preferences GET returns the stored default risk; its PATCH echoes back
  * the patched value.
  */
-function stubApi({ trade, saveError, defaultRisk = 1 }: StubOptions = {}) {
+function stubApi({
+  trade,
+  saveError,
+  defaultRisk = 1,
+  chartTimeframesDefault = [],
+  entryTimeframeUnitDefault = null,
+  entryTimeframeValueDefault = null,
+  chartTimeframesWarningThreshold = 8,
+}: StubOptions = {}) {
   const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
     const method = init?.method ?? 'GET'
 
@@ -135,7 +149,13 @@ function stubApi({ trade, saveError, defaultRisk = 1 }: StubOptions = {}) {
       if (method === 'PATCH') {
         return jsonResponse(JSON.parse(init?.body as string))
       }
-      return jsonResponse({ risk_per_trade_default: defaultRisk })
+      return jsonResponse({
+          risk_per_trade_default: defaultRisk,
+          chart_timeframes_default: chartTimeframesDefault,
+          entry_timeframe_unit_default: entryTimeframeUnitDefault,
+          entry_timeframe_value_default: entryTimeframeValueDefault,
+          chart_timeframes_warning_threshold: chartTimeframesWarningThreshold,
+        })
     }
 
     if (method === 'POST' && input.includes('/screenshots')) {
@@ -795,5 +815,256 @@ describe('TradeFormPage — emotions nudge (no emotions)', () => {
     expect(
       screen.getByText(/No emotions configured yet/i),
     ).toBeInTheDocument()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Chart timeframes (#238)
+// ---------------------------------------------------------------------------
+
+describe('TradeFormPage — chart timeframes (#238)', () => {
+  it('prefills chart timeframes from stored defaults on create', async () => {
+    stubApi({
+      chartTimeframesDefault: [
+        { unit: 'm', value: 15 },
+        { unit: 'h', value: 1 },
+      ],
+    })
+    renderNew()
+
+    await screen.findByText('New trade')
+    expect(await screen.findByText('15m')).toBeInTheDocument()
+    expect(screen.getByText('1h')).toBeInTheDocument()
+  })
+
+  it('adds a new removable chip when a value + Add are used', async () => {
+    stubApi()
+    renderNew()
+
+    await screen.findByText('New trade')
+    fireEvent.change(screen.getByLabelText('Add a timeframe'), { target: { value: '5' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+    expect(await screen.findByText('5m')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Remove 5m' })).toBeInTheDocument()
+  })
+
+  it('removes a chip when its remove button is clicked', async () => {
+    stubApi({
+      chartTimeframesDefault: [
+        { unit: 'm', value: 15 },
+        { unit: 'h', value: 1 },
+      ],
+    })
+    renderNew()
+
+    await screen.findByText('15m')
+    fireEvent.click(screen.getByRole('button', { name: 'Remove 15m' }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('15m')).not.toBeInTheDocument()
+    })
+    expect(screen.getByText('1h')).toBeInTheDocument()
+  })
+
+  it('does not add a duplicate chip for an already-listed timeframe', async () => {
+    stubApi({
+      chartTimeframesDefault: [{ unit: 'm', value: 15 }],
+    })
+    renderNew()
+
+    await screen.findByText('15m')
+    // Attempt to add 15m a second time.
+    fireEvent.change(screen.getByLabelText('Add a timeframe'), { target: { value: '15' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+    // Exactly one remove button means the chip exists only once.
+    expect(screen.getAllByRole('button', { name: 'Remove 15m' })).toHaveLength(1)
+  })
+
+  it('sends chart_timeframes: null when the list is unchanged from defaults', async () => {
+    const fetchMock = stubApi({
+      chartTimeframesDefault: [{ unit: 'm', value: 15 }],
+    })
+    renderNew()
+
+    await screen.findByText('New trade')
+    await screen.findByText('15m')
+    fillRequired()
+    fireEvent.click(screen.getByRole('button', { name: 'Create trade' }))
+
+    await waitFor(() => {
+      const body = lastSaveBody(fetchMock)
+      expect(body.chart_timeframes).toBeNull()
+    })
+  })
+
+  it('sends explicit chart_timeframes when the list differs from defaults', async () => {
+    const fetchMock = stubApi({
+      chartTimeframesDefault: [
+        { unit: 'm', value: 15 },
+        { unit: 'h', value: 1 },
+      ],
+    })
+    renderNew()
+
+    await screen.findByText('1h')
+    // Remove 1h so the list no longer matches defaults.
+    fireEvent.click(screen.getByRole('button', { name: 'Remove 1h' }))
+    await waitFor(() => expect(screen.queryByText('1h')).not.toBeInTheDocument())
+
+    fillRequired()
+    fireEvent.click(screen.getByRole('button', { name: 'Create trade' }))
+
+    await waitFor(() => {
+      const body = lastSaveBody(fetchMock)
+      expect(body.chart_timeframes).toEqual([{ unit: 'm', value: 15 }])
+    })
+  })
+
+  it('renders the entry chip as locked with no remove button when entry tf matches a chart tf', async () => {
+    stubApi({
+      entryTimeframeUnitDefault: 'm',
+      entryTimeframeValueDefault: 15,
+      chartTimeframesDefault: [
+        { unit: 'm', value: 15 },
+        { unit: 'h', value: 1 },
+      ],
+    })
+    renderNew()
+
+    await screen.findByText('New trade')
+    // The locked chip shows the "entry · always" note.
+    expect(await screen.findByText('entry · always')).toBeInTheDocument()
+    // The locked 15m chip has no remove button.
+    expect(screen.queryByRole('button', { name: 'Remove 15m' })).not.toBeInTheDocument()
+    // The other chip remains removable.
+    expect(screen.getByRole('button', { name: 'Remove 1h' })).toBeInTheDocument()
+  })
+
+  it('shows the warning alert when displayed timeframe count exceeds the threshold', async () => {
+    stubApi({
+      chartTimeframesDefault: [
+        { unit: 'm', value: 5 },
+        { unit: 'm', value: 15 },
+        { unit: 'h', value: 1 },
+      ],
+      chartTimeframesWarningThreshold: 2,
+    })
+    renderNew()
+
+    await screen.findByText('New trade')
+    // 3 chips > threshold 2 → warning should appear.
+    expect(
+      await screen.findByText(/Chart loading may be slower with more than/i),
+    ).toBeInTheDocument()
+  })
+
+  it('does not show the warning alert when at or below the threshold', async () => {
+    stubApi({
+      chartTimeframesDefault: [
+        { unit: 'm', value: 5 },
+        { unit: 'm', value: 15 },
+      ],
+      chartTimeframesWarningThreshold: 2,
+    })
+    renderNew()
+
+    await screen.findByText('5m')
+    // 2 chips === threshold 2 → strictly greater-than, so no warning.
+    expect(
+      screen.queryByText(/Chart loading may be slower with more than/i),
+    ).not.toBeInTheDocument()
+  })
+
+  it('uses the trade chart_timeframes in edit mode when they are non-null', async () => {
+    // Clear the entry timeframe so the locked chip does not interfere with
+    // the assertion that the preferences default (15m) is absent.
+    const trade = makeTrade({
+      chart_timeframes: [{ unit: 'h', value: 4 }],
+      timeframe_unit: null,
+      timeframe_value: null,
+    })
+    stubApi({
+      trade,
+      chartTimeframesDefault: [{ unit: 'm', value: 15 }],
+    })
+    renderEdit()
+
+    await screen.findByText('Edit trade')
+    // The trade's own chart_timeframes are shown.
+    expect(await screen.findByText('4h')).toBeInTheDocument()
+    // The preferences default 15m is not shown (trade override takes precedence).
+    expect(screen.queryByRole('button', { name: 'Remove 15m' })).not.toBeInTheDocument()
+  })
+
+  it('falls back to the default chart_timeframes in edit mode when trade has null', async () => {
+    const trade = makeTrade({ chart_timeframes: null })
+    stubApi({
+      trade,
+      chartTimeframesDefault: [{ unit: 'm', value: 15 }],
+    })
+    renderEdit()
+
+    await screen.findByText('Edit trade')
+    expect(await screen.findByText('15m')).toBeInTheDocument()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Entry timeframe default (#238)
+// ---------------------------------------------------------------------------
+
+describe('TradeFormPage — entry timeframe default (#238)', () => {
+  it('prefills the entry timeframe fields from the stored default on create', async () => {
+    stubApi({
+      entryTimeframeUnitDefault: 'h',
+      entryTimeframeValueDefault: 4,
+    })
+    renderNew()
+
+    await screen.findByText('New trade')
+    // Unit select shows the option label for 'h'.
+    expect(await screen.findByDisplayValue('Hours')).toBeInTheDocument()
+    // Value input shows the numeric default.
+    expect(screen.getByLabelText('Timeframe value')).toHaveValue('4')
+  })
+
+  it('shows "Save as default" when entry tf differs from saved default and saves on click', async () => {
+    const fetchMock = stubApi({
+      entryTimeframeUnitDefault: 'm',
+      entryTimeframeValueDefault: 15,
+    })
+    renderNew()
+
+    await screen.findByText('New trade')
+    // Risk also matches its default (1), so it shows "Default"; entry TF also shows "Default".
+    // Wait for both to settle — findAllByText handles the initial multiple matches.
+    await waitFor(() =>
+      expect(screen.getAllByText('Default').length).toBeGreaterThanOrEqual(1),
+    )
+
+    // Change the entry TF value to 5 — now differs from saved default 15m.
+    fireEvent.change(screen.getByLabelText('Timeframe value'), { target: { value: '5' } })
+
+    // The entry TF "Save as default" link appears (risk still shows "Default").
+    const link = await screen.findByText('Save as default')
+    fireEvent.click(link)
+
+    await waitFor(() => {
+      const call = fetchMock.mock.calls.find(
+        ([input, init]: [string, RequestInit?]) =>
+          (init?.method ?? 'GET') === 'PATCH' && input.startsWith('/api/preferences'),
+      )
+      expect(call).toBeDefined()
+      expect(JSON.parse(call![1]?.body as string)).toMatchObject({
+        entry_timeframe_unit_default: 'm',
+        entry_timeframe_value_default: 5,
+      })
+    })
+
+    // Confirmation is shown; the "Save as default" link disappears.
+    expect(await screen.findByText('Saved!')).toBeInTheDocument()
+    expect(screen.queryByText('Save as default')).not.toBeInTheDocument()
   })
 })

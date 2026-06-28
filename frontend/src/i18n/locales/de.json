@@ -751,7 +751,17 @@
         "account_type_label": "Kontotyp",
         "timeframe_label": "Einstiegs-Timeframe",
         "entry_date_label": "Einstiegsdatum",
-        "exit_date_label": "Ausstiegsdatum"
+        "exit_date_label": "Ausstiegsdatum",
+        "chart_timeframes_label": "Chart Timeframes",
+        "chart_timeframes_placeholder": "Timeframe hinzufügen",
+        "chart_timeframes_hint": "Timeframes im Trade-Chart verfügbar. Standard aus den Einstellungen.",
+        "chart_timeframes_entry_note": "Einstieg · immer",
+        "chart_timeframes_add": "Hinzufügen",
+        "chart_timeframes_remove_aria": "{{timeframe}} entfernen",
+        "chart_timeframes_warning": "Das Laden der Charts kann mit mehr als {{count}} Timeframes langsamer sein",
+        "timeframe_save_as_default": "Als Standard speichern",
+        "timeframe_default_saved": "Gespeichert!",
+        "timeframe_default_label": "Standard"
       },
       "timeframe_units": {
         "m": "Minuten",

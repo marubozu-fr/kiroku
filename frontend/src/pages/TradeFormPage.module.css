@@ -27,3 +27,20 @@
   border-radius: var(--mantine-radius-sm);
   padding: var(--mantine-spacing-xs);
 }
+
+/* Locked entry-timeframe chip in the chart timeframes selector.
+   Badge variant="light" color="blue" handles background/border;
+   this class ensures the inner note renders inline without clipping. */
+.lockedChip {
+  overflow: visible;
+}
+
+/* "entry · always" note rendered inside the locked chip,
+   separated from the timeframe label by a subtle left border. */
+.lockedChipNote {
+  font-size: 0.75em;
+  opacity: 0.7;
+  border-left: 1px solid currentColor;
+  margin-left: 0.35em;
+  padding-left: 0.35em;
+}
