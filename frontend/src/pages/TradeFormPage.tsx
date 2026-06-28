@@ -191,7 +191,7 @@ export function TradeFormPage() {
   // Chart timeframes state for this trade (prefilled from prefs or trade data).
   const [chartTimeframes, setChartTimeframes] = useState<ChartTimeframe[]>([])
   const [addTfValue, setAddTfValue] = useState<number | string>('')
-  const [addTfUnit, setAddTfUnit] = useState<string>('m')
+  const [addTfUnit, setAddTfUnit] = useState<string | null>(null)
   const chartTfInit = useRef(false)
 
   const form = useForm<TradeFormValues>({
@@ -351,7 +351,7 @@ export function TradeFormPage() {
 
   const handleAddChartTf = () => {
     const value = addTfValue === '' ? null : Number(addTfValue)
-    if (value === null || !Number.isInteger(value) || value <= 0) {
+    if (value === null || !Number.isInteger(value) || value <= 0 || addTfUnit === null) {
       return
     }
     const next: ChartTimeframe = { value, unit: addTfUnit }
@@ -956,6 +956,15 @@ export function TradeFormPage() {
                   </Group>
                   <Grid gutter="xs">
                     <Grid.Col span={6}>
+                      <NumberInput
+                        aria-label={t('trade.form.fields.timeframe_value_label')}
+                        placeholder={t('trade.form.fields.timeframe_value_placeholder')}
+                        min={0}
+                        allowDecimal={false}
+                        {...form.getInputProps('timeframe_value')}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={6}>
                       <Select
                         aria-label={t('trade.form.fields.timeframe_unit_label')}
                         placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
@@ -965,15 +974,6 @@ export function TradeFormPage() {
                           label: t(`trade.form.timeframe_units.${unit}`),
                         }))}
                         {...form.getInputProps('timeframe_unit')}
-                      />
-                    </Grid.Col>
-                    <Grid.Col span={6}>
-                      <NumberInput
-                        aria-label={t('trade.form.fields.timeframe_value_label')}
-                        placeholder={t('trade.form.fields.timeframe_value_placeholder')}
-                        min={0}
-                        allowDecimal={false}
-                        {...form.getInputProps('timeframe_value')}
                       />
                     </Grid.Col>
                   </Grid>
@@ -994,13 +994,14 @@ export function TradeFormPage() {
                     />
                     <Select
                       aria-label={t('trade.form.fields.timeframe_unit_label')}
+                      placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
                       data={TIMEFRAME_UNITS.map((unit) => ({
                         value: unit,
                         label: t(`trade.form.timeframe_units.${unit}`),
                       }))}
                       value={addTfUnit}
-                      onChange={(value) => value && setAddTfUnit(value)}
-                      allowDeselect={false}
+                      onChange={setAddTfUnit}
+                      clearable
                     />
                     <Button variant="light" size="xs" onClick={handleAddChartTf}>
                       {t('trade.form.fields.chart_timeframes_add')}
@@ -1390,6 +1391,23 @@ export function TradeFormPage() {
                             <Stack gap="xs" flex={1}>
                               <Grid gutter="xs">
                                 <Grid.Col span={6}>
+                                  <NumberInput
+                                    aria-label={t('trade.form.fields.timeframe_value_label')}
+                                    placeholder={t('trade.form.fields.timeframe_value_placeholder')}
+                                    min={1}
+                                    allowDecimal={false}
+                                    value={shot.timeframe_value}
+                                    onChange={(value) =>
+                                      updateStaged(index, { timeframe_value: value })
+                                    }
+                                    error={
+                                      showScreenshotErrors && !isPositiveNumber(shot.timeframe_value)
+                                        ? t('trade.form.validation.timeframe_value_required')
+                                        : null
+                                    }
+                                  />
+                                </Grid.Col>
+                                <Grid.Col span={6}>
                                   <Select
                                     aria-label={t('trade.form.fields.timeframe_unit_label')}
                                     placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
@@ -1404,23 +1422,6 @@ export function TradeFormPage() {
                                     error={
                                       showScreenshotErrors && !shot.timeframe_unit
                                         ? t('trade.form.validation.timeframe_unit_required')
-                                        : null
-                                    }
-                                  />
-                                </Grid.Col>
-                                <Grid.Col span={6}>
-                                  <NumberInput
-                                    aria-label={t('trade.form.fields.timeframe_value_label')}
-                                    placeholder={t('trade.form.fields.timeframe_value_placeholder')}
-                                    min={1}
-                                    allowDecimal={false}
-                                    value={shot.timeframe_value}
-                                    onChange={(value) =>
-                                      updateStaged(index, { timeframe_value: value })
-                                    }
-                                    error={
-                                      showScreenshotErrors && !isPositiveNumber(shot.timeframe_value)
-                                        ? t('trade.form.validation.timeframe_value_required')
                                         : null
                                     }
                                   />

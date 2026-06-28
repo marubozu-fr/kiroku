@@ -35,7 +35,7 @@ export function ChartTimeframesCard() {
 
   const [timeframes, setTimeframes] = useState<ChartTimeframe[]>([])
   const [addValue, setAddValue] = useState<number | string>('')
-  const [addUnit, setAddUnit] = useState<string>('m')
+  const [addUnit, setAddUnit] = useState<string | null>(null)
   const [duplicateError, setDuplicateError] = useState<string | null>(null)
 
   const [warningThreshold, setWarningThreshold] = useState<number | null>(null)
@@ -61,7 +61,7 @@ export function ChartTimeframesCard() {
 
   const handleAdd = () => {
     const value = addValue === '' ? null : Number(addValue)
-    if (value === null || !Number.isInteger(value) || value <= 0) {
+    if (value === null || !Number.isInteger(value) || value <= 0 || addUnit === null) {
       return
     }
     const next: ChartTimeframe = { value, unit: addUnit }
@@ -167,10 +167,11 @@ export function ChartTimeframesCard() {
             />
             <Select
               aria-label={t('trade.form.fields.timeframe_unit_label')}
+              placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
               data={unitOptions}
               value={addUnit}
-              onChange={(value) => value && setAddUnit(value)}
-              allowDeselect={false}
+              onChange={setAddUnit}
+              clearable
               w={160}
             />
             <Button variant="light" onClick={handleAdd}>
