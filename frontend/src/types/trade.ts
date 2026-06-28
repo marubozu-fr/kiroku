@@ -7,6 +7,21 @@
  */
 
 import type { Emotion, Tag } from '@/types/referenceData'
+import type { ChartTimeframe } from '@/types/preferences'
+
+export type { ChartTimeframe }
+
+/**
+ * A resolved chart timeframe as returned by the backend. Includes which
+ * timeframe resolution string the chart API uses and whether this entry
+ * corresponds to the trade's entry timeframe.
+ */
+export interface ResolvedTimeframe {
+  unit: string
+  value: number
+  resolution: string
+  is_entry: boolean
+}
 
 export type TradeStatus = 'Open' | 'Closed' | 'Partial' | 'Breakeven'
 
@@ -70,6 +85,8 @@ export interface TradeDetail extends TradeSummary {
   tags: Tag[]
   emotions: Emotion[]
   screenshots: TradeScreenshot[]
+  chart_timeframes: ChartTimeframe[] | null
+  resolved_chart_timeframes: ResolvedTimeframe[]
 }
 
 /** A single buy/sell activity as sent to the create/update endpoints. */
@@ -96,4 +113,5 @@ export interface TradeInput {
   activities: TradeActivityInput[]
   tag_ids: number[]
   emotion_ids: number[]
+  chart_timeframes: ChartTimeframe[] | null
 }

@@ -18,6 +18,7 @@ import {
   Button,
   Card,
   Checkbox,
+  CloseButton,
   Divider,
   FileButton,
   Grid,
@@ -58,6 +59,7 @@ import { assetsApi, emotionsApi, tagsApi } from '@/services/referenceData'
 import { tradesApi } from '@/services/trades'
 import { ASSET_CATEGORIES, CATEGORY_I18N_KEYS, EMOTION_CATEGORIES } from '@/types/referenceData'
 import type { Asset, Emotion, EmotionSeverity, Tag } from '@/types/referenceData'
+import type { ChartTimeframe } from '@/types/preferences'
 import type {
   AccountType,
   ActivityType,
@@ -65,6 +67,7 @@ import type {
   TradeInput,
   TradeScreenshot,
 } from '@/types/trade'
+import { TIMEFRAME_UNITS, formatTimeframe, sortTimeframes } from '@/utils/timeframes'
 import classes from './TradeFormPage.module.css'
 
 // Severity colours per docs/DESIGN_SYSTEM.md (red reserved for P&L, but allowed
@@ -76,14 +79,6 @@ const SEVERITY_COLOR: Record<EmotionSeverity, string> = {
 }
 
 const ACCOUNT_TYPES: readonly AccountType[] = ['test', 'demo', 'live']
-
-// TradingView casing: lowercase minutes/hours, uppercase days/weeks.
-const TIMEFRAME_UNITS: readonly { value: string }[] = [
-  { value: 'm' },
-  { value: 'h' },
-  { value: 'D' },
-  { value: 'W' },
-]
 
 // Map legacy lowercase day/week units onto the canonical casing so trades
 // saved before this convention still resolve to a Select option when edited.
@@ -187,6 +182,17 @@ export function TradeFormPage() {
   // Record the stored default exactly once, when preferences first load.
   const defaultRiskInit = useRef(false)
   const riskSavedTimer = useRef<number | null>(null)
+  // Stored default entry timeframe (issue #238) — mirrors the risk "Save as
+  // default" pattern. Updated locally after a successful save.
+  const [defaultEntryTf, setDefaultEntryTf] = useState<ChartTimeframe | null>(null)
+  const [entryTfSaved, setEntryTfSaved] = useState(false)
+  const defaultEntryTfInit = useRef(false)
+  const entryTfSavedTimer = useRef<number | null>(null)
+  // Chart timeframes state for this trade (prefilled from prefs or trade data).
+  const [chartTimeframes, setChartTimeframes] = useState<ChartTimeframe[]>([])
+  const [addTfValue, setAddTfValue] = useState<number | string>('')
+  const [addTfUnit, setAddTfUnit] = useState<string>('m')
+  const chartTfInit = useRef(false)
 
   const form = useForm<TradeFormValues>({
     initialValues: {
@@ -258,6 +264,40 @@ export function TradeFormPage() {
   const riskMatchesDefault = defaultRisk !== null && riskIsValid && riskNumber === defaultRisk
   const riskDiffersFromDefault = defaultRisk !== null && riskIsValid && riskNumber !== defaultRisk
 
+  // --- Entry timeframe "Save as default" affordance (issue #238) ---
+  const entryTfValueRaw = form.values.timeframe_value
+  const entryTfValue = typeof entryTfValueRaw === 'number' ? entryTfValueRaw : Number(entryTfValueRaw)
+  const entryTfUnit = form.values.timeframe_unit
+  const entryTfIsValid =
+    entryTfValueRaw !== '' &&
+    Number.isFinite(entryTfValue) &&
+    Number.isInteger(entryTfValue) &&
+    entryTfValue > 0 &&
+    entryTfUnit !== null &&
+    (TIMEFRAME_UNITS as ReadonlyArray<string>).includes(entryTfUnit)
+
+  const entryTf: ChartTimeframe | null =
+    entryTfIsValid && entryTfUnit !== null
+      ? { value: entryTfValue, unit: entryTfUnit }
+      : null
+
+  const entryTfMatchesDefault =
+    defaultEntryTf !== null &&
+    entryTf !== null &&
+    entryTf.value === defaultEntryTf.value &&
+    entryTf.unit === defaultEntryTf.unit
+
+  const entryTfDiffersFromDefault = entryTfIsValid && !entryTfMatchesDefault
+
+  // --- Chart timeframes display computations ---
+  const entryTfLabel = entryTf ? formatTimeframe(entryTf) : null
+  const removableChips = entryTfLabel
+    ? chartTimeframes.filter((tf) => formatTimeframe(tf) !== entryTfLabel)
+    : chartTimeframes
+  const allDisplayed = sortTimeframes(entryTf ? [entryTf, ...removableChips] : removableChips)
+  const warnThreshold = preferences.data?.chart_timeframes_warning_threshold ?? 8
+  const overThreshold = allDisplayed.length > warnThreshold
+
   const handleSaveDefaultRisk = async () => {
     if (!riskDiffersFromDefault) {
       return
@@ -277,6 +317,58 @@ export function TradeFormPage() {
         cause instanceof Error ? cause.message : t('trade.form.notify.save_error')
       notifyError(message)
     }
+  }
+
+  const handleSaveDefaultEntryTf = async () => {
+    if (!entryTfIsValid || entryTfMatchesDefault || entryTfUnit === null) {
+      return
+    }
+    try {
+      const updated = await preferencesApi.update({
+        entry_timeframe_unit_default: entryTfUnit,
+        entry_timeframe_value_default: entryTfValue,
+      })
+      const newDefault =
+        updated.entry_timeframe_unit_default !== null &&
+        updated.entry_timeframe_value_default !== null
+          ? {
+              unit: updated.entry_timeframe_unit_default,
+              value: updated.entry_timeframe_value_default,
+            }
+          : null
+      setDefaultEntryTf(newDefault)
+      setEntryTfSaved(true)
+      if (entryTfSavedTimer.current !== null) {
+        window.clearTimeout(entryTfSavedTimer.current)
+      }
+      entryTfSavedTimer.current = window.setTimeout(() => setEntryTfSaved(false), 2000)
+    } catch (cause) {
+      const message =
+        cause instanceof Error ? cause.message : t('trade.form.notify.save_error')
+      notifyError(message)
+    }
+  }
+
+  const handleAddChartTf = () => {
+    const value = addTfValue === '' ? null : Number(addTfValue)
+    if (value === null || !Number.isInteger(value) || value <= 0) {
+      return
+    }
+    const next: ChartTimeframe = { value, unit: addTfUnit }
+    const label = formatTimeframe(next)
+    if (chartTimeframes.some((tf) => formatTimeframe(tf) === label)) {
+      return
+    }
+    if (entryTfLabel !== null && label === entryTfLabel) {
+      return
+    }
+    setChartTimeframes((current) => sortTimeframes([...current, next]))
+    setAddTfValue('')
+  }
+
+  const handleRemoveChartTf = (timeframe: ChartTimeframe) => {
+    const label = formatTimeframe(timeframe)
+    setChartTimeframes((current) => current.filter((tf) => formatTimeframe(tf) !== label))
   }
 
   // --- Screenshot object URLs: created on staging, revoked on removal. A ref
@@ -389,11 +481,52 @@ export function TradeFormPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, preferences.data])
 
+  // --- Entry timeframe default: record saved default, prefill on create ---
+  useEffect(() => {
+    if (defaultEntryTfInit.current || !preferences.data) {
+      return
+    }
+    defaultEntryTfInit.current = true
+    const { entry_timeframe_unit_default: unit, entry_timeframe_value_default: value } =
+      preferences.data
+    setDefaultEntryTf(unit != null && value != null ? { unit, value } : null)
+    if (!isEdit && unit != null && value != null) {
+      form.setFieldValue('timeframe_unit', unit)
+      form.setFieldValue('timeframe_value', value)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEdit, preferences.data])
+
+  // --- Chart timeframes: initialize from trade override (edit) or prefs default ---
+  useEffect(() => {
+    if (chartTfInit.current || !preferences.data) {
+      return
+    }
+    if (isEdit && !tradeFetch.data) {
+      return
+    }
+    chartTfInit.current = true
+    const tradeSpecific = isEdit ? (tradeFetch.data?.chart_timeframes ?? null) : null
+    const source = tradeSpecific ?? preferences.data.chart_timeframes_default ?? []
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setChartTimeframes(sortTimeframes(source))
+  }, [isEdit, preferences.data, tradeFetch.data])
+
   // Clear the "Saved ✓" timer on unmount.
   useEffect(
     () => () => {
       if (riskSavedTimer.current !== null) {
         window.clearTimeout(riskSavedTimer.current)
+      }
+    },
+    [],
+  )
+
+  // Clear the entry-tf "Saved ✓" timer on unmount.
+  useEffect(
+    () => () => {
+      if (entryTfSavedTimer.current !== null) {
+        window.clearTimeout(entryTfSavedTimer.current)
       }
     },
     [],
@@ -511,6 +644,20 @@ export function TradeFormPage() {
       })),
     ]
 
+    // Send null when the list equals preferences default (order-independent),
+    // so the backend keeps using the live default rather than a stale copy.
+    const prefsDefault = preferences.data?.chart_timeframes_default ?? []
+    const sortedCurrent = sortTimeframes(chartTimeframes)
+    const sortedDefault = sortTimeframes(prefsDefault)
+    const chartTimeframesToSend =
+      sortedCurrent.length === sortedDefault.length &&
+      sortedCurrent.every((tf, i) => {
+        const other = sortedDefault[i]
+        return other !== undefined && tf.unit === other.unit && tf.value === other.value
+      })
+        ? null
+        : sortedCurrent
+
     const payload: TradeInput = {
       asset_id: Number(values.asset_id),
       account_type: values.account_type,
@@ -523,6 +670,7 @@ export function TradeFormPage() {
       activities,
       tag_ids: values.tag_ids.map(Number),
       emotion_ids: values.emotion_ids.map(Number),
+      chart_timeframes: chartTimeframesToSend,
     }
 
     try {
@@ -781,7 +929,31 @@ export function TradeFormPage() {
                     {...form.getInputProps('account_type')}
                   />
                 </Input.Wrapper>
-                <Input.Wrapper label={t('trade.form.fields.timeframe_label')}>
+                {/* Custom label row so the "Save as default" link sits beside
+                    the label without being nested inside a <label> element.
+                    Inputs keep accessible names via aria-label. */}
+                <div>
+                  <Group gap="xs" justify="space-between" wrap="nowrap" mb={2}>
+                    <Input.Label>{t('trade.form.fields.timeframe_label')}</Input.Label>
+                    {entryTfSaved ? (
+                      <Text component="span" size="xs" c="green">
+                        {t('trade.form.fields.timeframe_default_saved')}
+                      </Text>
+                    ) : entryTfMatchesDefault ? (
+                      <Text component="span" size="xs" c="dimmed">
+                        {t('trade.form.fields.timeframe_default_label')}
+                      </Text>
+                    ) : entryTfDiffersFromDefault ? (
+                      <Anchor
+                        component="button"
+                        type="button"
+                        size="xs"
+                        onClick={() => void handleSaveDefaultEntryTf()}
+                      >
+                        {t('trade.form.fields.timeframe_save_as_default')}
+                      </Anchor>
+                    ) : null}
+                  </Group>
                   <Grid gutter="xs">
                     <Grid.Col span={6}>
                       <Select
@@ -789,8 +961,8 @@ export function TradeFormPage() {
                         placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
                         clearable
                         data={TIMEFRAME_UNITS.map((unit) => ({
-                          value: unit.value,
-                          label: t(`trade.form.timeframe_units.${unit.value}`),
+                          value: unit,
+                          label: t(`trade.form.timeframe_units.${unit}`),
                         }))}
                         {...form.getInputProps('timeframe_unit')}
                       />
@@ -805,7 +977,86 @@ export function TradeFormPage() {
                       />
                     </Grid.Col>
                   </Grid>
-                </Input.Wrapper>
+                </div>
+                {/* Chart Timeframes selector (issue #238): prefilled from prefs,
+                    overridable per trade; entry tf shown as locked chip. */}
+                <Stack gap="xs">
+                  <Input.Label>{t('trade.form.fields.chart_timeframes_label')}</Input.Label>
+                  <Group gap="xs" align="flex-end" wrap="nowrap">
+                    <NumberInput
+                      aria-label={t('trade.form.fields.chart_timeframes_placeholder')}
+                      placeholder={t('trade.form.fields.chart_timeframes_placeholder')}
+                      min={1}
+                      allowDecimal={false}
+                      value={addTfValue}
+                      onChange={setAddTfValue}
+                      flex={1}
+                    />
+                    <Select
+                      aria-label={t('trade.form.fields.timeframe_unit_label')}
+                      data={TIMEFRAME_UNITS.map((unit) => ({
+                        value: unit,
+                        label: t(`trade.form.timeframe_units.${unit}`),
+                      }))}
+                      value={addTfUnit}
+                      onChange={(value) => value && setAddTfUnit(value)}
+                      allowDeselect={false}
+                    />
+                    <Button variant="light" size="xs" onClick={handleAddChartTf}>
+                      {t('trade.form.fields.chart_timeframes_add')}
+                    </Button>
+                  </Group>
+                  {allDisplayed.length > 0 && (
+                    <Group gap="xs">
+                      {allDisplayed.map((tf) => {
+                        const label = formatTimeframe(tf)
+                        const isEntry = entryTfLabel !== null && label === entryTfLabel
+                        if (isEntry) {
+                          return (
+                            <Badge
+                              key={label}
+                              variant="light"
+                              color="blue"
+                              size="lg"
+                              className={classes.lockedChip}
+                            >
+                              {label}
+                              <span className={classes.lockedChipNote}>
+                                {t('trade.form.fields.chart_timeframes_entry_note')}
+                              </span>
+                            </Badge>
+                          )
+                        }
+                        return (
+                          <Badge
+                            key={label}
+                            variant="light"
+                            size="lg"
+                            rightSection={
+                              <CloseButton
+                                size="xs"
+                                aria-label={t('trade.form.fields.chart_timeframes_remove_aria', {
+                                  timeframe: label,
+                                })}
+                                onClick={() => handleRemoveChartTf(tf)}
+                              />
+                            }
+                          >
+                            {label}
+                          </Badge>
+                        )
+                      })}
+                    </Group>
+                  )}
+                  {overThreshold && (
+                    <Alert variant="light" color="orange" icon={<IconAlertTriangle size={16} />}>
+                      {t('trade.form.fields.chart_timeframes_warning', { count: warnThreshold })}
+                    </Alert>
+                  )}
+                  <Text fz="xs" c="dimmed">
+                    {t('trade.form.fields.chart_timeframes_hint')}
+                  </Text>
+                </Stack>
                 <Group gap="xs" align="flex-end" wrap="nowrap">
                   <MultiSelect
                     flex={1}
@@ -1143,8 +1394,8 @@ export function TradeFormPage() {
                                     aria-label={t('trade.form.fields.timeframe_unit_label')}
                                     placeholder={t('trade.form.fields.timeframe_unit_placeholder')}
                                     data={TIMEFRAME_UNITS.map((unit) => ({
-                                      value: unit.value,
-                                      label: t(`trade.form.timeframe_units.${unit.value}`),
+                                      value: unit,
+                                      label: t(`trade.form.timeframe_units.${unit}`),
                                     }))}
                                     value={shot.timeframe_unit}
                                     onChange={(value) =>

@@ -751,7 +751,17 @@
         "account_type_label": "Account type",
         "timeframe_label": "Entry timeframe",
         "entry_date_label": "Entry date",
-        "exit_date_label": "Exit date"
+        "exit_date_label": "Exit date",
+        "chart_timeframes_label": "Chart Timeframes",
+        "chart_timeframes_placeholder": "Add a timeframe",
+        "chart_timeframes_hint": "Timeframes available on the trade chart. Defaults from Settings.",
+        "chart_timeframes_entry_note": "entry · always",
+        "chart_timeframes_add": "Add",
+        "chart_timeframes_remove_aria": "Remove {{timeframe}}",
+        "chart_timeframes_warning": "Chart loading may be slower with more than {{count}} timeframes",
+        "timeframe_save_as_default": "Save as default",
+        "timeframe_default_saved": "Saved!",
+        "timeframe_default_label": "Default"
       },
       "timeframe_units": {
         "m": "Minutes",
