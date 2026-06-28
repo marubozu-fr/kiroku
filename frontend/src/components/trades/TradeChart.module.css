@@ -3,6 +3,22 @@
   min-height: 450px;
 }
 
+/* Subtle indicator marking the entry timeframe (is_entry) button. */
+.entryButton {
+  position: relative;
+}
+
+.entryButton::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--mantine-color-blue-5);
+}
+
 .placeholder {
   display: flex;
   align-items: center;

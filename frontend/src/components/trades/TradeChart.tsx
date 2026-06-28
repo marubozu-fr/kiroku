@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   createChart,
@@ -13,26 +13,30 @@ import {
 import {
   Alert,
   Button,
-  SegmentedControl,
   Skeleton,
   Stack,
   Text,
   useMantineColorScheme,
 } from '@mantine/core'
 import { IconAlertTriangle } from '@tabler/icons-react'
-import { useFetch } from '@/hooks/useFetch'
 import { tradesApi } from '@/services/trades'
 import type { TradeCandlesResponse } from '@/types/candle'
-import { CHART_RESOLUTIONS, type ChartResolution } from '@/types/candle'
+import type { ResolvedTimeframe } from '@/types/trade'
 import classes from './TradeChart.module.css'
 
 export interface TradeChartProps {
   tradeId: number
-  defaultResolution: string
-}
-
-function isValidResolution(value: string): value is ChartResolution {
-  return (CHART_RESOLUTIONS as string[]).includes(value)
+  /**
+   * Timeframe buttons for the chart viewer, pre-sorted by weight descending
+   * (D1 first, M1 last) by the backend. Drives both the button row and the
+   * default active resolution (the one flagged `is_entry`).
+   */
+  resolvedTimeframes: ResolvedTimeframe[]
+  /**
+   * Ultimate fallback resolution for legacy trades that have neither resolved
+   * chart timeframes nor an entry timeframe set. Defaults to 'M15'.
+   */
+  fallbackResolution?: string
 }
 
 interface ChartColors {
@@ -60,26 +64,89 @@ function resolveChartColors(containerEl: HTMLElement): ChartColors {
   }
 }
 
-export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
+export function TradeChart({
+  tradeId,
+  resolvedTimeframes,
+  fallbackResolution = 'M15',
+}: TradeChartProps) {
   const { t } = useTranslation()
   const { colorScheme } = useMantineColorScheme()
 
-  const [resolution, setResolution] = useState<ChartResolution>(
-    isValidResolution(defaultResolution) ? defaultResolution : 'M15',
+  // The button row: the backend-sorted resolved timeframes, or a single
+  // synthesized entry when none are available (legacy trades).
+  const timeframes = useMemo<ResolvedTimeframe[]>(
+    () =>
+      resolvedTimeframes.length > 0
+        ? resolvedTimeframes
+        : [{ unit: '', value: 0, resolution: fallbackResolution, is_entry: true }],
+    [resolvedTimeframes, fallbackResolution],
   )
 
-  const fetcher = useCallback(
-    (signal: AbortSignal) => tradesApi.candles(tradeId, resolution, signal),
-    [tradeId, resolution],
-  )
+  // Default active resolution: the entry timeframe, else the first (heaviest)
+  // resolved timeframe, else the legacy fallback.
+  const [resolution, setResolution] = useState<string>(() => {
+    const entry = resolvedTimeframes.find((tf) => tf.is_entry)
+    if (entry) return entry.resolution
+    if (resolvedTimeframes.length > 0) return resolvedTimeframes[0]!.resolution
+    return fallbackResolution
+  })
 
-  // Re-fetch whenever the trade or resolution changes. useFetch aborts the
-  // in-flight request in its cleanup, so StrictMode's double-mount fires at
-  // most one effective request instead of stacking duplicates.
-  const { data: response, loading, error, reload } = useFetch<TradeCandlesResponse>(fetcher, [
-    tradeId,
-    resolution,
-  ])
+  // Lazy-loading caches keyed by resolution string. A TF button click serves
+  // from here when present (success or error), fetching only on a miss.
+  const [responsesByResolution, setResponsesByResolution] = useState<
+    Record<string, TradeCandlesResponse>
+  >({})
+  const [errorsByResolution, setErrorsByResolution] = useState<Record<string, string>>({})
+
+  const response = responsesByResolution[resolution] ?? null
+  const error = errorsByResolution[resolution] ?? null
+  // A resolution with neither a cached response nor a cached error is in flight.
+  const loading = response === null && error === null
+
+  // Fetch candles for the active resolution unless already resolved (cached or
+  // errored). The cache is the guard, so switching back to a visited TF skips
+  // the network entirely. StrictMode's double-mount aborts the first request in
+  // cleanup, so at most one effective request lands. State is only set inside
+  // the async callbacks, never synchronously, so an extra render is avoided.
+  useEffect(() => {
+    if (responsesByResolution[resolution] || errorsByResolution[resolution]) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    tradesApi
+      .candles(tradeId, resolution, controller.signal)
+      .then((resp) => {
+        if (controller.signal.aborted) return
+        setResponsesByResolution((prev) => ({ ...prev, [resolution]: resp }))
+      })
+      .catch((cause) => {
+        if (controller.signal.aborted) return
+        setErrorsByResolution((prev) => ({
+          ...prev,
+          [resolution]: cause instanceof Error ? cause.message : t('common.status.error'),
+        }))
+      })
+
+    return () => controller.abort()
+  }, [tradeId, resolution, responsesByResolution, errorsByResolution, t])
+
+  // Drop the active resolution's cached response and error so the fetch effect
+  // re-runs. Replacing the object references re-triggers it even when nothing
+  // was cached.
+  const reload = useCallback(() => {
+    setErrorsByResolution((prev) => {
+      const next = { ...prev }
+      delete next[resolution]
+      return next
+    })
+    setResponsesByResolution((prev) => {
+      const next = { ...prev }
+      delete next[resolution]
+      return next
+    })
+  }, [resolution])
 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -243,8 +310,6 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
     })
   }, [colorScheme])
 
-  const resolutionData = CHART_RESOLUTIONS.map((r) => ({ value: r, label: r }))
-
   let content: ReactNode
   if (loading) {
     content = <Skeleton height={450} />
@@ -287,14 +352,23 @@ export function TradeChart({ tradeId, defaultResolution }: TradeChartProps) {
 
   return (
     <Stack gap="sm">
-      <SegmentedControl
-        size="xs"
-        data={resolutionData}
-        value={resolution}
-        onChange={(v) => {
-          if (isValidResolution(v)) setResolution(v)
-        }}
-      />
+      <Button.Group>
+        {timeframes.map((tf) => {
+          const active = tf.resolution === resolution
+          return (
+            <Button
+              key={tf.resolution}
+              size="xs"
+              variant={active ? 'filled' : 'default'}
+              className={tf.is_entry ? classes.entryButton : undefined}
+              loading={active && loading}
+              onClick={() => setResolution(tf.resolution)}
+            >
+              {tf.resolution}
+            </Button>
+          )
+        })}
+      </Button.Group>
       {content}
     </Stack>
   )
