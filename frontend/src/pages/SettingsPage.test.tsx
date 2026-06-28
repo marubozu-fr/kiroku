@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { jsonResponse, renderWithProviders } from '@/test/utils'
@@ -21,38 +21,23 @@ describe('SettingsPage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('renders the settings heading and all four tabs', async () => {
+  it('renders the settings heading and the General tab content', async () => {
     renderWithProviders(<SettingsPage />)
 
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'General' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Assets' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Tags' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Emotions' })).toBeInTheDocument()
 
-    // The default (General) tab loads and shows the language selector.
+    // The General tab loads and shows the language selector.
     expect(
       await screen.findByRole('textbox', {
         description: 'Choose the display language',
       }),
     ).toBeInTheDocument()
-  })
 
-  it('switches to the Emotions tab and loads grouped data', async () => {
-    renderWithProviders(<SettingsPage />)
-
-    fireEvent.click(screen.getByRole('tab', { name: 'Emotions' }))
-
-    // With no emotions, the tab shows the onboarding (replacing the plain
-    // empty state).
+    // The entity-management tabs have moved to the Manage page.
+    expect(screen.queryByRole('tab', { name: 'Assets' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'Tags' })).not.toBeInTheDocument()
     expect(
-      await screen.findByText('Get started with curated trading emotions'),
-    ).toBeInTheDocument()
-    await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/emotions/grouped',
-        expect.anything(),
-      )
-    })
+      screen.queryByRole('tab', { name: 'Emotions' }),
+    ).not.toBeInTheDocument()
   })
 })

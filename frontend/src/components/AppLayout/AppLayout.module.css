@@ -1,0 +1,5 @@
+.bottomSection {
+  border-top: 1px solid var(--mantine-color-default-border);
+  margin-top: var(--mantine-spacing-sm);
+  padding-top: var(--mantine-spacing-sm);
+}
