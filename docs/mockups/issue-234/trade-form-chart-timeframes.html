@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Trade form · Chart Timeframes selector</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #234 — Chart timeframes configuration · TRADE FORM (per-trade override).
+    Design-only mockup. Maps 1:1 to Mantine — see README.md. Each panel previews
+    one required state:
+      A) Desktop · Dark  · default (prefilled from Settings; entry tf NOT in list
+                            → shown as a separate non-removable "locked" chip)
+      B) Desktop · Dark  · dedup (entry tf 15m IS in the default list → appears
+                            ONCE as the locked chip, not duplicated)
+      C) Desktop · Dark  · soft-limit (9 chips → orange warning, NOT blocked)
+      D) Desktop · Light · default (theme parity)
+      E) Mobile  · Light · default (responsive, phone frame)
+
+    The "Chart Timeframes" selector sits in the form's Configuration card,
+    DIRECTLY AFTER the existing "Entry timeframe" field. It is prefilled with the
+    user's Settings default chart timeframes; the user can remove chips (×) or add
+    new ones for this trade only. The trade's entry timeframe is ALWAYS implicitly
+    included — rendered as a locked chip (no × ) because it is injected server-side.
+    If the entry tf also appears in the defaults it is deduped to a single chip.
+    Chips render sorted by weight (D > W > H > M, then value descending).
+  -->
+  <div class="preview-page">
+    <h1>Trade form · Chart Timeframes selector</h1>
+    <p class="lede">
+      A <strong>Chart Timeframes</strong> selector placed right after
+      <em>Entry timeframe</em> in the trade form. Prefilled from the Settings
+      defaults; editable per trade. The entry timeframe is always included as a
+      non-removable <span class="tf-accent">locked chip</span> (injected
+      server-side) and deduped if it also appears in the defaults. Same
+      sort-by-weight ordering and 8-timeframe soft warning as Settings. See
+      <code>README.md</code>.
+    </p>
+
+    <div class="preview-grid">
+
+      <!-- ============================================================== -->
+      <!-- A) Desktop · Dark · default (entry tf 1h NOT in default list)   -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">A · Desktop · Dark · Default (entry tf separate)</div>
+        <div class="preview-body">
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Configuration</h4>
+
+              <!-- Existing "Entry timeframe" field (context). Value + unit row. -->
+              <div class="field" style="margin-bottom:var(--sp-md)">
+                <label>Entry timeframe</label>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" value="1" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option>m</option><option selected>h</option><option>d</option><option>w</option></select></div>
+                </div>
+              </div>
+
+              <!-- NEW: Chart Timeframes selector -->
+              <div class="field">
+                <label>Chart Timeframes</label>
+                <div class="field-desc">Timeframes shown on this trade's chart. Prefilled from your Settings defaults.</div>
+
+                <!-- Add row -->
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" placeholder="Value" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option>m</option><option>h</option><option>d</option><option>w</option></select></div>
+                  <button class="btn light sm">Add</button>
+                </div>
+
+                <!-- Chips sorted by weight: 1d 4h [1h locked = entry] 15m -->
+                <div class="tf-chips">
+                  <span class="tf-chip">1d<button class="tf-remove" aria-label="Remove 1d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">4h<button class="tf-remove" aria-label="Remove 4h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip locked">1h<span class="tf-chip-note">entry · always</span></span>
+                  <span class="tf-chip">15m<button class="tf-remove" aria-label="Remove 15m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                </div>
+                <p class="tf-count"><strong>4</strong> timeframes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- B) Desktop · Dark · dedup (entry tf 15m IS in default list)     -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">B · Desktop · Dark · Dedup (entry tf in list)</div>
+        <div class="preview-body">
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Configuration</h4>
+              <div class="field" style="margin-bottom:var(--sp-md)">
+                <label>Entry timeframe</label>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" value="15" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option selected>m</option><option>h</option><option>d</option><option>w</option></select></div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Chart Timeframes</label>
+                <div class="field-desc">Timeframes shown on this trade's chart. Prefilled from your Settings defaults.</div>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" placeholder="Value" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option>m</option><option>h</option><option>d</option><option>w</option></select></div>
+                  <button class="btn light sm">Add</button>
+                </div>
+                <!-- 15m is the entry tf AND in defaults → deduped to one LOCKED chip. -->
+                <div class="tf-chips">
+                  <span class="tf-chip">1d<button class="tf-remove" aria-label="Remove 1d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">4h<button class="tf-remove" aria-label="Remove 4h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">1h<button class="tf-remove" aria-label="Remove 1h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip locked">15m<span class="tf-chip-note">entry · always</span></span>
+                </div>
+                <p class="tf-count"><strong>4</strong> timeframes <span style="opacity:.7">(15m deduped — entry tf already in defaults)</span></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- C) Desktop · Dark · soft-limit (9 chips → orange warning)       -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">C · Desktop · Dark · Soft limit (&gt; 8)</div>
+        <div class="preview-body">
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Configuration</h4>
+              <div class="field" style="margin-bottom:var(--sp-md)">
+                <label>Entry timeframe</label>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" value="1" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option>m</option><option selected>h</option><option>d</option><option>w</option></select></div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Chart Timeframes</label>
+                <div class="field-desc">Timeframes shown on this trade's chart. Prefilled from your Settings defaults.</div>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" placeholder="Value" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option>m</option><option>h</option><option>d</option><option>w</option></select></div>
+                  <button class="btn light sm">Add</button>
+                </div>
+                <!-- 9 chips incl. the locked 1h entry. Sorted 1w 1d 12h 4h [1h] 30m 15m 5m 1m -->
+                <div class="tf-chips">
+                  <span class="tf-chip">1w<button class="tf-remove" aria-label="Remove 1w"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">1d<button class="tf-remove" aria-label="Remove 1d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">12h<button class="tf-remove" aria-label="Remove 12h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">4h<button class="tf-remove" aria-label="Remove 4h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip locked">1h<span class="tf-chip-note">entry · always</span></span>
+                  <span class="tf-chip">30m<button class="tf-remove" aria-label="Remove 30m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">15m<button class="tf-remove" aria-label="Remove 15m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">5m<button class="tf-remove" aria-label="Remove 5m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">1m<button class="tf-remove" aria-label="Remove 1m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                </div>
+                <p class="tf-count"><strong>9</strong> timeframes</p>
+                <div class="callout warning">
+                  <span class="callout-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+                  </span>
+                  <div class="callout-body">Chart loading may be slower with more than 8 timeframes</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- D) Desktop · Light · default (theme parity)                    -->
+      <!-- ============================================================== -->
+      <div class="preview-col theme-light">
+        <div class="preview-label">D · Desktop · Light · Default</div>
+        <div class="preview-body">
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Configuration</h4>
+              <div class="field" style="margin-bottom:var(--sp-md)">
+                <label>Entry timeframe</label>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" value="1" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option>m</option><option selected>h</option><option>d</option><option>w</option></select></div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Chart Timeframes</label>
+                <div class="field-desc">Timeframes shown on this trade's chart. Prefilled from your Settings defaults.</div>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" placeholder="Value" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option>m</option><option>h</option><option>d</option><option>w</option></select></div>
+                  <button class="btn light sm">Add</button>
+                </div>
+                <div class="tf-chips">
+                  <span class="tf-chip">1d<button class="tf-remove" aria-label="Remove 1d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">4h<button class="tf-remove" aria-label="Remove 4h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip locked">1h<span class="tf-chip-note">entry · always</span></span>
+                  <span class="tf-chip">15m<button class="tf-remove" aria-label="Remove 15m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                </div>
+                <p class="tf-count"><strong>4</strong> timeframes</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- E) Mobile · Light · default (responsive, phone frame)          -->
+      <!-- ============================================================== -->
+      <div class="preview-col theme-light span-all">
+        <div class="preview-label">E · Mobile · Light · Default</div>
+        <div class="preview-body preview-phone">
+          <div class="phone-frame">
+            <div class="page-header" style="margin-bottom:var(--sp-md)">
+              <h1 class="page-title" style="font-size:18px">New Trade</h1>
+            </div>
+            <div class="tab-panel">
+              <div class="card">
+                <h4 class="section-title">Configuration</h4>
+                <div class="field" style="margin-bottom:var(--sp-md)">
+                  <label>Entry timeframe</label>
+                  <div class="tf-input-row">
+                    <div class="tf-value"><input class="input" type="number" value="1" min="0" /></div>
+                    <div class="tf-unit"><select class="input"><option>m</option><option selected>h</option><option>d</option><option>w</option></select></div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Chart Timeframes</label>
+                  <div class="tf-input-row">
+                    <div class="tf-value"><input class="input" type="number" placeholder="Value" min="0" /></div>
+                    <div class="tf-unit"><select class="input"><option>m</option><option>h</option><option>d</option><option>w</option></select></div>
+                    <button class="btn light sm">Add</button>
+                  </div>
+                  <div class="tf-chips">
+                    <span class="tf-chip">1d<button class="tf-remove" aria-label="Remove 1d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                    <span class="tf-chip">4h<button class="tf-remove" aria-label="Remove 4h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                    <span class="tf-chip locked">1h<span class="tf-chip-note">entry · always</span></span>
+                    <span class="tf-chip">15m<button class="tf-remove" aria-label="Remove 15m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  </div>
+                  <p class="tf-count"><strong>4</strong> timeframes</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
