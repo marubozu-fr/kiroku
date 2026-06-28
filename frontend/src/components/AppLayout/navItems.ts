@@ -1,4 +1,5 @@
 import {
+  IconCategory2,
   IconChartHistogram,
   IconLayoutDashboard,
   IconNotebook,
@@ -13,10 +14,18 @@ export interface NavItem {
   icon: Icon
 }
 
-export const navItems: NavItem[] = [
+// Main nav items (grow section)
+export const mainNavItems: NavItem[] = [
   { labelKey: 'nav.dashboard', path: '/', icon: IconLayoutDashboard },
   { labelKey: 'nav.journal', path: '/journal', icon: IconNotebook },
   { labelKey: 'nav.analytics', path: '/analytics', icon: IconChartHistogram },
   { labelKey: 'nav.projections', path: '/projections', icon: IconTrendingUp },
-  { labelKey: 'nav.settings', path: '/settings', icon: IconSettings },
+  { labelKey: 'nav.manage', path: '/manage', icon: IconCategory2 },
 ]
+
+// Bottom-pinned
+export const settingsNavItem: NavItem = {
+  labelKey: 'nav.settings',
+  path: '/settings',
+  icon: IconSettings,
+}

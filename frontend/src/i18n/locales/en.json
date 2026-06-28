@@ -38,6 +38,7 @@
     "journal": "Journal",
     "analytics": "Analytics",
     "projections": "Projections",
+    "manage": "Manage",
     "settings": "Settings"
   },
   "dashboard": {
@@ -383,14 +384,8 @@
   },
   "settings": {
     "title": "Settings",
+    "subtitle": "Configure your platform and chart preferences.",
     "delete_count_error": "Could not check trade usage. Please try again.",
-    "tabs": {
-      "general": "General",
-      "assets": "Assets",
-      "tags": "Tags",
-      "emotions": "Emotions",
-      "news": "News"
-    },
     "general": {
       "language_label": "Language",
       "language_description": "Choose the display language",
@@ -639,6 +634,16 @@
       "destructive_warning": "This will replace all current data. This action cannot be undone.",
       "confirm": "Restore",
       "notify_error": "Restore failed"
+    }
+  },
+  "manage": {
+    "title": "Manage",
+    "subtitle": "Manage your assets, tags and emotions.",
+    "tabs": {
+      "assets": "Assets",
+      "tags": "Tags",
+      "emotions": "Emotions",
+      "news": "News"
     }
   },
   "trade": {

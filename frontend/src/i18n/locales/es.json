@@ -38,6 +38,7 @@
     "journal": "Journal",
     "analytics": "Analytics",
     "projections": "Proyecciones",
+    "manage": "Gestionar",
     "settings": "Ajustes"
   },
   "dashboard": {
@@ -383,14 +384,8 @@
   },
   "settings": {
     "title": "Ajustes",
+    "subtitle": "Configura tus preferencias de plataforma y gráfico.",
     "delete_count_error": "No se pudo verificar el uso de trades. Por favor, inténtalo de nuevo.",
-    "tabs": {
-      "general": "General",
-      "assets": "Activos",
-      "tags": "Tags",
-      "emotions": "Emociones",
-      "news": "Noticias"
-    },
     "general": {
       "language_label": "Idioma",
       "language_description": "Elige el idioma de la interfaz",
@@ -639,6 +634,16 @@
       "destructive_warning": "Esto reemplazará todos los datos actuales. Esta acción no se puede deshacer.",
       "confirm": "Restaurar",
       "notify_error": "Error al restaurar"
+    }
+  },
+  "manage": {
+    "title": "Gestionar",
+    "subtitle": "Gestiona tus activos, tags y emociones.",
+    "tabs": {
+      "assets": "Activos",
+      "tags": "Tags",
+      "emotions": "Emociones",
+      "news": "Noticias"
     }
   },
   "trade": {

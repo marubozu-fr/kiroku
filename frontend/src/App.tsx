@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/AppLayout/AppLayout'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { JournalPage } from '@/pages/JournalPage'
+import { ManagePage } from '@/pages/ManagePage'
 import { ProjectionsPage } from '@/pages/ProjectionsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { TradeDetailPage } from '@/pages/TradeDetailPage'
@@ -19,6 +20,7 @@ export function App() {
         <Route path="journal/:id/edit" element={<TradeFormPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="projections" element={<ProjectionsPage />} />
+        <Route path="manage" element={<ManagePage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>

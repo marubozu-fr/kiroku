@@ -38,6 +38,7 @@
     "journal": "Journal",
     "analytics": "Analytics",
     "projections": "Projektionen",
+    "manage": "Verwalten",
     "settings": "Einstellungen"
   },
   "dashboard": {
@@ -383,14 +384,8 @@
   },
   "settings": {
     "title": "Einstellungen",
+    "subtitle": "Konfiguriere deine Plattform- und Chart-Einstellungen.",
     "delete_count_error": "Trade-Nutzung konnte nicht geprüft werden. Bitte versuche es erneut.",
-    "tabs": {
-      "general": "Allgemein",
-      "assets": "Assets",
-      "tags": "Tags",
-      "emotions": "Emotionen",
-      "news": "Nachrichten"
-    },
     "general": {
       "language_label": "Sprache",
       "language_description": "Wähle die Anzeigesprache",
@@ -639,6 +634,16 @@
       "destructive_warning": "Dadurch werden alle aktuellen Daten ersetzt. Diese Aktion kann nicht rückgängig gemacht werden.",
       "confirm": "Wiederherstellen",
       "notify_error": "Wiederherstellung fehlgeschlagen"
+    }
+  },
+  "manage": {
+    "title": "Verwalten",
+    "subtitle": "Verwalte deine Assets, Tags und Emotionen.",
+    "tabs": {
+      "assets": "Assets",
+      "tags": "Tags",
+      "emotions": "Emotionen",
+      "news": "Nachrichten"
     }
   },
   "trade": {

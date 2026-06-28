@@ -38,6 +38,7 @@
     "journal": "Journal",
     "analytics": "Analyses",
     "projections": "Projections",
+    "manage": "Gérer",
     "settings": "Paramètres"
   },
   "dashboard": {
@@ -383,14 +384,8 @@
   },
   "settings": {
     "title": "Paramètres",
+    "subtitle": "Configurez vos préférences de plateforme et de graphique.",
     "delete_count_error": "Impossible de vérifier l'utilisation des trades. Veuillez réessayer.",
-    "tabs": {
-      "general": "Général",
-      "assets": "Actifs",
-      "tags": "Tags",
-      "emotions": "Émotions",
-      "news": "Actualités"
-    },
     "general": {
       "language_label": "Langue",
       "language_description": "Choisissez la langue d'affichage",
@@ -639,6 +634,16 @@
       "destructive_warning": "Cela remplacera toutes les données actuelles. Cette action est irréversible.",
       "confirm": "Restaurer",
       "notify_error": "Échec de la restauration"
+    }
+  },
+  "manage": {
+    "title": "Gérer",
+    "subtitle": "Gérez vos actifs, tags et émotions.",
+    "tabs": {
+      "assets": "Actifs",
+      "tags": "Tags",
+      "emotions": "Émotions",
+      "news": "Actualités"
     }
   },
   "trade": {
