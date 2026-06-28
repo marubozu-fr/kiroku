@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { notifications } from '@mantine/notifications'
 import i18n from '@/i18n'
 import { PlatformTab } from '@/components/settings/PlatformTab'
 import type { Preferences } from '@/types/preferences'
@@ -114,5 +115,104 @@ describe('PlatformTab', () => {
     renderWithProviders(<PlatformTab />)
 
     expect(await screen.findByText('Restore from backup')).toBeInTheDocument()
+  })
+
+  it('saves the backup directory via PATCH', async () => {
+    const onPatch = vi.fn()
+    stubFetch({ onPatch })
+    renderWithProviders(<PlatformTab />)
+
+    const input = await screen.findByRole('textbox', { name: 'Backup directory' })
+    fireEvent.change(input, { target: { value: '/backups' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save path' }))
+
+    await waitFor(() => {
+      expect(onPatch).toHaveBeenCalledWith({ backup_directory: '/backups' })
+    })
+  })
+
+  it('shows an inline error when the backup directory is rejected (400)', async () => {
+    stubFetch({ patchStatus: { ok: false, status: 400, error: 'invalid path' } })
+    renderWithProviders(<PlatformTab />)
+
+    const input = await screen.findByRole('textbox', { name: 'Backup directory' })
+    fireEvent.change(input, { target: { value: '/nope' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save path' }))
+
+    expect(
+      await screen.findByText("This path doesn't exist or isn't writable."),
+    ).toBeInTheDocument()
+  })
+
+  it('renders the reminder frequency select with the persisted value', async () => {
+    stubFetch({ prefs: preferences({ backup_reminder_days: 30 }) })
+    renderWithProviders(<PlatformTab />)
+
+    const select = await screen.findByRole('textbox', { name: 'Backup reminder' })
+    await waitFor(() => expect(select).toHaveValue('Every 30 days'))
+  })
+
+  it('auto-saves a reminder frequency change via PATCH', async () => {
+    const onPatch = vi.fn()
+    stubFetch({ onPatch })
+    renderWithProviders(<PlatformTab />)
+
+    const select = await screen.findByRole('textbox', { name: 'Backup reminder' })
+    await waitFor(() => expect(select).toHaveValue('Every 7 days'))
+    fireEvent.click(select)
+    fireEvent.click(await screen.findByText('Every 30 days'))
+
+    await waitFor(() => {
+      expect(onPatch).toHaveBeenCalledWith({ backup_reminder_days: 30 })
+    })
+  })
+
+  it('shows "Never" when there is no last backup', async () => {
+    stubFetch()
+    renderWithProviders(<PlatformTab />)
+
+    expect(await screen.findByText('Last backup: Never')).toBeInTheDocument()
+  })
+
+  it('shows a formatted date when a last backup exists', async () => {
+    stubFetch({ prefs: preferences({ last_backup_at: '2026-06-20T12:00:00+00:00' }) })
+    renderWithProviders(<PlatformTab />)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Last backup: Never')).not.toBeInTheDocument()
+      expect(screen.getByText(/^Last backup: \w/)).toBeInTheDocument()
+    })
+  })
+
+  it('disables the backup button when no directory is configured', async () => {
+    stubFetch()
+    renderWithProviders(<PlatformTab />)
+
+    const button = await screen.findByRole('button', { name: 'Back up now' })
+    await waitFor(() => expect(button).toBeDisabled())
+  })
+
+  it('runs a backup and notifies on success', async () => {
+    const showSpy = vi.spyOn(notifications, 'show')
+    const fetchMock = stubFetch({ prefs: preferences({ backup_directory: '/backups' }) })
+    renderWithProviders(<PlatformTab />)
+
+    const button = await screen.findByRole('button', { name: 'Back up now' })
+    await waitFor(() => expect(button).toBeEnabled())
+    fireEvent.click(button)
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/backup',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+    await waitFor(() => {
+      expect(showSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: `Backup saved: ${backupResult.filename}`,
+        }),
+      )
+    })
   })
 })
