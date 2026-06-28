@@ -19,30 +19,70 @@ function emotion(overrides: Partial<Emotion> = {}): Emotion {
   }
 }
 
-/** Wrap a single emotion in the grouped-endpoint shape. */
-function grouped(e: Emotion): Record<string, Emotion[]> {
-  return { [e.category]: [e] }
-}
-
 afterEach(() => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
 
 describe('EmotionsTab', () => {
-  it('lists emotions returned by the grouped API', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(grouped(emotion()))))
+  it('lists emotions in a flat table with Category and Severity columns', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => jsonResponse([emotion()])))
 
     renderWithProviders(<EmotionsTab />)
 
     expect(await screen.findByText('FOMO')).toBeInTheDocument()
     expect(screen.getByText('Fear of missing out')).toBeInTheDocument()
-    expect(screen.getByText('Emotional State')).toBeInTheDocument()
+    // Category and severity render as cell badges (the same text also exists as
+    // hidden filter-select options, so scope to the row cells).
+    expect(screen.getByRole('cell', { name: 'Emotional State' })).toBeInTheDocument()
+    expect(screen.getByRole('cell', { name: 'Bad' })).toBeInTheDocument()
+  })
+
+  describe('filters', () => {
+    function multi(): Emotion[] {
+      return [
+        emotion({ id: 1, name: 'FOMO', severity: 'Bad', category: 'Emotional State' }),
+        emotion({
+          id: 2,
+          name: 'Calm',
+          severity: 'Good',
+          category: 'Focus & Clarity',
+          description: 'Steady and composed',
+        }),
+      ]
+    }
+
+    it('narrows the list by category', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(multi())))
+      renderWithProviders(<EmotionsTab />)
+      await screen.findByText('FOMO')
+      expect(screen.getByText('Calm')).toBeInTheDocument()
+
+      // Mantine Select is a combobox; open the visible input (scoped past the
+      // hidden value input) and pick the option by role.
+      fireEvent.click(screen.getByLabelText('Category', { selector: '.mantine-Select-input' }))
+      fireEvent.click(await screen.findByRole('option', { name: 'Focus & Clarity' }))
+
+      await waitFor(() => expect(screen.queryByText('FOMO')).not.toBeInTheDocument())
+      expect(screen.getByText('Calm')).toBeInTheDocument()
+    })
+
+    it('narrows the list by severity', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(multi())))
+      renderWithProviders(<EmotionsTab />)
+      await screen.findByText('FOMO')
+
+      fireEvent.click(screen.getByLabelText('Severity', { selector: '.mantine-Select-input' }))
+      fireEvent.click(await screen.findByRole('option', { name: 'Good' }))
+
+      await waitFor(() => expect(screen.queryByText('FOMO')).not.toBeInTheDocument())
+      expect(screen.getByText('Calm')).toBeInTheDocument()
+    })
   })
 
   describe('onboarding (no emotions)', () => {
     it('shows the onboarding instead of the plain empty state when there are no emotions', async () => {
-      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({})))
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse([])))
 
       renderWithProviders(<EmotionsTab />)
 
@@ -61,7 +101,7 @@ describe('EmotionsTab', () => {
     })
 
     it('"Or start from scratch" reveals the standard empty state and the add button', async () => {
-      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({})))
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse([])))
 
       renderWithProviders(<EmotionsTab />)
       await screen.findByText('Get started with curated trading emotions')
@@ -81,7 +121,7 @@ describe('EmotionsTab', () => {
           imported = true
           return jsonResponse([emotion()])
         }
-        return jsonResponse(imported ? grouped(emotion()) : {})
+        return jsonResponse(imported ? [emotion()] : [])
       })
       vi.stubGlobal('fetch', fetchMock)
       const showSpy = vi.spyOn(notifications, 'show')
@@ -112,7 +152,7 @@ describe('EmotionsTab', () => {
         if (input.endsWith('/emotions/bulk') && init?.method === 'POST') {
           return jsonResponse(null, { ok: false, status: 500, error: 'boom' })
         }
-        return jsonResponse({})
+        return jsonResponse([])
       })
       vi.stubGlobal('fetch', fetchMock)
       const showSpy = vi.spyOn(notifications, 'show')
@@ -139,7 +179,7 @@ describe('EmotionsTab', () => {
       const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
         if (input.endsWith('/trade-count')) return jsonResponse({ trade_count: 0 })
         if (init?.method === 'DELETE') return jsonResponse(null, { status: 204 })
-        return jsonResponse(grouped(emotion()))
+        return jsonResponse([emotion()])
       })
       vi.stubGlobal('fetch', fetchMock)
 
@@ -183,7 +223,7 @@ describe('EmotionsTab', () => {
       const fetchMock = vi.fn(async (input: string, init?: RequestInit) => {
         if (input.endsWith('/trade-count')) return jsonResponse({ trade_count: 2 })
         if (init?.method === 'DELETE') return jsonResponse(null, { status: 204 })
-        return jsonResponse(grouped(emotion()))
+        return jsonResponse([emotion()])
       })
       vi.stubGlobal('fetch', fetchMock)
 

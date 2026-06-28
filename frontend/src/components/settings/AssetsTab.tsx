@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react'
-import { ActionIcon, Badge, Button, Group, Switch, Table, Text } from '@mantine/core'
+import { ActionIcon, Badge, Button, Group, Select, Switch, Table, Text, TextInput } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { assetsApi } from '@/services/referenceData'
+import { ASSET_CATEGORIES } from '@/types/referenceData'
 import type { Asset } from '@/types/referenceData'
 import { AssetModal } from './AssetModal'
 import { DataStates } from './DataStates'
 import { DeleteEntityModal } from './DeleteEntityModal'
+import { FilterEmptyState } from './FilterEmptyState'
 import { useDeleteEntity } from './useDeleteEntity'
 import { notifyError, notifySuccess } from './notify'
 
@@ -17,6 +19,10 @@ export function AssetsTab() {
   const [editing, setEditing] = useState<Asset | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [togglingId, setTogglingId] = useState<number | null>(null)
+  const [nameFilter, setNameFilter] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null)
+  const [currencyFilter, setCurrencyFilter] = useState<string | null>(null)
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
 
   const del = useDeleteEntity<Asset>({
     countFn: assetsApi.tradeCount,
@@ -54,6 +60,25 @@ export function AssetsTab() {
   }
 
   const assets = data ?? []
+  const currencies = [...new Set(assets.map((a) => a.currency).filter(Boolean))] as string[]
+  const entity = t('manage.entity_assets')
+
+  const filtered = assets.filter((asset) => {
+    if (nameFilter && !asset.name.toLowerCase().includes(nameFilter.trim().toLowerCase())) {
+      return false
+    }
+    if (categoryFilter && asset.category !== categoryFilter) return false
+    if (currencyFilter && asset.currency !== currencyFilter) return false
+    if (activeFilter && (activeFilter === 'yes') !== asset.is_active) return false
+    return true
+  })
+
+  const filtersActive =
+    nameFilter !== '' ||
+    categoryFilter !== null ||
+    currencyFilter !== null ||
+    activeFilter !== null
+  const reduced = filtersActive && filtered.length < assets.length
 
   return (
     <>
@@ -90,9 +115,58 @@ export function AssetsTab() {
                   {t('settings.assets.columns.actions')}
                 </Table.Th>
               </Table.Tr>
+              <Table.Tr>
+                <Table.Th>
+                  <TextInput
+                    size="xs"
+                    placeholder={t('manage.filter_placeholder')}
+                    value={nameFilter}
+                    onChange={(event) => setNameFilter(event.currentTarget.value)}
+                    aria-label={t('settings.assets.columns.name')}
+                  />
+                </Table.Th>
+                <Table.Th>
+                  <Select
+                    size="xs"
+                    placeholder={t('manage.filter_all')}
+                    data={[...ASSET_CATEGORIES]}
+                    value={categoryFilter}
+                    onChange={setCategoryFilter}
+                    clearable
+                    aria-label={t('settings.assets.columns.category')}
+                  />
+                </Table.Th>
+                <Table.Th>
+                  <Select
+                    size="xs"
+                    placeholder={t('manage.filter_all')}
+                    data={currencies}
+                    value={currencyFilter}
+                    onChange={setCurrencyFilter}
+                    clearable
+                    aria-label={t('settings.assets.columns.currency')}
+                  />
+                </Table.Th>
+                <Table.Th>
+                  <Select
+                    size="xs"
+                    placeholder={t('manage.filter_all')}
+                    data={[
+                      { value: 'yes', label: t('manage.filter_active_yes') },
+                      { value: 'no', label: t('manage.filter_active_no') },
+                    ]}
+                    value={activeFilter}
+                    onChange={setActiveFilter}
+                    clearable
+                    aria-label={t('settings.assets.columns.active')}
+                  />
+                </Table.Th>
+                <Table.Th />
+              </Table.Tr>
             </Table.Thead>
+            {filtered.length > 0 && (
             <Table.Tbody>
-              {assets.map((asset) => (
+              {filtered.map((asset) => (
                 <Table.Tr key={asset.id}>
                   <Table.Td>
                     <Text c={asset.is_active ? undefined : 'dimmed'}>{asset.name}</Text>
@@ -138,8 +212,21 @@ export function AssetsTab() {
                 </Table.Tr>
               ))}
             </Table.Tbody>
+            )}
           </Table>
         </Table.ScrollContainer>
+
+        {filtered.length === 0 && <FilterEmptyState />}
+
+        {reduced && filtered.length > 0 && (
+          <Text c="dimmed" size="sm" mt="sm">
+            {t('manage.showing_count', {
+              count: filtered.length,
+              total: assets.length,
+              entity,
+            })}
+          </Text>
+        )}
       </DataStates>
 
       <AssetModal

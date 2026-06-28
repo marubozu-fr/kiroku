@@ -8,12 +8,7 @@ describe('ManagePage', () => {
     // Default: every endpoint returns an empty collection.
     vi.stubGlobal(
       'fetch',
-      vi.fn(async (input: string) => {
-        if (input.includes('/emotions/grouped')) {
-          return jsonResponse({})
-        }
-        return jsonResponse([])
-      }),
+      vi.fn(async () => jsonResponse([])),
     )
   })
 
@@ -40,7 +35,7 @@ describe('ManagePage', () => {
     )
   })
 
-  it('switches to the Emotions tab and loads grouped data', async () => {
+  it('switches to the Emotions tab and loads the emotion list', async () => {
     renderWithProviders(<ManagePage />)
 
     fireEvent.click(screen.getByRole('tab', { name: 'Emotions' }))
@@ -51,10 +46,7 @@ describe('ManagePage', () => {
       await screen.findByText('Get started with curated trading emotions'),
     ).toBeInTheDocument()
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledWith(
-        '/api/emotions/grouped',
-        expect.anything(),
-      )
+      expect(fetch).toHaveBeenCalledWith('/api/emotions', expect.anything())
     })
   })
 })

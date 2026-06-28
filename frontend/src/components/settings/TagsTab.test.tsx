@@ -30,6 +30,45 @@ describe('TagsTab', () => {
     expect(screen.getByText('Price breaks a key level')).toBeInTheDocument()
   })
 
+  describe('column filters', () => {
+    const many = [
+      tag({ id: 1, name: 'Breakout', description: 'Price breaks a key level' }),
+      tag({ id: 2, name: 'Reversal', description: 'Trend changes direction' }),
+    ]
+
+    it('renders the name and description filter inputs', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(many)))
+      renderWithProviders(<TagsTab />)
+      await screen.findByText('Breakout')
+
+      expect(screen.getByLabelText('Name')).toBeInTheDocument()
+      expect(screen.getByLabelText('Description')).toBeInTheDocument()
+    })
+
+    it('filters by name (case-insensitive substring)', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(many)))
+      renderWithProviders(<TagsTab />)
+      await screen.findByText('Breakout')
+
+      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'rever' } })
+
+      await waitFor(() => expect(screen.queryByText('Breakout')).not.toBeInTheDocument())
+      expect(screen.getByText('Reversal')).toBeInTheDocument()
+      expect(screen.getByText('Showing 1 of 2 tags')).toBeInTheDocument()
+    })
+
+    it('filters by description', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(many)))
+      renderWithProviders(<TagsTab />)
+      await screen.findByText('Breakout')
+
+      fireEvent.change(screen.getByLabelText('Description'), { target: { value: 'key level' } })
+
+      await waitFor(() => expect(screen.queryByText('Reversal')).not.toBeInTheDocument())
+      expect(screen.getByText('Breakout')).toBeInTheDocument()
+    })
+  })
+
   it('shows the empty state when there are no tags', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse([])))
 
