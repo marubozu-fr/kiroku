@@ -986,7 +986,7 @@ export function TradeFormPage() {
                     <NumberInput
                       aria-label={t('trade.form.fields.chart_timeframes_placeholder')}
                       placeholder={t('trade.form.fields.chart_timeframes_placeholder')}
-                      min={0}
+                      min={1}
                       allowDecimal={false}
                       value={addTfValue}
                       onChange={setAddTfValue}
