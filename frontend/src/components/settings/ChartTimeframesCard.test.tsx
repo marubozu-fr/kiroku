@@ -87,7 +87,7 @@ describe('ChartTimeframesCard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
 
     expect(await screen.findByText('5m')).toBeInTheDocument()
-    expect(screen.getByText('1 timeframes')).toBeInTheDocument()
+    expect(screen.getByText('1 timeframe')).toBeInTheDocument()
   })
 
   it('rejects a duplicate timeframe with an inline error', async () => {

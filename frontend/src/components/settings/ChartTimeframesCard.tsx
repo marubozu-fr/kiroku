@@ -17,12 +17,12 @@ import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { preferencesApi } from '@/services/preferences'
 import type { ChartTimeframe } from '@/types/preferences'
-import { notifyError, notifySuccess } from './notify'
 import {
   TIMEFRAME_UNITS,
   formatTimeframe,
   sortTimeframes,
-} from './timeframes'
+} from '@/utils/timeframes'
+import { notifyError, notifySuccess } from './notify'
 
 /** Default chart timeframes + default entry timeframe (issues #234, #237). */
 export function ChartTimeframesCard() {
