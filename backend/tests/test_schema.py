@@ -340,6 +340,118 @@ def test_migration_adds_massive_api_key(
   assert value == ""
 
 
+def test_migration_adds_chart_timeframe_columns(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  # A legacy user_preferences table created before the chart-timeframe columns
+  # (issue #235) must gain all three on migration, with chart_timeframes_default
+  # back-filled to '[]' and the entry-timeframe pair defaulting to NULL.
+  db_path = tmp_path / "kiroku.db"
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+
+  connection = sqlite3.connect(db_path)
+  # A current trades table (no timeframe_unit) so the trades migrations are no-ops.
+  connection.execute(
+    "CREATE TABLE trades (id INTEGER PRIMARY KEY, status TEXT NOT NULL, "
+    "account_type TEXT NOT NULL DEFAULT 'live')"
+  )
+  connection.execute(
+    "CREATE TABLE user_preferences ("
+    "id INTEGER PRIMARY KEY CHECK (id = 1), "
+    "risk_per_trade_default REAL NOT NULL DEFAULT 1.0)"
+  )
+  connection.execute("INSERT INTO user_preferences (id) VALUES (1)")
+  connection.commit()
+  connection.close()
+
+  asyncio.run(apply_migrations())
+  # Idempotent: a second run must not raise on the now-current table.
+  asyncio.run(apply_migrations())
+
+  connection = sqlite3.connect(db_path)
+  columns = {
+    row[1] for row in connection.execute("PRAGMA table_info(user_preferences)").fetchall()
+  }
+  row = connection.execute(
+    "SELECT chart_timeframes_default, entry_timeframe_unit_default, "
+    "entry_timeframe_value_default FROM user_preferences WHERE id = 1"
+  ).fetchone()
+  connection.close()
+
+  assert {
+    "chart_timeframes_default",
+    "entry_timeframe_unit_default",
+    "entry_timeframe_value_default",
+  } <= columns
+  # chart_timeframes_default back-fills to the NOT NULL DEFAULT '[]'.
+  assert row[0] == "[]"
+  # entry-timeframe pair defaults to NULL (nullable columns).
+  assert row[1] is None
+  assert row[2] is None
+
+
+def test_migration_normalises_timeframe_unit_casing(
+  tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+  # Legacy trades and trade_screenshots rows with lowercase 'd' or 'w'
+  # timeframe units must be migrated to 'D'/'W' (TradingView casing, issue
+  # #235). Lowercase 'm' and 'h' must be left untouched. Idempotent.
+  db_path = tmp_path / "kiroku.db"
+  monkeypatch.setattr(database, "DB_PATH", db_path)
+
+  connection = sqlite3.connect(db_path)
+  connection.execute(
+    "CREATE TABLE trades ("
+    "id INTEGER PRIMARY KEY, status TEXT NOT NULL, "
+    "account_type TEXT NOT NULL DEFAULT 'live', "
+    "timeframe_unit TEXT, timeframe_value INTEGER)"
+  )
+  connection.execute(
+    "CREATE TABLE trade_screenshots ("
+    "id INTEGER PRIMARY KEY, trade_id INTEGER, filename TEXT, "
+    "timeframe_unit TEXT, timeframe_value INTEGER, created_at TEXT)"
+  )
+  connection.executemany(
+    "INSERT INTO trades (id, status, timeframe_unit) VALUES (?, 'closed', ?)",
+    [(1, "d"), (2, "w"), (3, "m"), (4, "h"), (5, None)],
+  )
+  connection.executemany(
+    "INSERT INTO trade_screenshots (id, trade_id, filename, timeframe_unit) "
+    "VALUES (?, ?, 'a.png', ?)",
+    [(1, 1, "d"), (2, 2, "w"), (3, 3, "h")],
+  )
+  connection.commit()
+  connection.close()
+
+  asyncio.run(apply_migrations())
+  # Idempotent: re-migrated rows have no 'd'/'w' left so the second run is a
+  # no-op and must not raise.
+  asyncio.run(apply_migrations())
+
+  connection = sqlite3.connect(db_path)
+  trade_units = {
+    row[0]: row[1]
+    for row in connection.execute("SELECT id, timeframe_unit FROM trades").fetchall()
+  }
+  screenshot_units = {
+    row[0]: row[1]
+    for row in connection.execute(
+      "SELECT id, timeframe_unit FROM trade_screenshots"
+    ).fetchall()
+  }
+  connection.close()
+
+  # Lowercase 'd' → 'D', 'w' → 'W'; 'm' and 'h' are untouched; NULL stays NULL.
+  assert trade_units[1] == "D"
+  assert trade_units[2] == "W"
+  assert trade_units[3] == "m"
+  assert trade_units[4] == "h"
+  assert trade_units[5] is None
+  assert screenshot_units[1] == "D"
+  assert screenshot_units[2] == "W"
+  assert screenshot_units[3] == "h"
+
+
 def test_pool_enforces_foreign_keys(
   tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

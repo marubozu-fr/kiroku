@@ -15,6 +15,9 @@ WRITABLE_COLUMNS = (
   "backup_directory",
   "backup_reminder_days",
   "massive_api_key",
+  "chart_timeframes_default",
+  "entry_timeframe_unit_default",
+  "entry_timeframe_value_default",
 )
 
 # Single-user app: preferences live in exactly one row, enforced by the
@@ -34,15 +37,18 @@ async def get() -> dict[str, Any]:
   assert row is not None
   preferences = dict(row)
   preferences["news_currencies"] = json.loads(preferences["news_currencies"])
+  preferences["chart_timeframes_default"] = json.loads(preferences["chart_timeframes_default"])
   return preferences
 
 
 async def update(fields: dict[str, Any]) -> None:
   """Update the given writable columns of the preferences row."""
   values: dict[str, Any] = {**fields, "id": PREFERENCES_ID}
-  # SQLite has no array type: persist the currency list as a JSON array string.
+  # SQLite has no array type: persist the currency and timeframes lists as JSON.
   if "news_currencies" in values:
     values["news_currencies"] = json.dumps(values["news_currencies"])
+  if "chart_timeframes_default" in values:
+    values["chart_timeframes_default"] = json.dumps(values["chart_timeframes_default"])
   set_clause = ", ".join(f"{column} = :{column}" for column in fields)
   query = f"UPDATE user_preferences SET {set_clause} WHERE id = :id"
   await database.execute(query, values)

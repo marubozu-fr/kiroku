@@ -140,6 +140,51 @@ async def apply_migrations() -> None:
           "ALTER TABLE user_preferences ADD COLUMN massive_api_key TEXT NOT NULL DEFAULT ''"
         )
 
+      # chart timeframes preferences (issue #235): per-user ordered list of
+      # chart timeframes and optional entry-timeframe defaults. The list is
+      # serialised as a JSON array (like news_currencies). The entry-timeframe
+      # pair defaults to NULL (no override). NOT NULL DEFAULT '[]' back-fills
+      # the array column so existing rows return an empty list without a null
+      # guard in application code.
+      if "chart_timeframes_default" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN chart_timeframes_default TEXT NOT NULL DEFAULT '[]'"
+        )
+      if "entry_timeframe_unit_default" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN entry_timeframe_unit_default TEXT"
+        )
+      if "entry_timeframe_value_default" not in preference_columns:
+        await connection.execute(
+          "ALTER TABLE user_preferences ADD COLUMN entry_timeframe_value_default INTEGER"
+        )
+
+    # Normalise timeframe unit casing to TradingView convention (issue #235):
+    # 'd' → 'D' (day) and 'w' → 'W' (week). Lowercase 'm' and 'h' are already
+    # correct. These UPDATEs are idempotent: after the first run no rows match
+    # the WHERE clause, so subsequent runs are no-ops.
+    if "timeframe_unit" in columns:
+      await connection.execute(
+        "UPDATE trades SET timeframe_unit = 'D' WHERE timeframe_unit = 'd'"
+      )
+      await connection.execute(
+        "UPDATE trades SET timeframe_unit = 'W' WHERE timeframe_unit = 'w'"
+      )
+
+    cursor = await connection.execute(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'trade_screenshots'"
+    )
+    if await cursor.fetchone() is not None:
+      cursor = await connection.execute("PRAGMA table_info(trade_screenshots)")
+      screenshot_columns = {row[1] for row in await cursor.fetchall()}
+      if "timeframe_unit" in screenshot_columns:
+        await connection.execute(
+          "UPDATE trade_screenshots SET timeframe_unit = 'D' WHERE timeframe_unit = 'd'"
+        )
+        await connection.execute(
+          "UPDATE trade_screenshots SET timeframe_unit = 'W' WHERE timeframe_unit = 'w'"
+        )
+
     await connection.commit()
 
 
