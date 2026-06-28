@@ -28,6 +28,7 @@ import { backupApi } from '@/services/backup'
 import { massiveApi } from '@/services/massive'
 import { preferencesApi } from '@/services/preferences'
 import type { BackupMetadata } from '@/types/backup'
+import { ChartTimeframesCard } from './ChartTimeframesCard'
 import { notifyError, notifySuccess, notifyWarning } from './notify'
 
 /** Massive sign-up page linked beneath the API key field. */
@@ -296,6 +297,8 @@ export function GeneralTab() {
           </Group>
         </Stack>
       </Card>
+
+      <ChartTimeframesCard />
 
       <Card withBorder padding="md" radius="md">
         <Stack gap="md">

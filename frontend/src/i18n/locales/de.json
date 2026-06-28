@@ -405,6 +405,25 @@
       "massive_api_key_invalid": "API-Schlüssel konnte nicht verifiziert werden — bitte prüfen und erneut versuchen",
       "save_error": "Änderungen konnten nicht gespeichert werden"
     },
+    "chart_timeframes": {
+      "title": "Chart-Timeframes",
+      "entry_default_label": "Standard-Einstiegs-Timeframe",
+      "entry_default_description": "Füllt den Einstiegs-Timeframe beim Erstellen eines neuen Trades vor.",
+      "chart_default_label": "Standard-Chart-Timeframes",
+      "chart_default_description": "Werden standardmäßig in jedem Trade-Chart angezeigt. Nach Belieben hinzufügen oder entfernen.",
+      "value_placeholder": "Wert",
+      "add_timeframe": "Hinzufügen",
+      "warning_too_many": "Das Laden der Charts kann mit mehr als {{count}} Timeframes langsamer sein",
+      "error_duplicate": "Dieser Timeframe ist bereits in der Liste",
+      "entry_incomplete": "Geben Sie einen Wert und eine Einheit ein oder lassen Sie beide leer.",
+      "empty": "Keine Standard-Timeframes konfiguriert. Nur der Einstiegs-Timeframe erscheint in den Charts.",
+      "count_one": "{{count}} Timeframe",
+      "count_other": "{{count}} Timeframes",
+      "remove_aria": "{{timeframe}} entfernen",
+      "save_aria": "Standard-Timeframes speichern",
+      "saved": "Standard-Timeframes gespeichert",
+      "save_error": "Standard-Timeframes konnten nicht gespeichert werden"
+    },
     "data_states": {
       "load_error": "Daten konnten nicht geladen werden"
     },
@@ -737,8 +756,8 @@
       "timeframe_units": {
         "m": "Minuten",
         "h": "Stunden",
-        "d": "Tage",
-        "w": "Wochen"
+        "D": "Tage",
+        "W": "Wochen"
       },
       "validation": {
         "asset_required": "Asset ist erforderlich",

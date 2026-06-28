@@ -405,6 +405,25 @@
       "massive_api_key_invalid": "Could not verify the API key — check it and try again",
       "save_error": "Could not save your changes"
     },
+    "chart_timeframes": {
+      "title": "Chart Timeframes",
+      "entry_default_label": "Default entry timeframe",
+      "entry_default_description": "Pre-fills the entry timeframe when you create a new trade.",
+      "chart_default_label": "Default chart timeframes",
+      "chart_default_description": "Shown by default on every trade chart. Add or remove as you like.",
+      "value_placeholder": "Value",
+      "add_timeframe": "Add",
+      "warning_too_many": "Chart loading may be slower with more than {{count}} timeframes",
+      "error_duplicate": "This timeframe is already in the list",
+      "entry_incomplete": "Enter both a value and a unit, or leave both empty.",
+      "empty": "No default timeframes configured. Only the entry timeframe will appear on charts.",
+      "count_one": "{{count}} timeframe",
+      "count_other": "{{count}} timeframes",
+      "remove_aria": "Remove {{timeframe}}",
+      "save_aria": "Save timeframe defaults",
+      "saved": "Timeframe defaults saved",
+      "save_error": "Could not save your timeframe defaults"
+    },
     "data_states": {
       "load_error": "Could not load data"
     },
@@ -737,8 +756,8 @@
       "timeframe_units": {
         "m": "Minutes",
         "h": "Hours",
-        "d": "Days",
-        "w": "Weeks"
+        "D": "Days",
+        "W": "Weeks"
       },
       "validation": {
         "asset_required": "Asset is required",
