@@ -634,6 +634,20 @@
       "destructive_warning": "This will replace all current data. This action cannot be undone.",
       "confirm": "Restore",
       "notify_error": "Restore failed"
+    },
+    "tabs": {
+      "platform": "Platform",
+      "charts": "Charts"
+    },
+    "platform": {
+      "appearance_title": "Appearance",
+      "theme_label": "Theme",
+      "theme_description": "Also available from the header toggle.",
+      "theme_dark": "Dark",
+      "theme_light": "Light"
+    },
+    "charts": {
+      "data_provider_title": "Data Provider"
     }
   },
   "manage": {

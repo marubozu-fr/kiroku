@@ -634,6 +634,20 @@
       "destructive_warning": "Dadurch werden alle aktuellen Daten ersetzt. Diese Aktion kann nicht rückgängig gemacht werden.",
       "confirm": "Wiederherstellen",
       "notify_error": "Wiederherstellung fehlgeschlagen"
+    },
+    "tabs": {
+      "platform": "Plattform",
+      "charts": "Charts"
+    },
+    "platform": {
+      "appearance_title": "Darstellung",
+      "theme_label": "Design",
+      "theme_description": "Auch über die Kopfzeilen-Schaltfläche verfügbar.",
+      "theme_dark": "Dunkel",
+      "theme_light": "Hell"
+    },
+    "charts": {
+      "data_provider_title": "Datenanbieter"
     }
   },
   "manage": {

@@ -634,6 +634,20 @@
       "destructive_warning": "Esto reemplazará todos los datos actuales. Esta acción no se puede deshacer.",
       "confirm": "Restaurar",
       "notify_error": "Error al restaurar"
+    },
+    "tabs": {
+      "platform": "Plataforma",
+      "charts": "Gráficos"
+    },
+    "platform": {
+      "appearance_title": "Apariencia",
+      "theme_label": "Tema",
+      "theme_description": "También disponible desde el botón de la cabecera.",
+      "theme_dark": "Oscuro",
+      "theme_light": "Claro"
+    },
+    "charts": {
+      "data_provider_title": "Proveedor de datos"
     }
   },
   "manage": {

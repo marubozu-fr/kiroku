@@ -634,6 +634,20 @@
       "destructive_warning": "Questo sostituirà tutti i dati attuali. Questa azione non può essere annullata.",
       "confirm": "Ripristina",
       "notify_error": "Ripristino non riuscito"
+    },
+    "tabs": {
+      "platform": "Piattaforma",
+      "charts": "Grafici"
+    },
+    "platform": {
+      "appearance_title": "Aspetto",
+      "theme_label": "Tema",
+      "theme_description": "Disponibile anche dal pulsante nell'intestazione.",
+      "theme_dark": "Scuro",
+      "theme_light": "Chiaro"
+    },
+    "charts": {
+      "data_provider_title": "Fornitore di dati"
     }
   },
   "manage": {

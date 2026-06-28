@@ -634,6 +634,20 @@
       "destructive_warning": "Cela remplacera toutes les données actuelles. Cette action est irréversible.",
       "confirm": "Restaurer",
       "notify_error": "Échec de la restauration"
+    },
+    "tabs": {
+      "platform": "Plateforme",
+      "charts": "Graphiques"
+    },
+    "platform": {
+      "appearance_title": "Apparence",
+      "theme_label": "Thème",
+      "theme_description": "Également disponible depuis le bouton de l'en-tête.",
+      "theme_dark": "Sombre",
+      "theme_light": "Clair"
+    },
+    "charts": {
+      "data_provider_title": "Fournisseur de données"
     }
   },
   "manage": {
