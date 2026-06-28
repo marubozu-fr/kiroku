@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Manage · Tags &amp; Emotions (column filters)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #246 — Manage page · TAGS tab with column-level filters (+ the EMOTIONS
+    tab filter combination, which has no dedicated deliverable file).
+    Design-only mockup; maps 1:1 to Mantine (see README.md).
+
+    TAGS filter row (always visible, below the header row):
+      • Name        → TextInput size="xs", placeholder "Filter..."
+      • Description → TextInput size="xs", placeholder "Filter..."
+      • Actions     → no filter
+    EMOTIONS filter row:
+      • Name     → TextInput size="xs", placeholder "Filter..."
+      • Category → Select size="xs", placeholder "All", options = EMOTION_CATEGORIES
+      (Description + Severity + Actions: no filter — only Name & Category per issue)
+
+    Panels preview the required states:
+      A) Desktop · Dark  · Tags populated
+      B) Desktop · Dark  · Tags filtered (Name="break")
+      C) Desktop · Dark  · Emotions populated (Name + Category filters)
+      D) Mobile  · Light · Tags populated (responsive, phone frame)
+  -->
+  <div class="preview-page">
+    <h1>Manage → Tags &amp; Emotions · column filters</h1>
+    <p class="lede">
+      The Tags table gains a <strong>Name</strong> and <strong>Description</strong>
+      text filter; the Emotions table gains a <strong>Name</strong> text filter
+      and a <strong>Category</strong> Select (options from
+      <code>EMOTION_CATEGORIES</code>). All controls are <code>size="xs"</code>,
+      always visible, and filter the already-loaded list client-side. Emotions
+      keeps its category grouping; the filter row sits in each group&rsquo;s
+      header. See <code>README.md</code>.
+    </p>
+
+    <div class="preview-grid">
+
+      <!-- ============================================================== -->
+      <!-- A) Desktop · Dark · Tags populated                              -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">A · Desktop · Dark · Tags populated</div>
+        <div class="preview-body">
+          <div class="tabs">
+            <div class="tabs-list">
+              <button class="tab">Assets</button>
+              <button class="tab active">Tags</button>
+              <button class="tab">Emotions</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Tags</h4>
+              <button class="btn filled sm">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add tag
+              </button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Description</th><th class="right">Actions</th>
+                  </tr>
+                  <tr class="filter-row">
+                    <th><input class="input-xs" type="text" placeholder="Filter..." /></th>
+                    <th><input class="input-xs" type="text" placeholder="Filter..." /></th>
+                    <th class="no-filter"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><span class="badge tag">breakout</span></td><td>Price clears a key level on volume</td><td class="right"><span class="icon-btn">✎</span> <span class="icon-btn">🗑</span></td></tr>
+                  <tr><td><span class="badge tag">pullback</span></td><td>Entry on a retrace to support</td><td class="right"><span class="icon-btn">✎</span> <span class="icon-btn">🗑</span></td></tr>
+                  <tr><td><span class="badge tag">news</span></td><td>Driven by a scheduled news event</td><td class="right"><span class="icon-btn">✎</span> <span class="icon-btn">🗑</span></td></tr>
+                  <tr><td><span class="badge tag">scalp</span></td><td class="neutral">—</td><td class="right"><span class="icon-btn">✎</span> <span class="icon-btn">🗑</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- B) Desktop · Dark · Tags filtered (Name="break")               -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">B · Desktop · Dark · Tags filtered (Name)</div>
+        <div class="preview-body">
+          <div class="card">
+            <div class="card-header"><h4 class="card-title">Tags</h4></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Description</th><th class="right">Actions</th>
+                  </tr>
+                  <tr class="filter-row">
+                    <th><input class="input-xs" type="text" value="break" /></th>
+                    <th><input class="input-xs" type="text" placeholder="Filter..." /></th>
+                    <th class="no-filter"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><span class="badge tag">breakout</span></td><td>Price clears a key level on volume</td><td class="right"><span class="icon-btn">✎</span> <span class="icon-btn">🗑</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="last-backup" style="margin-top:var(--sp-sm)">Showing <span class="when">1</span> of 4 tags</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- C) Desktop · Dark · Emotions populated (Name + Category)        -->
+      <!-- ============================================================== -->
+      <div class="preview-col span-all">
+        <div class="preview-label">C · Desktop · Dark · Emotions populated (Name + Category filters)</div>
+        <div class="preview-body">
+          <div class="tabs">
+            <div class="tabs-list">
+              <button class="tab">Assets</button>
+              <button class="tab">Tags</button>
+              <button class="tab active">Emotions</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Emotions</h4>
+              <button class="btn filled sm">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add emotion
+              </button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Category</th><th>Description</th><th>Severity</th><th class="right">Actions</th>
+                  </tr>
+                  <tr class="filter-row">
+                    <th><input class="input-xs" type="text" placeholder="Filter..." /></th>
+                    <th>
+                      <select class="input-xs"><option selected>All</option><option>Emotional State</option><option>Mental Triggers</option><option>Focus &amp; Clarity</option><option>Execution Confidence</option><option>Why This Trade?</option></select>
+                    </th>
+                    <th class="no-filter"></th>
+                    <th class="no-filter"></th>
+                    <th class="no-filter"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>FOMO</td><td><span class="badge emotion">Mental Triggers</span></td><td>Chasing a move already underway</td><td><span class="badge breakeven">Bad</span></td><td class="right"><span class="icon-btn">✎</span> <span class="icon-btn">🗑</span></td></tr>
+                  <tr><td>Calm</td><td><span class="badge emotion">Emotional State</span></td><td>Relaxed, following the plan</td><td><span class="badge open">Good</span></td><td class="right"><span class="icon-btn">✎</span> <span class="icon-btn">🗑</span></td></tr>
+                  <tr><td>Revenge</td><td><span class="badge emotion">Mental Triggers</span></td><td>Trading to win back a loss</td><td><span class="badge breakeven">Bad</span></td><td class="right"><span class="icon-btn">✎</span> <span class="icon-btn">🗑</span></td></tr>
+                  <tr><td>Focused</td><td><span class="badge emotion">Focus &amp; Clarity</span></td><td>Fully present at the screen</td><td><span class="badge open">Good</span></td><td class="right"><span class="icon-btn">✎</span> <span class="icon-btn">🗑</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- D) Mobile · Light · Tags populated (responsive)                -->
+      <!-- ============================================================== -->
+      <div class="preview-col theme-light span-all">
+        <div class="preview-label">D · Mobile · Light · Tags populated</div>
+        <div class="preview-body preview-phone">
+          <div class="phone-frame">
+            <div class="page-header" style="margin-bottom:var(--sp-md)">
+              <div>
+                <h1 class="page-title" style="font-size:18px">Manage</h1>
+                <p class="page-subtitle">Manage your assets, tags and emotions.</p>
+              </div>
+            </div>
+            <div class="tabs">
+              <div class="tabs-list">
+                <button class="tab">Assets</button>
+                <button class="tab active">Tags</button>
+                <button class="tab">Emotions</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr><th>Name</th><th>Description</th><th class="right">Actions</th></tr>
+                    <tr class="filter-row">
+                      <th><input class="input-xs" type="text" placeholder="Filter..." /></th>
+                      <th><input class="input-xs" type="text" placeholder="Filter..." /></th>
+                      <th class="no-filter"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td><span class="badge tag">breakout</span></td><td>Clears a key level</td><td class="right"><span class="icon-btn">✎</span></td></tr>
+                    <tr><td><span class="badge tag">pullback</span></td><td>Retrace to support</td><td class="right"><span class="icon-btn">✎</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

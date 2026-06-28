@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Manage · Assets (column filters)</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #246 — Manage page · ASSETS tab with column-level filters.
+    Design-only mockup; maps 1:1 to Mantine (see README.md). The Assets table is
+    the SAME table as the current Settings → Assets tab, now living on /manage,
+    with a persistent filter row directly below the header row:
+      • Name     → TextInput size="xs", placeholder "Filter..."
+      • Category → Select size="xs", placeholder "All", options = ASSET_CATEGORIES
+      • Currency → Select size="xs", placeholder "All"
+      • Active   → Select size="xs", placeholder "All" (Yes / No)
+      • Actions  → no filter (empty cell)
+    Panels preview the required states:
+      A) Desktop · Dark  · populated (no filter applied)
+      B) Desktop · Dark  · filtered (Category=Forex, Active=Yes → narrowed rows)
+      C) Desktop · Light · populated (theme parity)
+      D) Desktop · Dark  · empty (filters match nothing → helpful empty state)
+  -->
+  <div class="preview-page">
+    <h1>Manage → Assets · column filters</h1>
+    <p class="lede">
+      The Assets table moves from Settings to the new <strong>Manage</strong>
+      page and gains a always-visible <strong>filter row</strong> under the
+      header: a <em>Name</em> TextInput plus <em>Category</em>,
+      <em>Currency</em> and <em>Active</em> Selects, all <code>size="xs"</code>.
+      Text inputs read &ldquo;Filter…&rdquo;, selects read &ldquo;All&rdquo;.
+      Filtering is client-side over the already-loaded list. See
+      <code>README.md</code>.
+    </p>
+
+    <div class="preview-grid">
+
+      <!-- ============================================================== -->
+      <!-- A) Desktop · Dark · populated (no filter)                       -->
+      <!-- ============================================================== -->
+      <div class="preview-col span-all">
+        <div class="preview-label">A · Desktop · Dark · Populated (no filter)</div>
+        <div class="preview-body">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Manage</h1>
+              <p class="page-subtitle">Manage your assets, tags and emotions.</p>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <div class="tabs-list">
+              <button class="tab active">Assets</button>
+              <button class="tab">Tags</button>
+              <button class="tab">Emotions</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Assets</h4>
+              <button class="btn filled sm">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                Add asset
+              </button>
+            </div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Currency</th>
+                    <th>Active</th>
+                    <th class="right">Actions</th>
+                  </tr>
+                  <tr class="filter-row">
+                    <th><input class="input-xs" type="text" placeholder="Filter..." /></th>
+                    <th>
+                      <select class="input-xs"><option selected>All</option><option>Forex</option><option>Crypto</option><option>Stock</option><option>ETF</option><option>Indices</option><option>Futures</option></select>
+                    </th>
+                    <th>
+                      <select class="input-xs"><option selected>All</option><option>USD</option><option>EUR</option><option>GBP</option><option>JPY</option></select>
+                    </th>
+                    <th>
+                      <select class="input-xs"><option selected>All</option><option>Yes</option><option>No</option></select>
+                    </th>
+                    <th class="no-filter"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>EUR/USD</td>
+                    <td><span class="badge closed">Forex</span></td>
+                    <td class="mono">USD</td>
+                    <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                    <td class="right"><span class="icon-btn" title="Edit">✎</span> <span class="icon-btn" title="Delete">🗑</span></td>
+                  </tr>
+                  <tr>
+                    <td>BTC/USD</td>
+                    <td><span class="badge closed">Crypto</span></td>
+                    <td class="mono">USD</td>
+                    <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                    <td class="right"><span class="icon-btn" title="Edit">✎</span> <span class="icon-btn" title="Delete">🗑</span></td>
+                  </tr>
+                  <tr>
+                    <td>AAPL</td>
+                    <td><span class="badge closed">Stock</span></td>
+                    <td class="mono">USD</td>
+                    <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                    <td class="right"><span class="icon-btn" title="Edit">✎</span> <span class="icon-btn" title="Delete">🗑</span></td>
+                  </tr>
+                  <tr>
+                    <td>GBP/JPY</td>
+                    <td><span class="badge closed">Forex</span></td>
+                    <td class="mono">JPY</td>
+                    <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                    <td class="right"><span class="icon-btn" title="Edit">✎</span> <span class="icon-btn" title="Delete">🗑</span></td>
+                  </tr>
+                  <tr>
+                    <td class="neutral">SPX500</td>
+                    <td><span class="badge closed">Indices</span></td>
+                    <td class="mono">USD</td>
+                    <td><span class="switch"><span class="track"><span class="knob"></span></span></span></td>
+                    <td class="right"><span class="icon-btn" title="Edit">✎</span> <span class="icon-btn" title="Delete">🗑</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- B) Desktop · Dark · filtered (Category=Forex, Active=Yes)       -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">B · Desktop · Dark · Filtered (Forex · Active)</div>
+        <div class="preview-body">
+          <div class="card">
+            <div class="card-header"><h4 class="card-title">Assets</h4></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Category</th><th>Currency</th><th>Active</th><th class="right">Actions</th>
+                  </tr>
+                  <tr class="filter-row">
+                    <th><input class="input-xs" type="text" placeholder="Filter..." /></th>
+                    <th><select class="input-xs"><option>All</option><option selected>Forex</option><option>Crypto</option><option>Stock</option></select></th>
+                    <th><select class="input-xs"><option selected>All</option><option>USD</option><option>EUR</option><option>JPY</option></select></th>
+                    <th><select class="input-xs"><option>All</option><option selected>Yes</option><option>No</option></select></th>
+                    <th class="no-filter"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>EUR/USD</td>
+                    <td><span class="badge closed">Forex</span></td>
+                    <td class="mono">USD</td>
+                    <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                    <td class="right"><span class="icon-btn" title="Edit">✎</span> <span class="icon-btn" title="Delete">🗑</span></td>
+                  </tr>
+                  <tr>
+                    <td>GBP/JPY</td>
+                    <td><span class="badge closed">Forex</span></td>
+                    <td class="mono">JPY</td>
+                    <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                    <td class="right"><span class="icon-btn" title="Edit">✎</span> <span class="icon-btn" title="Delete">🗑</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="last-backup" style="margin-top:var(--sp-sm)">Showing <span class="when">2</span> of 5 assets</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- C) Desktop · Light · populated (theme parity)                  -->
+      <!-- ============================================================== -->
+      <div class="preview-col theme-light">
+        <div class="preview-label">C · Desktop · Light · Populated</div>
+        <div class="preview-body">
+          <div class="card">
+            <div class="card-header"><h4 class="card-title">Assets</h4></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Category</th><th>Currency</th><th>Active</th><th class="right">Actions</th>
+                  </tr>
+                  <tr class="filter-row">
+                    <th><input class="input-xs" type="text" placeholder="Filter..." /></th>
+                    <th><select class="input-xs"><option selected>All</option><option>Forex</option><option>Crypto</option></select></th>
+                    <th><select class="input-xs"><option selected>All</option><option>USD</option><option>EUR</option></select></th>
+                    <th><select class="input-xs"><option selected>All</option><option>Yes</option><option>No</option></select></th>
+                    <th class="no-filter"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>EUR/USD</td>
+                    <td><span class="badge closed">Forex</span></td>
+                    <td class="mono">USD</td>
+                    <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                    <td class="right"><span class="icon-btn" title="Edit">✎</span> <span class="icon-btn" title="Delete">🗑</span></td>
+                  </tr>
+                  <tr>
+                    <td>BTC/USD</td>
+                    <td><span class="badge closed">Crypto</span></td>
+                    <td class="mono">USD</td>
+                    <td><span class="switch on"><span class="track"><span class="knob"></span></span></span></td>
+                    <td class="right"><span class="icon-btn" title="Edit">✎</span> <span class="icon-btn" title="Delete">🗑</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- D) Desktop · Dark · empty (filters match nothing)              -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">D · Desktop · Dark · No match</div>
+        <div class="preview-body">
+          <div class="card">
+            <div class="card-header"><h4 class="card-title">Assets</h4></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Category</th><th>Currency</th><th>Active</th><th class="right">Actions</th>
+                  </tr>
+                  <tr class="filter-row">
+                    <th><input class="input-xs" type="text" value="xyz" /></th>
+                    <th><select class="input-xs"><option selected>All</option><option>Forex</option></select></th>
+                    <th><select class="input-xs"><option selected>All</option><option>USD</option></select></th>
+                    <th><select class="input-xs"><option selected>All</option><option>Yes</option><option>No</option></select></th>
+                    <th class="no-filter"></th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+            <div class="empty-state">
+              <div class="icon">
+                <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg>
+              </div>
+              <div class="title">No matching assets</div>
+              <div class="desc">No assets match the current filters. Clear a filter to see more.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

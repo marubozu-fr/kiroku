@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Settings · Platform tab</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #246 — Settings page refactor · PLATFORM tab.
+    Design-only mockup; maps 1:1 to Mantine (see README.md). The old 4-tab
+    Settings (General / Assets / Tags / Emotions / News) is replaced by a 2-tab
+    layout: PLATFORM and CHARTS. Assets/Tags/Emotions move to /manage.
+
+    PLATFORM tab holds the non-chart preferences as peer Cards:
+      • Appearance — Language Select + Theme Select (dark/light). The theme
+        Select is a SECOND access point; the header toggle stays.
+      • Backup — backup directory TextInput + "Save path" button + reminder
+        Select + "Backup now" + last-backup line; Restore is a subsection
+        (Dropzone) within the same Backup card.
+    Panels preview the required states:
+      A) Desktop · Dark  · populated
+      B) Desktop · Light · populated (theme parity)
+      C) Mobile  · Dark  · populated (responsive, phone frame)
+  -->
+  <div class="preview-page">
+    <h1>Settings → Platform</h1>
+    <p class="lede">
+      The tabs bar collapses from five tabs to <strong>two</strong>:
+      <strong>Platform</strong> and <strong>Charts</strong>. Platform groups
+      <em>Appearance</em> (Language + Theme) and <em>Backup &amp; Restore</em>
+      into peer Cards. The Theme Select mirrors the header toggle — both stay.
+      Restore is a subsection inside the Backup card. See <code>README.md</code>.
+    </p>
+
+    <div class="preview-grid">
+
+      <!-- ============================================================== -->
+      <!-- A) Desktop · Dark · populated                                   -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">A · Desktop · Dark · Populated</div>
+        <div class="preview-body">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Settings</h1>
+              <p class="page-subtitle">Configure your platform and chart preferences.</p>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <div class="tabs-list">
+              <button class="tab active">Platform</button>
+              <button class="tab">Charts</button>
+            </div>
+          </div>
+
+          <div class="tab-panel">
+            <!-- Card: Appearance (Language + Theme) -->
+            <div class="card">
+              <h4 class="section-title">Appearance</h4>
+              <div class="stack-md">
+                <div class="field narrow">
+                  <label>Language</label>
+                  <div class="field-desc">Interface language. Trading terms stay in English.</div>
+                  <select class="input"><option selected>English</option><option>Français</option><option>Español</option><option>Italiano</option><option>Deutsch</option><option>Português</option></select>
+                </div>
+                <div class="field narrow">
+                  <label>Theme</label>
+                  <div class="field-desc">Also available from the header toggle.</div>
+                  <select class="input"><option selected>Dark</option><option>Light</option></select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card: Backup & Restore -->
+            <div class="card">
+              <h4 class="section-title">Backup</h4>
+              <div class="stack-md">
+                <div class="field-row">
+                  <div class="field">
+                    <label>Backup directory</label>
+                    <div class="field-desc">Where backup .zip files are written.</div>
+                    <input class="input" type="text" value="/Users/trader/kiroku-backups" />
+                  </div>
+                  <button class="btn default btn-align">Save path</button>
+                </div>
+
+                <div class="field narrow">
+                  <label>Backup reminder</label>
+                  <select class="input"><option selected>Every 7 days</option><option>Every 14 days</option><option>Every 30 days</option><option>Disabled</option></select>
+                </div>
+
+                <div>
+                  <button class="btn filled">Back up now</button>
+                  <p class="last-backup" style="margin-top:6px">Last backup: <span class="when">Jun 27, 2026 6:14 PM</span></p>
+                </div>
+              </div>
+
+              <!-- Restore subsection (merged into the Backup card) -->
+              <div class="provider-config">
+                <h4 class="section-title">Restore from backup</h4>
+                <div class="field-desc" style="margin-top:-2px;margin-bottom:8px">Restoring replaces all current data. Back up first.</div>
+                <div class="dropzone">
+                  <span class="dz-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4v12"/></svg></span>
+                  <span class="dz-title">Drop a backup .zip here, or click to choose</span>
+                  <span class="dz-hint">Only .zip files exported by Kiroku</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- B) Desktop · Light · populated (theme parity)                  -->
+      <!-- ============================================================== -->
+      <div class="preview-col theme-light">
+        <div class="preview-label">B · Desktop · Light · Populated</div>
+        <div class="preview-body">
+          <div class="tabs">
+            <div class="tabs-list">
+              <button class="tab active">Platform</button>
+              <button class="tab">Charts</button>
+            </div>
+          </div>
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Appearance</h4>
+              <div class="stack-md">
+                <div class="field narrow">
+                  <label>Language</label>
+                  <select class="input"><option selected>English</option><option>Français</option></select>
+                </div>
+                <div class="field narrow">
+                  <label>Theme</label>
+                  <div class="field-desc">Also available from the header toggle.</div>
+                  <select class="input"><option>Dark</option><option selected>Light</option></select>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <h4 class="section-title">Backup</h4>
+              <div class="stack-md">
+                <div class="field-row">
+                  <div class="field">
+                    <label>Backup directory</label>
+                    <input class="input" type="text" value="/Users/trader/kiroku-backups" />
+                  </div>
+                  <button class="btn default btn-align">Save path</button>
+                </div>
+                <div class="field narrow">
+                  <label>Backup reminder</label>
+                  <select class="input"><option selected>Every 7 days</option><option>Every 14 days</option><option>Disabled</option></select>
+                </div>
+                <div>
+                  <button class="btn filled">Back up now</button>
+                  <p class="last-backup" style="margin-top:6px">Last backup: <span class="when">Jun 27, 2026 6:14 PM</span></p>
+                </div>
+              </div>
+              <div class="provider-config">
+                <h4 class="section-title">Restore from backup</h4>
+                <div class="dropzone">
+                  <span class="dz-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4v12"/></svg></span>
+                  <span class="dz-title">Drop a backup .zip here, or click to choose</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- C) Mobile · Dark · populated (responsive)                      -->
+      <!-- ============================================================== -->
+      <div class="preview-col span-all">
+        <div class="preview-label">C · Mobile · Dark · Populated</div>
+        <div class="preview-body preview-phone">
+          <div class="phone-frame">
+            <div class="page-header" style="margin-bottom:var(--sp-md)">
+              <div>
+                <h1 class="page-title" style="font-size:18px">Settings</h1>
+                <p class="page-subtitle">Configure your platform and chart preferences.</p>
+              </div>
+            </div>
+            <div class="tabs">
+              <div class="tabs-list">
+                <button class="tab active">Platform</button>
+                <button class="tab">Charts</button>
+              </div>
+            </div>
+            <div class="tab-panel">
+              <div class="card">
+                <h4 class="section-title">Appearance</h4>
+                <div class="stack-md">
+                  <div class="field">
+                    <label>Language</label>
+                    <select class="input"><option selected>English</option><option>Français</option></select>
+                  </div>
+                  <div class="field">
+                    <label>Theme</label>
+                    <select class="input"><option selected>Dark</option><option>Light</option></select>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <h4 class="section-title">Backup</h4>
+                <div class="stack-md">
+                  <div class="field">
+                    <label>Backup directory</label>
+                    <input class="input" type="text" value="/Users/trader/kiroku-backups" />
+                  </div>
+                  <button class="btn default" style="width:100%">Save path</button>
+                  <div class="field">
+                    <label>Backup reminder</label>
+                    <select class="input"><option selected>Every 7 days</option><option>Disabled</option></select>
+                  </div>
+                  <button class="btn filled" style="width:100%">Back up now</button>
+                </div>
+                <div class="provider-config">
+                  <h4 class="section-title">Restore from backup</h4>
+                  <div class="dropzone">
+                    <span class="dz-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4v12"/></svg></span>
+                    <span class="dz-title">Drop a .zip here, or tap to choose</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

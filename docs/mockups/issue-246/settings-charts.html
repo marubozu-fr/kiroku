@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kiroku — Settings · Charts tab</title>
+  <link rel="stylesheet" href="kiroku-mockup.css" />
+</head>
+<body>
+  <!--
+    Issue #246 — Settings page refactor · CHARTS tab.
+    Design-only mockup; maps 1:1 to Mantine (see README.md). The Charts tab
+    collects everything chart-related, in two Cards:
+      • Data Provider — Massive API key PasswordInput (eye toggle) + a
+        "Get a free API key" Anchor + a Save button.
+      • Timeframes — the harmonized timeframe controls from issue #234:
+          - Default entry timeframe → [value NumberInput] [unit Select]
+          - Default chart timeframes → [value] [unit] [Add] + chip list
+        Every unit Select uses placeholder "Pick a unit" with NO pre-selected
+        value (issue #246 harmonization). Chips sort by weight (D>W>H>M, then
+        value desc); >8 chips shows the non-blocking orange soft-limit warning.
+    Panels preview the required states:
+      A) Desktop · Dark  · populated
+      B) Desktop · Light · populated (theme parity)
+      C) Desktop · Dark  · empty (no timeframes yet, "Pick a unit" placeholder)
+  -->
+  <div class="preview-page">
+    <h1>Settings → Charts</h1>
+    <p class="lede">
+      The <strong>Charts</strong> tab holds the <em>Data Provider</em> (Massive
+      API key) and the <em>Timeframes</em> defaults. Unit Selects now show a
+      <strong>&ldquo;Pick a unit&rdquo;</strong> placeholder with no pre-selected
+      value, and the entry-timeframe order is harmonized to
+      <span class="tf-accent">[value] [unit]</span>. See <code>README.md</code>.
+    </p>
+
+    <div class="preview-grid">
+
+      <!-- ============================================================== -->
+      <!-- A) Desktop · Dark · populated                                   -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">A · Desktop · Dark · Populated</div>
+        <div class="preview-body">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Settings</h1>
+              <p class="page-subtitle">Configure your platform and chart preferences.</p>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <div class="tabs-list">
+              <button class="tab">Platform</button>
+              <button class="tab active">Charts</button>
+            </div>
+          </div>
+
+          <div class="tab-panel">
+            <!-- Card: Data Provider -->
+            <div class="card">
+              <h4 class="section-title">Data Provider</h4>
+              <div class="field">
+                <label>Massive API key</label>
+                <div class="field-desc">Used to fetch candles for trade charts. <a href="https://massive.com/dashboard/signup">Get a free API key</a></div>
+                <div class="input-with-toggle">
+                  <input class="input" type="password" value="mk_live_8fa31c4e9b27" />
+                  <button class="reveal-btn" aria-label="Show API key">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5 -7 10 -7s10 7 10 7s-3.5 7 -10 7s-10 -7 -10 -7z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+                <button class="btn light sm" style="margin-top:var(--sp-sm)">Save</button>
+              </div>
+            </div>
+
+            <!-- Card: Timeframes -->
+            <div class="card">
+              <h4 class="section-title">Timeframes</h4>
+
+              <!-- (a) Default entry timeframe — harmonized [value] [unit] -->
+              <div class="field" style="margin-bottom:var(--sp-md)">
+                <label>Default entry timeframe</label>
+                <div class="field-desc">Pre-fills the entry timeframe when you create a new trade.</div>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" value="15" min="0" /></div>
+                  <div class="tf-unit">
+                    <select class="input"><option value="" selected disabled hidden>Pick a unit</option><option>m</option><option>h</option><option>d</option><option>w</option></select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- (b) Default chart timeframes — add row + chips -->
+              <div class="field">
+                <label>Default chart timeframes</label>
+                <div class="field-desc">Shown by default on every trade chart. Add or remove as you like.</div>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" placeholder="Value" min="0" /></div>
+                  <div class="tf-unit">
+                    <select class="input"><option value="" selected disabled hidden>Pick a unit</option><option>m</option><option>h</option><option>d</option><option>w</option></select>
+                  </div>
+                  <button class="btn light sm">Add</button>
+                </div>
+                <div class="tf-chips">
+                  <span class="tf-chip">1d<button class="tf-remove" aria-label="Remove 1d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">4h<button class="tf-remove" aria-label="Remove 4h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">1h<button class="tf-remove" aria-label="Remove 1h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">15m<button class="tf-remove" aria-label="Remove 15m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                </div>
+                <p class="tf-count"><strong>4</strong> timeframes</p>
+              </div>
+
+              <button class="btn light sm" style="margin-top:var(--sp-md)">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- B) Desktop · Light · populated (theme parity)                  -->
+      <!-- ============================================================== -->
+      <div class="preview-col theme-light">
+        <div class="preview-label">B · Desktop · Light · Populated</div>
+        <div class="preview-body">
+          <div class="tabs">
+            <div class="tabs-list">
+              <button class="tab">Platform</button>
+              <button class="tab active">Charts</button>
+            </div>
+          </div>
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Data Provider</h4>
+              <div class="field">
+                <label>Massive API key</label>
+                <div class="field-desc">Used to fetch candles for trade charts. <a href="https://massive.com/dashboard/signup">Get a free API key</a></div>
+                <div class="input-with-toggle">
+                  <input class="input" type="password" value="mk_live_8fa31c4e9b27" />
+                  <button class="reveal-btn" aria-label="Show API key">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5 -7 10 -7s10 7 10 7s-3.5 7 -10 7s-10 -7 -10 -7z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+                <button class="btn light sm" style="margin-top:var(--sp-sm)">Save</button>
+              </div>
+            </div>
+            <div class="card">
+              <h4 class="section-title">Timeframes</h4>
+              <div class="field" style="margin-bottom:var(--sp-md)">
+                <label>Default entry timeframe</label>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" value="15" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option value="" selected disabled hidden>Pick a unit</option><option>m</option><option>h</option><option>d</option><option>w</option></select></div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Default chart timeframes</label>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" placeholder="Value" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option value="" selected disabled hidden>Pick a unit</option><option>m</option><option>h</option><option>d</option><option>w</option></select></div>
+                  <button class="btn light sm">Add</button>
+                </div>
+                <div class="tf-chips">
+                  <span class="tf-chip">1d<button class="tf-remove" aria-label="Remove 1d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">4h<button class="tf-remove" aria-label="Remove 4h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">1h<button class="tf-remove" aria-label="Remove 1h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                  <span class="tf-chip">15m<button class="tf-remove" aria-label="Remove 15m"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+                </div>
+                <p class="tf-count"><strong>4</strong> timeframes</p>
+              </div>
+              <button class="btn light sm" style="margin-top:var(--sp-md)">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- C) Desktop · Dark · empty (no timeframes, "Pick a unit")        -->
+      <!-- ============================================================== -->
+      <div class="preview-col">
+        <div class="preview-label">C · Desktop · Dark · Empty (placeholder unit)</div>
+        <div class="preview-body">
+          <div class="tab-panel">
+            <div class="card">
+              <h4 class="section-title">Timeframes</h4>
+              <div class="field" style="margin-bottom:var(--sp-md)">
+                <label>Default entry timeframe</label>
+                <div class="field-desc">Pre-fills the entry timeframe when you create a new trade.</div>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" placeholder="Value" min="0" /></div>
+                  <div class="tf-unit">
+                    <!-- No pre-selected value — the placeholder shows until a unit is chosen. -->
+                    <select class="input"><option value="" selected disabled hidden>Pick a unit</option><option>m</option><option>h</option><option>d</option><option>w</option></select>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <label>Default chart timeframes</label>
+                <div class="field-desc">Shown by default on every trade chart. Add or remove as you like.</div>
+                <div class="tf-input-row">
+                  <div class="tf-value"><input class="input" type="number" placeholder="Value" min="0" /></div>
+                  <div class="tf-unit"><select class="input"><option value="" selected disabled hidden>Pick a unit</option><option>m</option><option>h</option><option>d</option><option>w</option></select></div>
+                  <button class="btn light sm">Add</button>
+                </div>
+                <p class="tf-chips-empty">No default timeframes yet — add one above to get started.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
