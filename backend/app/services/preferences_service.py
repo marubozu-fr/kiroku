@@ -5,11 +5,11 @@ from typing import Any
 from app.errors import ValidationError
 from app.models.preferences import PreferencesUpdate
 from app.repositories import preferences_repository
-from app.services.chart_service import CHART_TIMEFRAMES_WARNING_THRESHOLD
-
-# Valid timeframe unit characters in TradingView casing convention.
-# 'm' = minutes, 'h' = hours, 'D' = days (uppercase), 'W' = weeks (uppercase).
-_VALID_TIMEFRAME_UNITS: frozenset[str] = frozenset({"m", "h", "D", "W"})
+from app.services.chart_service import (
+  CHART_TIMEFRAMES_WARNING_THRESHOLD,
+  VALID_TIMEFRAME_UNITS,
+  validate_chart_timeframes,
+)
 
 # Preference keys whose column is nullable and whose None value must therefore
 # be written through (to clear the stored value) rather than dropped.
@@ -18,38 +18,9 @@ _NULLABLE_WRITE_THROUGH: frozenset[str] = frozenset(
 )
 
 
-def _validate_chart_timeframes(tfs: Any) -> None:
-  """Raise ValidationError when chart_timeframes_default is malformed."""
-  if not isinstance(tfs, list):
-    raise ValidationError("chart_timeframes_default must be a list")
-  seen: set[tuple[str, int]] = set()
-  for item in tfs:
-    if not isinstance(item, dict):
-      raise ValidationError(
-        "Each chart_timeframes_default item must be an object with 'unit' and 'value'"
-      )
-    unit = item.get("unit")
-    value = item.get("value")
-    if unit not in _VALID_TIMEFRAME_UNITS:
-      raise ValidationError(
-        f"Invalid timeframe unit '{unit}'. Valid units: m, h, D, W"
-      )
-    # bool is a subclass of int in Python; reject it explicitly.
-    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
-      raise ValidationError(
-        f"Timeframe value must be a positive integer, got {value!r}"
-      )
-    pair = (unit, value)
-    if pair in seen:
-      raise ValidationError(
-        f"Duplicate timeframe {unit}{value} in chart_timeframes_default"
-      )
-    seen.add(pair)
-
-
 def _validate_entry_timeframe_pair(unit: Any, value: Any) -> None:
   """Raise ValidationError when an entry-timeframe pair has invalid values."""
-  if unit is not None and unit not in _VALID_TIMEFRAME_UNITS:
+  if unit is not None and unit not in VALID_TIMEFRAME_UNITS:
     raise ValidationError(
       f"Invalid timeframe unit '{unit}'. Valid units: m, h, D, W"
     )
@@ -94,7 +65,7 @@ async def update_preferences(payload: PreferencesUpdate) -> dict[str, Any]:
 
   # --- Validate chart_timeframes_default ---
   if "chart_timeframes_default" in set_fields:
-    _validate_chart_timeframes(set_fields["chart_timeframes_default"])
+    validate_chart_timeframes(set_fields["chart_timeframes_default"])
 
   # --- Validate entry-timeframe pair ---
   # The two fields must always be sent together: providing only one of them
