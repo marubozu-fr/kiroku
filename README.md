@@ -135,23 +135,29 @@ Then open [http://kiroku:5173](http://kiroku:5173).
 
 ````
 kiroku/
-├── backend/            # FastAPI REST API
+├── backend/
 │   ├── app/
-│   │   ├── main.py     # App entry point
-│   │   ├── routers/    # HTTP handlers
-│   │   ├── models/     # Pydantic schemas
-│   │   ├── services/   # Business logic
-│   │   ├── repositories/  # Database access
+│   │   ├── main.py
+│   │   ├── routers/
+│   │   ├── models/
+│   │   ├── services/
+│   │   ├── repositories/
 │   │   └── database.py
+│   ├── data/candles/      # Parquet candle storage
 │   └── tests/
-├── frontend/           # React + TypeScript UI
+├── frontend/
 │   └── src/
-│       ├── pages/      # Route-level components
-│       ├── components/ # Reusable UI
-│       ├── services/   # API client
-│       ├── types/      # TypeScript interfaces
-│       └── i18n/       # Translations
-├── docs/               # Design system, architecture
+│       ├── pages/
+│       ├── components/
+│       ├── hooks/
+│       ├── services/
+│       ├── types/
+│       └── i18n/
+├── .claude/                # Multi-agent workflow
+│   ├── agents/
+│   └── skills/
+├── docs/
+├── CLAUDE.md
 ├── Makefile
 └── README.md
 ````
