@@ -176,7 +176,7 @@ describe('AssetsTab', () => {
 
       fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'zzzz' } })
 
-      expect(await screen.findByText('No matching assets')).toBeInTheDocument()
+      expect(await screen.findByText('No results')).toBeInTheDocument()
       expect(screen.queryByText('EUR/USD')).not.toBeInTheDocument()
     })
   })

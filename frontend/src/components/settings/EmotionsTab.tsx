@@ -214,7 +214,7 @@ export function EmotionsTab() {
           </Table>
         </Table.ScrollContainer>
 
-        {filtered.length === 0 && <FilterEmptyState entity={entity} />}
+        {filtered.length === 0 && <FilterEmptyState />}
 
         {reduced && filtered.length > 0 && (
           <Text c="dimmed" size="sm" mt="sm">
