@@ -46,6 +46,8 @@ export const tagsApi = {
 }
 
 export const emotionsApi = {
+  list: (signal?: AbortSignal): Promise<Emotion[]> =>
+    api.get<Emotion[]>('/emotions', signal),
   grouped: (signal?: AbortSignal): Promise<Record<string, Emotion[]>> =>
     api.get<Record<string, Emotion[]>>('/emotions/grouped', signal),
   create: (body: EmotionInput): Promise<Emotion> =>

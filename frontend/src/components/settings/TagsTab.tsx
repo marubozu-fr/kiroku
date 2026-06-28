@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { IconPencil, IconPlus, IconTrash } from '@tabler/icons-react'
-import { ActionIcon, Button, Group, Switch, Table, Text } from '@mantine/core'
+import { ActionIcon, Button, Group, Switch, Table, Text, TextInput } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 import { useFetch } from '@/hooks/useFetch'
 import { tagsApi } from '@/services/referenceData'
 import type { Tag } from '@/types/referenceData'
 import { DataStates } from './DataStates'
 import { DeleteEntityModal } from './DeleteEntityModal'
+import { FilterEmptyState } from './FilterEmptyState'
 import { TagModal } from './TagModal'
 import { useDeleteEntity } from './useDeleteEntity'
 import { notifyError, notifySuccess } from './notify'
@@ -17,6 +18,8 @@ export function TagsTab() {
   const [editing, setEditing] = useState<Tag | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [togglingId, setTogglingId] = useState<number | null>(null)
+  const [nameFilter, setNameFilter] = useState('')
+  const [descriptionFilter, setDescriptionFilter] = useState('')
 
   const del = useDeleteEntity<Tag>({
     countFn: tagsApi.tradeCount,
@@ -54,6 +57,23 @@ export function TagsTab() {
   }
 
   const tags = data ?? []
+  const entity = t('manage.entity_tags')
+
+  const filtered = tags.filter((tag) => {
+    if (nameFilter && !tag.name.toLowerCase().includes(nameFilter.trim().toLowerCase())) {
+      return false
+    }
+    if (
+      descriptionFilter &&
+      !(tag.description ?? '').toLowerCase().includes(descriptionFilter.trim().toLowerCase())
+    ) {
+      return false
+    }
+    return true
+  })
+
+  const filtersActive = nameFilter !== '' || descriptionFilter !== ''
+  const reduced = filtersActive && filtered.length < tags.length
 
   return (
     <>
@@ -87,9 +107,32 @@ export function TagsTab() {
                   {t('settings.tags.columns.actions')}
                 </Table.Th>
               </Table.Tr>
+              <Table.Tr>
+                <Table.Th>
+                  <TextInput
+                    size="xs"
+                    placeholder={t('manage.filter_placeholder')}
+                    value={nameFilter}
+                    onChange={(event) => setNameFilter(event.currentTarget.value)}
+                    aria-label={t('settings.tags.columns.name')}
+                  />
+                </Table.Th>
+                <Table.Th>
+                  <TextInput
+                    size="xs"
+                    placeholder={t('manage.filter_placeholder')}
+                    value={descriptionFilter}
+                    onChange={(event) => setDescriptionFilter(event.currentTarget.value)}
+                    aria-label={t('settings.tags.columns.description')}
+                  />
+                </Table.Th>
+                <Table.Th />
+                <Table.Th />
+              </Table.Tr>
             </Table.Thead>
+            {filtered.length > 0 && (
             <Table.Tbody>
-              {tags.map((tag) => (
+              {filtered.map((tag) => (
                 <Table.Tr key={tag.id}>
                   <Table.Td>
                     <Text c={tag.is_active ? undefined : 'dimmed'}>{tag.name}</Text>
@@ -132,8 +175,21 @@ export function TagsTab() {
                 </Table.Tr>
               ))}
             </Table.Tbody>
+            )}
           </Table>
         </Table.ScrollContainer>
+
+        {filtered.length === 0 && <FilterEmptyState entity={entity} />}
+
+        {reduced && filtered.length > 0 && (
+          <Text c="dimmed" size="sm" mt="sm">
+            {t('manage.showing_count', {
+              count: filtered.length,
+              total: tags.length,
+              entity,
+            })}
+          </Text>
+        )}
       </DataStates>
 
       <TagModal

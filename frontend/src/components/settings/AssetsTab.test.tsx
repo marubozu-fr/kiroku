@@ -89,7 +89,96 @@ describe('AssetsTab', () => {
     renderWithProviders(<AssetsTab />)
 
     expect(await screen.findByText('EUR/USD')).toBeInTheDocument()
-    expect(screen.getByText('Forex')).toBeInTheDocument()
+    // Scope to the table cell — "Forex" also exists as a hidden filter option.
+    expect(screen.getByRole('cell', { name: 'Forex' })).toBeInTheDocument()
+  })
+
+  describe('column filters', () => {
+    const many = [
+      asset({ id: 1, name: 'EUR/USD', category: 'Forex', currency: 'USD', is_active: true }),
+      asset({ id: 2, name: 'BTC/USD', category: 'Crypto', currency: 'USD', is_active: false }),
+      asset({ id: 3, name: 'AAPL', category: 'Stock', currency: 'EUR', is_active: true }),
+    ]
+
+    const openSelect = (label: string) =>
+      fireEvent.click(screen.getByLabelText(label, { selector: '.mantine-Select-input' }))
+
+    it('renders the filter row with name, category, currency, and active controls', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(many)))
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText('EUR/USD')
+
+      expect(screen.getByLabelText('Name')).toBeInTheDocument()
+      expect(screen.getByLabelText('Category', { selector: '.mantine-Select-input' })).toBeInTheDocument()
+      expect(screen.getByLabelText('Currency', { selector: '.mantine-Select-input' })).toBeInTheDocument()
+      expect(screen.getByLabelText('Active', { selector: '.mantine-Select-input' })).toBeInTheDocument()
+    })
+
+    it('filters by name (case-insensitive substring) and hides non-matching rows', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(many)))
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText('EUR/USD')
+
+      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'btc' } })
+
+      await waitFor(() => expect(screen.queryByText('EUR/USD')).not.toBeInTheDocument())
+      expect(screen.getByText('BTC/USD')).toBeInTheDocument()
+      expect(screen.queryByText('AAPL')).not.toBeInTheDocument()
+      // The active-filter summary line appears.
+      expect(screen.getByText('Showing 1 of 3 assets')).toBeInTheDocument()
+    })
+
+    it('filters by category, showing only matching rows', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(many)))
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText('EUR/USD')
+
+      openSelect('Category')
+      fireEvent.click(await screen.findByRole('option', { name: 'Stock' }))
+
+      await waitFor(() => expect(screen.queryByText('EUR/USD')).not.toBeInTheDocument())
+      expect(screen.getByText('AAPL')).toBeInTheDocument()
+    })
+
+    it('combines name and category filters (AND)', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(many)))
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText('EUR/USD')
+
+      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'usd' } })
+      openSelect('Category')
+      fireEvent.click(await screen.findByRole('option', { name: 'Crypto' }))
+
+      // Only BTC/USD is both a USD-named asset and a Crypto.
+      await waitFor(() => expect(screen.queryByText('EUR/USD')).not.toBeInTheDocument())
+      expect(screen.getByText('BTC/USD')).toBeInTheDocument()
+      expect(screen.queryByText('AAPL')).not.toBeInTheDocument()
+    })
+
+    it('restores all rows when a filter is cleared', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(many)))
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText('EUR/USD')
+
+      const nameInput = screen.getByLabelText('Name')
+      fireEvent.change(nameInput, { target: { value: 'btc' } })
+      await waitFor(() => expect(screen.queryByText('EUR/USD')).not.toBeInTheDocument())
+
+      fireEvent.change(nameInput, { target: { value: '' } })
+      expect(await screen.findByText('EUR/USD')).toBeInTheDocument()
+      expect(screen.getByText('AAPL')).toBeInTheDocument()
+    })
+
+    it('shows the no-match state when filters eliminate every row', async () => {
+      vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(many)))
+      renderWithProviders(<AssetsTab />)
+      await screen.findByText('EUR/USD')
+
+      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'zzzz' } })
+
+      expect(await screen.findByText('No matching assets')).toBeInTheDocument()
+      expect(screen.queryByText('EUR/USD')).not.toBeInTheDocument()
+    })
   })
 
   it('shows the empty state when there are no assets', async () => {
@@ -315,8 +404,10 @@ describe('AssetsTab', () => {
       await waitFor(() => expect(tickerInput).toHaveValue('C:EURUSD'))
 
       // Switching from Forex to Crypto invalidates the forex ticker.
+      // Pick the open modal dropdown option by role (the filter row also has a
+      // hidden Crypto option).
       fireEvent.click(within(dialog).getByPlaceholderText('Pick a category'))
-      fireEvent.click(screen.getByText('Crypto'))
+      fireEvent.click(screen.getByRole('option', { name: 'Crypto' }))
 
       await waitFor(() => expect(tickerInput).toHaveValue(''))
       expect(tickerInput).not.toBeDisabled()

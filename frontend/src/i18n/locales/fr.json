@@ -536,6 +536,7 @@
       "empty": "Aucune émotion pour l'instant. Ajoutez des émotions pour qualifier votre état mental sur chaque trade.",
       "columns": {
         "name": "Nom",
+        "category": "Catégorie",
         "description": "Description",
         "severity": "Intensité",
         "actions": "Actions"
@@ -658,7 +659,17 @@
       "tags": "Tags",
       "emotions": "Émotions",
       "news": "Actualités"
-    }
+    },
+    "filter_placeholder": "Filtrer...",
+    "filter_all": "Tous",
+    "filter_active_yes": "Oui",
+    "filter_active_no": "Non",
+    "no_match_title": "Aucun {{entity}} correspondant",
+    "no_match_description": "Aucun {{entity}} ne correspond aux filtres actuels. Effacez un filtre pour en voir plus.",
+    "showing_count": "Affichage de {{count}} sur {{total}} {{entity}}",
+    "entity_assets": "actifs",
+    "entity_tags": "tags",
+    "entity_emotions": "émotions"
   },
   "trade": {
     "back_to_journal": "Retour au journal",
