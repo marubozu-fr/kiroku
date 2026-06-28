@@ -843,6 +843,10 @@ describe('TradeFormPage — chart timeframes (#238)', () => {
 
     await screen.findByText('New trade')
     fireEvent.change(screen.getByLabelText('Add a timeframe'), { target: { value: '5' } })
+    // The chart timeframes unit Select has no default; pick one before adding.
+    fireEvent.click(screen.getAllByPlaceholderText('Pick a unit')[1]!)
+    const minutesOptions = screen.getAllByText('Minutes')
+    fireEvent.click(minutesOptions[minutesOptions.length - 1]!)
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
 
     expect(await screen.findByText('5m')).toBeInTheDocument()

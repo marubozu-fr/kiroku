@@ -84,6 +84,10 @@ describe('ChartTimeframesCard', () => {
 
     const valueInput = await screen.findByLabelText('Default chart timeframes')
     fireEvent.change(valueInput, { target: { value: '5' } })
+    // The unit Select has no default; pick one before adding.
+    fireEvent.click(screen.getAllByPlaceholderText('Pick a unit')[1]!)
+    const minutesOptions = screen.getAllByText('Minutes')
+    fireEvent.click(minutesOptions[minutesOptions.length - 1]!)
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
 
     expect(await screen.findByText('5m')).toBeInTheDocument()
@@ -98,6 +102,10 @@ describe('ChartTimeframesCard', () => {
 
     const valueInput = await screen.findByLabelText('Default chart timeframes')
     fireEvent.change(valueInput, { target: { value: '15' } })
+    // The unit Select has no default; pick one before adding.
+    fireEvent.click(screen.getAllByPlaceholderText('Pick a unit')[1]!)
+    const minutesOptions = screen.getAllByText('Minutes')
+    fireEvent.click(minutesOptions[minutesOptions.length - 1]!)
     fireEvent.click(screen.getByRole('button', { name: 'Add' }))
 
     expect(
